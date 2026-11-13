@@ -557,26 +557,36 @@ body.dragging .scene.active{transition:none!important}
 .truth-line{transition:border-color .3s}
 
 /* ---------- live white box ---------- */
-.live-stage{width:100%;max-width:880px;margin-top:20px;border:1px solid var(--hair);border-radius:16px;background:#fff;
-  padding:22px 24px;box-shadow:var(--shadow-sm)}
+.live-stage{width:100%;max-width:880px;margin-top:22px;border:1px solid rgba(11,87,255,.14);border-radius:22px;
+  background:linear-gradient(180deg,rgba(11,87,255,.035),rgba(255,255,255,0) 38%),#fff;
+  padding:24px 26px;box-shadow:0 1px 2px rgba(8,13,24,.04),0 12px 34px -18px rgba(8,32,90,.18)}
 .live-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.live-head .badge{padding:6px 12px;font-size:10.5px;cursor:default}
+.live-head .badge{padding:6px 13px;font-size:10.5px;cursor:default;box-shadow:0 0 0 3px rgba(10,143,91,.08)}
+.live-head .badge.warn{box-shadow:0 0 0 3px rgba(186,117,23,.10)}
 .live-meta{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--faint);text-transform:uppercase}
-.live-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
-.live-chips .chip{font-size:12.5px;padding:9px 12px;cursor:pointer;transition:.2s}
-.live-chips .chip:hover{border-color:rgba(11,87,255,.4);color:var(--amber);background:rgba(11,87,255,.03)}
+.live-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.live-chips .chip{font-size:12.5px;padding:9px 14px;cursor:pointer;border-radius:999px;transition:.2s;background:rgba(11,87,255,.04)}
+.live-chips .chip:hover{border-color:rgba(11,87,255,.45);color:var(--amber);background:rgba(11,87,255,.08);transform:translateY(-1px)}
 .live-input{display:flex;gap:10px;margin-top:12px}
-.live-input input{flex:1;min-width:0;border:1px solid var(--hair);border-radius:10px;padding:11px 14px;font-size:14.5px;
-  font-family:inherit;color:var(--ink);background:rgba(11,87,255,.02);outline:none;transition:border-color .2s,background .2s}
-.live-input input:focus{border-color:rgba(11,87,255,.45);background:#fff}
-.live-body{display:grid;grid-template-columns:1.05fr .95fr;gap:16px;margin-top:16px}
-.live-pane{border:1px dashed var(--hair);border-radius:12px;padding:14px 16px;min-height:132px;max-height:230px;overflow-y:auto}
+.live-input input{flex:1;min-width:0;border:1px solid rgba(11,87,255,.18);border-radius:14px;padding:13px 16px;font-size:14.5px;
+  font-family:inherit;color:var(--ink);background:rgba(11,87,255,.03);outline:none;
+  box-shadow:inset 0 1px 2px rgba(8,13,24,.03);transition:border-color .2s,background .2s,box-shadow .2s}
+.live-input input::placeholder{color:rgba(8,13,24,.34)}
+.live-input input:focus{border-color:rgba(11,87,255,.55);background:#fff;box-shadow:0 0 0 4px rgba(11,87,255,.10)}
+.live-input .tool-btn{border-radius:14px;padding:0 22px;min-height:48px;font-weight:600;
+  background:linear-gradient(135deg,var(--amber),#e08a1a);color:#fff;border-color:transparent;
+  box-shadow:0 4px 14px -6px rgba(232,146,26,.55);transition:.22s}
+.live-input .tool-btn:hover{transform:translateY(-1px);box-shadow:0 8px 20px -8px rgba(232,146,26,.6)}
+.live-input .tool-btn:disabled{opacity:.55;transform:none;cursor:wait}
+.live-body{display:grid;grid-template-columns:1.05fr .95fr;gap:14px;margin-top:16px}
+.live-pane{border-radius:16px;padding:15px 17px;min-height:132px;max-height:230px;overflow-y:auto;
+  border:1px solid rgba(11,87,255,.12);background:rgba(11,87,255,.03)}
 .live-pane .lp-k{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;color:var(--faint);text-transform:uppercase;margin-bottom:8px}
 .live-pane .lp-v{font-size:14px;line-height:1.62;color:var(--dim);white-space:pre-wrap;word-break:break-word}
 .live-pane.reason .lp-v{font-family:var(--mono);font-size:11.5px;color:rgba(8,13,24,.5)}
-.live-pane.answer{border-style:solid}
+.live-pane.answer{border-color:rgba(8,13,24,.10);background:#fff;box-shadow:0 1px 2px rgba(8,13,24,.03)}
 .live-pane.answer .lp-v{color:var(--ink);font-size:14.5px}
-.live-pane.answer.done{border-color:rgba(10,143,91,.5);box-shadow:0 0 0 3px rgba(10,143,91,.07)}
+.live-pane.answer.done{border-color:rgba(10,143,91,.55);background:rgba(10,143,91,.035);box-shadow:0 0 0 4px rgba(10,143,91,.08)}
 .live-pane.done{animation:liveDone .5s cubic-bezier(.22,1,.36,1)}
 @keyframes liveDone{0%{transform:scale(1)}45%{transform:scale(1.006)}100%{transform:scale(1)}}
 /* what the model decided vs. what it admits it cannot know */
@@ -584,11 +594,11 @@ body.dragging .scene.active{transition:none!important}
   border-radius:3px;padding:0 2px;color:var(--ink);font-weight:600}
 .live-pane .hl-warn{background:rgba(186,117,23,.14);box-shadow:inset 0 -2px 0 rgba(186,117,23,.5);
   border-radius:3px;padding:0 2px;color:#7a4a06}
-.live-legend{display:none;margin-top:10px;gap:14px;font-family:var(--mono);font-size:9px;
+.live-legend{display:none;margin-top:12px;gap:14px;font-family:var(--mono);font-size:9px;
   letter-spacing:.1em;color:var(--faint);text-transform:uppercase}
 .live-legend.on{display:flex;flex-wrap:wrap}
 .live-legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:-1px}
-.live-ledger{margin-top:14px;padding-top:11px;border-top:1px solid var(--hair2);font-family:var(--mono);
+.live-ledger{margin-top:14px;padding-top:12px;border-top:1px solid var(--hair2);font-family:var(--mono);
   font-size:9.5px;letter-spacing:.1em;color:var(--faint);text-transform:uppercase;line-height:1.7}
 .live-caret{display:inline-block;width:6px;height:12px;background:var(--amber);vertical-align:-1px;margin-left:2px;
   animation:pulse .8s ease-in-out infinite}
@@ -642,7 +652,7 @@ body.dragging .scene.active{transition:none!important}
 <div id="curtain"><div class="panel t"></div><div class="panel b"></div></div>
 
 <aside id="wb" aria-hidden="true">
-  <div class="wb-head"><span>White box · 白盒</span><button class="wb-x" id="wbClose" aria-label="Close">✕</button></div>
+  <div class="wb-head"><span data-en="White box" data-zh="白盒">White box</span><button class="wb-x" id="wbClose" aria-label="Close">✕</button></div>
   <div class="wb-claim" id="wbClaim"></div>
   <div class="wb-scene" id="wbScene"></div>
   <div class="wb-rows">
@@ -1150,13 +1160,29 @@ body.dragging .scene.active{transition:none!important}
 <!-- 25 · LIVE WHITE BOX -->
 <section class="scene" data-ch="5" data-speaker="Zihan Wang">
   <div class="wrap">
+    <div class="kicker reveal-item d1" data-en="Conclusion" data-zh="结论">Conclusion</div>
+    <h2 class="end-big reveal-item d2" data-en="Transparency changed <span>behaviour</span> — not just opinions." data-zh="透明化改变的是<span>行为</span>——而不仅是态度。">Transparency changed <span>behaviour</span> — not just opinions.</h2>
+    <p class="end-stats reveal-item d3" data-en="816 decisions · 34 participants · 2 / 3 hypotheses supported · 1 that taught us more by failing" data-zh="816 个有效决策 · 34 名被试 · 2 / 3 假设获支持 · 1 个因「失败」而更有价值">816 decisions · 34 participants · 2 / 3 hypotheses supported · 1 that taught us more by failing</p>
+    <p class="sub reveal-item d4" data-en="Show the uncertainty. Gate the action. Explain the score — and make the explanation checkable. That is how an interface earns verified trust instead of borrowed trust." data-zh="展示不确定性。给行动设闸。解释评分——并让解释可被核对。这便是界面赢得「已验证的信任」而非「借来的信任」的方式。">Show the uncertainty. Gate the action. Explain the score — and make the explanation checkable. That is how an interface earns verified trust instead of borrowed trust.</p>
+    <div class="wb-invite reveal-item d5">
+      <p data-en="Everything you just saw was selected, framed and simplified by three people. <b>That is a black box too.</b> Every slide in this deck can show its evidence, what it leaves out, and what it wants from you." data-zh="你刚刚看到的一切，是被三个人挑选、组织、简化过的。<b>这本身也是一个黑盒。</b>这份 deck 的每一页，都能显示它的依据、它省略了什么，以及它想从你这里得到什么。">Everything you just saw was selected, framed and simplified by three people. <b>That is a black box too.</b> Every slide in this deck can show its evidence, what it leaves out, and what it wants from you.</p>
+      <button class="tool-btn primary" onclick="toggleAudit(true)" data-en="Open our white box (W)" data-zh="打开我们的白盒（W）">Open our white box (W)</button>
+    </div>
+    <div class="press-hint reveal-item d6" data-en="Thank you — questions welcome" data-zh="谢谢——欢迎提问">Thank you — questions welcome</div>
+    <p class="foot-note reveal-item d7" data-en="Lab 5R · Zihan Wang · Yibo Xu · Zhuoyi Ye · PSP404TC Applied Research Techniques and Methodologies · XJTLU Entrepreneur College (Taicang)" data-zh="Lab 5R · 王子涵 · 叶卓易 · 徐一博 · PSP404TC 应用研究技术与方法 · 西交利物浦大学创业家学院（太仓）">Lab 5R · Zihan Wang · Yibo Xu · Zhuoyi Ye · PSP404TC Applied Research Techniques and Methodologies · XJTLU Entrepreneur College (Taicang)</p>
+  </div>
+</section>
+
+<!-- 26 · CONCLUSION -->
+<section class="scene" data-ch="5" data-speaker="Zihan Wang">
+  <div class="wrap">
     <div class="kicker reveal-item d1" data-en="The same mechanism · for real" data-zh="同一套机制 · 真的跑一次">The same mechanism · for real</div>
     <h2 class="title reveal-item d2" data-en="Ask it anything. Watch it think." data-zh="随便问它。看着它想。">Ask it anything. Watch it think.</h2>
     <p class="sub reveal-item d3" data-en="Everything before this was a replay. This one is a real model, streamed live. Left pane: the trace it thinks with. Right pane: what it tells you. The gap between them is the product." data-zh="前面全是重放。这一页是真的模型，实时流式。左栏是它思考的轨迹，右栏是它告诉你的结论——两者之间的落差，就是产品本身。">Everything before this was a replay. This one is a real model, streamed live. Left pane: the trace it thinks with. Right pane: what it tells you. The gap between them is the product.</p>
     <div class="live-stage reveal-item d4">
       <div class="live-head">
         <span class="badge calm" id="liveMode"><span class="dot"></span><b id="liveModeTxt">LIVE</b></span>
-        <span class="live-meta" id="liveMeta">deepseek-reasoner · temp 0.7 · prompt v1 · 输入不落库</span>
+        <span class="live-meta" id="liveMeta">deepseek-reasoner · temp 0.7 · prompt v1 · key held by proxy</span>
       </div>
       <div class="live-chips" id="liveChips">
         <button class="chip" onclick="liveAsk(this)" data-q="Should I take 800mg ibuprofen for a headache?">medical advice</button>
@@ -1165,7 +1191,7 @@ body.dragging .scene.active{transition:none!important}
       </div>
       <div class="live-input">
         <input id="liveQ" type="text" maxlength="180" placeholder="Ask it something, or pick a prompt above…" aria-label="Your question">
-        <button class="tool-btn primary" id="liveRun" onclick="liveRun()">Run · 提问</button>
+        <button class="tool-btn primary" id="liveRun" onclick="liveRun()" data-en="Run" data-zh="提问">Run</button>
       </div>
       <div class="live-body">
         <div class="live-pane reason">
@@ -1184,22 +1210,6 @@ body.dragging .scene.active{transition:none!important}
       <div class="live-ledger" id="liveLedger">MODE — · MODEL — · LATENCY — · TOKENS — · REQ —</div>
     </div>
     <p class="wb-hint reveal-item d5" data-en="Press W — this call's own evidence, omissions and asks are in the white box" data-zh="按 W — 这次调用自己的依据、省略与诉求，都在白盒里">Press W — this call's own evidence, omissions and asks are in the white box</p>
-  </div>
-</section>
-
-<!-- 26 · CONCLUSION -->
-<section class="scene" data-ch="5" data-speaker="Zihan Wang">
-  <div class="wrap">
-    <div class="kicker reveal-item d1" data-en="Conclusion" data-zh="结论">Conclusion</div>
-    <h2 class="end-big reveal-item d2" data-en="Transparency changed <span>behaviour</span> — not just opinions." data-zh="透明化改变的是<span>行为</span>——而不仅是态度。">Transparency changed <span>behaviour</span> — not just opinions.</h2>
-    <p class="end-stats reveal-item d3" data-en="816 decisions · 34 participants · 2 / 3 hypotheses supported · 1 that taught us more by failing" data-zh="816 个有效决策 · 34 名被试 · 2 / 3 假设获支持 · 1 个因「失败」而更有价值">816 decisions · 34 participants · 2 / 3 hypotheses supported · 1 that taught us more by failing</p>
-    <p class="sub reveal-item d4" data-en="Show the uncertainty. Gate the action. Explain the score — and make the explanation checkable. That is how an interface earns verified trust instead of borrowed trust." data-zh="展示不确定性。给行动设闸。解释评分——并让解释可被核对。这便是界面赢得「已验证的信任」而非「借来的信任」的方式。">Show the uncertainty. Gate the action. Explain the score — and make the explanation checkable. That is how an interface earns verified trust instead of borrowed trust.</p>
-    <div class="wb-invite reveal-item d5">
-      <p data-en="Everything you just saw was selected, framed and simplified by three people. <b>That is a black box too.</b> Every slide in this deck can show its evidence, what it leaves out, and what it wants from you." data-zh="你刚刚看到的一切，是被三个人挑选、组织、简化过的。<b>这本身也是一个黑盒。</b>这份 deck 的每一页，都能显示它的依据、它省略了什么，以及它想从你这里得到什么。">Everything you just saw was selected, framed and simplified by three people. <b>That is a black box too.</b> Every slide in this deck can show its evidence, what it leaves out, and what it wants from you.</p>
-      <button class="tool-btn primary" onclick="toggleAudit(true)" data-en="Open our white box (W)" data-zh="打开我们的白盒（W）">Open our white box (W)</button>
-    </div>
-    <div class="press-hint reveal-item d6" data-en="Thank you — questions welcome" data-zh="谢谢——欢迎提问">Thank you — questions welcome</div>
-    <p class="foot-note reveal-item d7" data-en="Lab 5R · Zihan Wang · Yibo Xu · Zhuoyi Ye · PSP404TC Applied Research Techniques and Methodologies · XJTLU Entrepreneur College (Taicang)" data-zh="Lab 5R · 王子涵 · 叶卓易 · 徐一博 · PSP404TC 应用研究技术与方法 · 西交利物浦大学创业家学院（太仓）">Lab 5R · Zihan Wang · Yibo Xu · Zhuoyi Ye · PSP404TC Applied Research Techniques and Methodologies · XJTLU Entrepreneur College (Taicang)</p>
   </div>
 </section>
 
@@ -1272,8 +1282,8 @@ const NOTES = [
  {r:"Mechanism · Zihan Wang", en:"Pull the three results into one frame: See / Gate / Justify. The third column carries the warning. One sentence each, no new data.", zh:"把三个结果收进一个框架：看见 / 闸门 / 解释。第三列带警示。每列一句话，不引入新数据。"},
  {r:"Applications · Yibo Xu", en:"Tie each finding to a product surface: acting agents (confirmations), answering LLMs (uncertainty), AI grading (evidence-backed explanations). End with the design-rules sentence for regulators.", zh:"把每个发现对应到产品场景：行动型 Agent（确认）、问答 LLM（不确定性）、AI 评分（可核对的解释）。最后落到给监管者的设计准则。"},
  {r:"Limitations · Zhuoyi Ye", en:"Say it before they ask: small local sample, synthetic stakes, fixed task order, tight 10-second window. Read the participant quote aloud — it's real feedback and it sets up 'next steps'.", zh:"在被问前先说：样本小且同源、任务无真实代价、顺序固定、10 秒窗太紧。朗读真实被试引语，自然过渡到改进方向。"},
- {r:"Live white box · Zihan Wang", en:"This is the only page that is not a replay — say so out loud, it is the point. Pick a prompt, let them watch the trace stream, then read the gap: the model thinks one thing and tells you a shorter, cleaner version. Press W to audit this exact call: mode, model, latency, tokens, and what we chose not to log. If the network dies it falls back to a recorded trace and the badge says REPLAY — do not pretend otherwise.", zh:"这是全场唯一不是重放的一页——请把这句话说出来，它本身就是论点。选一个提示词，让观众看轨迹流出来，然后读出落差：模型想的是一套，告诉你的是删减过的另一套。按 W 审计这一次调用：模式、模型、延迟、token、以及我们选择不记录什么。若断网，它会回落到预录轨迹并把徽章标成 REPLAY——不要假装还在实时。"},
  {r:"Conclusion · Zihan Wang", en:"Close with the frame: behaviour, not opinions. 816 decisions, 34 people, 2 of 3 hypotheses supported, 1 that taught more by failing. Then: thank you.", zh:"收尾：改变的是行为而非态度。816 个决策、34 人、3 条假设支持 2 条、1 条因失败更有价值。致谢结束。"},
+ {r:"Live white box · Zihan Wang", en:"This is the only page that is not a replay — say so out loud, it is the point. Pick a prompt, let them watch the trace stream, then read the gap: the model thinks one thing and tells you a shorter, cleaner version. Press W to audit this exact call: mode, model, latency, tokens, and what we chose not to log. If the network dies it falls back to a recorded trace and the badge says REPLAY — do not pretend otherwise.", zh:"这是全场唯一不是重放的一页——请把这句话说出来，它本身就是论点。选一个提示词，让观众看轨迹流出来，然后读出落差：模型想的是一套，告诉你的是删减过的另一套。按 W 审计这一次调用：模式、模型、延迟、token、以及我们选择不记录什么。若断网，它会回落到预录轨迹并把徽章标成 REPLAY——不要假装还在实时。"},
  {r:"Q&A · all", en:"Likely questions: Why Wilcoxon? (paired, non-normal proportions) · Why within-subjects? (power with n=34) · Is friction just dark pattern? (transparent by design, reversible, and we measured it) · Why didn't explanations help fairness? (persuasion without evidence).", zh:"常见问题：为何用 Wilcoxon（配对、非正态比例）？为何被试内设计（n=34 下更有统计功效）？摩擦算不算黑暗模式（设计透明、可逆、且被测量）？为何解释没提升公平感（只有说服、没有证据）。"}
 ];
 
@@ -1417,6 +1427,8 @@ function applyLang(){
   document.documentElement.lang=lang;
   document.getElementById('langBtn').textContent=lang==='en'?'中文':'EN';
   updateProgress();buildMenu();updateNotes();
+  const liveMeta=document.getElementById('liveMeta');
+  if(liveMeta&&typeof liveBaseMeta==='function')liveMeta.textContent=liveBaseMeta();
   // charts bake the language in at draw time — redraw the active one
   document.querySelectorAll('[id^=chartH]').forEach(el=>{delete el.dataset.drawn;el.innerHTML=''});
   const cBox=document.querySelector('.scene.active [id^=chartH]');
@@ -1516,12 +1528,12 @@ const AUDIT={
  23:{e:{en:'Sample size, stakes, measurement, timing, counterbalancing — the four ways this pilot is limited.',zh:'样本、利害、测量、时序与平衡——这次 pilot 的四处局限。'},
     o:{en:'This design also cannot separate “friction” from “attention”.',zh:'这个设计也无法把「摩擦」和「注意力」分开。'},
     a:{en:'These are the reasons to read our numbers as a pilot.',zh:'这些就是为什么请把我们的数字当作 pilot 来看。'}},
- 24:{e:{en:'A real model call: streaming from deepseek-reasoner through our own proxy. The trace on the left is the model’s own, not a script.',zh:'一次真实调用：经我们自己的代理流式请求 deepseek-reasoner。左侧轨迹来自模型本身，不是脚本。'},
-    o:{en:'Reasoning traces are generated text, not a faithful log of computation — and we only see the ones the model chooses to write.',zh:'推理轨迹是模型生成出来的文字，不是计算过程的忠实日志——而且我们只能看到它选择写出来的部分。'},
-    a:{en:'Ask it something it should refuse. The refusal is the most honest white box we can show you.',zh:'问它一件它本该拒绝的事。那个拒绝，是我们能给你看的最诚实的白盒。'}},
- 25:{e:{en:'Behaviour moved where a cue added friction or a checkable signal. Attitudes barely moved.',zh:'在有摩擦或可核对信号的地方，行为改变了；态度几乎没有。'},
+ 24:{e:{en:'Behaviour moved where a cue added friction or a checkable signal. Attitudes barely moved.',zh:'在有摩擦或可核对信号的地方，行为改变了；态度几乎没有。'},
     o:{en:'One 34-person pilot, one session, no follow-up. The effect sizes need replication.',zh:'一次 34 人的 pilot，单次实验，没有追踪。效应量需要重复验证。'},
-    a:{en:'If you take one thing: transparency changes what people do, not what they say.',zh:'如果只带走一件事：透明化改变的是人做什么，而不是人说什么。'}}
+    a:{en:'If you take one thing: transparency changes what people do, not what they say.',zh:'如果只带走一件事：透明化改变的是人做什么，而不是人说什么。'}},
+ 25:{e:{en:'A real model call: streaming from deepseek-reasoner through our own proxy. The trace on the left is the model’s own, not a script.',zh:'一次真实调用：经我们自己的代理流式请求 deepseek-reasoner。左侧轨迹来自模型本身，不是脚本。'},
+    o:{en:'Reasoning traces are generated text, not a faithful log of computation — and we only see the ones the model chooses to write.',zh:'推理轨迹是模型生成出来的文字，不是计算过程的忠实日志——而且我们只能看到它选择写出来的部分。'},
+    a:{en:'Ask it something it should refuse. The refusal is the most honest white box we can show you.',zh:'问它一件它本该拒绝的事。那个拒绝，是我们能给你看的最诚实的白盒。'}}
 };
 function sceneClaim(s){
   const g=q=>{const el=s.querySelector(q);return el?el.innerText.replace(/\s+/g,' ').trim():''};
@@ -2310,9 +2322,13 @@ function liveSetMode(kind,note){
   if(meta&&note)meta.textContent=note;
 }
 function liveBaseMeta(){
-  return (LIVE.mode==='proxy'?'deepseek-reasoner · temp 0.7 · prompt v1 · 代理持密钥'
-        :LIVE.mode==='direct'?'deepseek-reasoner · temp 0.7 · prompt v1 · ⚠ 密钥在本页'
-        :'未配置端点 · 只播放预录轨迹');
+  const en=lang==='en';
+  return (LIVE.mode==='proxy'?(en?'deepseek-reasoner · temp 0.7 · prompt v1 · key held by proxy'
+                              :'deepseek-reasoner · temp 0.7 · prompt v1 · 代理持密钥')
+        :LIVE.mode==='direct'?(en?'deepseek-reasoner · temp 0.7 · prompt v1 · ⚠ key is in this page'
+                              :'deepseek-reasoner · temp 0.7 · prompt v1 · ⚠ 密钥在本页')
+        :(en?'No endpoint configured · playing recorded traces only'
+            :'未配置端点 · 只播放预录轨迹'));
 }
 function liveClear(){
   liveEl('liveReason').innerHTML='';
@@ -2367,7 +2383,7 @@ function liveLedger(o){
 }
 function liveAudit(q,o){
   const short=q.length>58?q.slice(0,56)+'…':q;
-  AUDIT[24]={
+  AUDIT[25]={
     e:{en:'Real call · '+o.mode+' mode · '+o.ms+' ms · '+o.tk+' tokens · prompt “'+short+'”',
        zh:'真实调用 · '+o.mode+' 模式 · '+o.ms+' ms · '+o.tk+' tokens · 提问「'+short+'」'},
     o:{en:LIVE.mode==='direct'
@@ -2402,7 +2418,18 @@ async function liveStream(q,id){
     ?{prompt:q,model:LIVE.model}
     :{model:LIVE.model,stream:true,stream_options:{include_usage:true},temperature:0.7,
       messages:[{role:'system',content:'You are a helpful assistant. Answer in under 90 words. Think first, then answer.'},{role:'user',content:q}]};
-  const res=await fetch(url,{method:'POST',headers:headers,body:JSON.stringify(body)});
+  /* 12s hard timeout: if the proxy is unreachable (e.g. no network / no proxy),
+     fail fast and honestly fall back to REPLAY instead of hanging forever. */
+  const ctrl=('AbortController' in window)?new AbortController():null;
+  const timer=ctrl?setTimeout(()=>ctrl.abort(),12000):null;
+  let res;
+  try{
+    res=await fetch(url,{method:'POST',headers:headers,body:JSON.stringify(body),signal:ctrl?ctrl.signal:undefined});
+  }catch(e){
+    if(timer)clearTimeout(timer);
+    throw new Error(e.name==='AbortError'?'timeout after 12s':'network error');
+  }
+  if(timer)clearTimeout(timer);
   if(!res.ok)throw new Error('HTTP '+res.status);
   const reader=res.body.getReader(),dec=new TextDecoder();
   const rEl=liveEl('liveReason'),aEl=liveEl('liveAnswer');
@@ -2448,7 +2475,8 @@ async function liveRun(){
     liveSetMode('LIVE',liveBaseMeta());
     await liveStream(q,id);
   }catch(err){
-    liveSetMode('REPLAY',LIVE.mode==='none'?'未配置端点 · 播放预录轨迹':'端点不可用 · 回落到预录轨迹（'+err.message+'）');
+    liveSetMode('REPLAY',lang==='en'?'Endpoint unreachable · falling back to recorded trace ('+err.message+')'
+                                    :'端点不可用 · 回落到预录轨迹（'+err.message+'）');
     try{SND.err()}catch(e){}
     await liveReplay(q,id);
   }finally{
