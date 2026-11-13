@@ -573,10 +573,10 @@ body.dragging .scene.active{transition:none!important}
   box-shadow:inset 0 1px 2px rgba(8,13,24,.03);transition:border-color .2s,background .2s,box-shadow .2s}
 .live-input input::placeholder{color:rgba(8,13,24,.34)}
 .live-input input:focus{border-color:rgba(11,87,255,.55);background:#fff;box-shadow:0 0 0 4px rgba(11,87,255,.10)}
-.live-input .tool-btn{border-radius:14px;padding:0 22px;min-height:48px;font-weight:600;
-  background:linear-gradient(135deg,var(--amber),#e08a1a);color:#fff;border-color:transparent;
-  box-shadow:0 4px 14px -6px rgba(232,146,26,.55);transition:.22s}
-.live-input .tool-btn:hover{transform:translateY(-1px);box-shadow:0 8px 20px -8px rgba(232,146,26,.6)}
+.live-input .tool-btn{border-radius:14px;padding:0 24px;min-height:48px;font-weight:600;letter-spacing:.06em;
+  background:linear-gradient(135deg,#1150e6,#0839a8);color:#fff;border-color:transparent;
+  box-shadow:0 4px 14px -6px rgba(11,87,255,.55);transition:.22s}
+.live-input .tool-btn:hover{transform:translateY(-1px);box-shadow:0 8px 20px -8px rgba(11,87,255,.6)}
 .live-input .tool-btn:disabled{opacity:.55;transform:none;cursor:wait}
 .live-body{display:grid;grid-template-columns:1.05fr .95fr;gap:14px;margin-top:16px}
 .live-pane{border-radius:16px;padding:15px 17px;min-height:132px;max-height:230px;overflow-y:auto;
@@ -2491,13 +2491,12 @@ function liveAsk(btn){
 }
 (function(){
   const inp=liveEl('liveQ');
-  if(inp)inp.addEventListener('keydown',e=>{
-    if(e.key==='Enter'){e.preventDefault();e.stopPropagation();liveRun()}
-  });
+  /* results are triggered ONLY by clicking Run; typing (incl. IME composition) never submits */
+  if(inp)inp.addEventListener('keydown',e=>e.stopPropagation());
   /* the badge tells the truth from the moment the slide loads */
   setTimeout(()=>{
     if(!liveEl('liveMode'))return;
-    if(LIVE.mode==='none')liveSetMode('REPLAY','未配置端点 · 播放预录轨迹');
+    if(LIVE.mode==='none')liveSetMode('REPLAY',lang==='en'?'No endpoint configured · playing recorded traces only':'未配置端点 · 只播放预录轨迹');
     else liveSetMode('LIVE',liveBaseMeta());
   },400);
 })();
