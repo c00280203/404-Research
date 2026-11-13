@@ -63,11 +63,12 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
 h2.title{font-size:clamp(30px,4.6vw,56px);font-weight:800;letter-spacing:-.02em;line-height:1.12}
 .sub{color:var(--dim);font-size:clamp(15px,1.6vw,19px);max-width:640px;margin-top:22px;font-weight:400}
 .foot-note{margin-top:34px;font-size:12px;color:var(--faint);letter-spacing:.04em;line-height:1.7}
-.reveal-item{opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .6s cubic-bezier(.22,1,.36,1)}
-.active .reveal-item{opacity:1;transform:none}
-.active .d1{transition-delay:.1s}.active .d2{transition-delay:.25s}.active .d3{transition-delay:.4s}
-.active .d4{transition-delay:.55s}.active .d5{transition-delay:.7s}.active .d6{transition-delay:.85s}
-.active .d7{transition-delay:1s}.active .d8{transition-delay:1.15s}
+.reveal-item{opacity:0}
+.active .reveal-item{opacity:1;animation:rise .65s cubic-bezier(.22,1,.36,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.active .d1{animation-delay:.1s}.active .d2{animation-delay:.25s}.active .d3{animation-delay:.4s}
+.active .d4{animation-delay:.55s}.active .d5{animation-delay:.7s}.active .d6{animation-delay:.85s}
+.active .d7{animation-delay:1s}.active .d8{animation-delay:1.15s}
 .accent{color:var(--amber)}
 .hr{height:1px;background:var(--hair);margin:34px 0}
 
@@ -78,11 +79,11 @@ h2.title{font-size:clamp(30px,4.6vw,56px);font-weight:800;letter-spacing:-.02em;
 @keyframes pulse{0%,100%{opacity:.45}50%{opacity:1}}
 
 /* ---------- hook rows ---------- */
-.hook-row{display:flex;justify-content:space-between;align-items:baseline;gap:20px;padding:26px 0;border-bottom:1px solid var(--hair)}
+.hook-row{display:grid;grid-template-columns:1fr 66px 210px;align-items:center;padding:26px 0;border-bottom:1px solid var(--hair)}
 .hook-row:first-of-type{border-top:1px solid var(--hair)}
 .hook-row .verb{font-size:clamp(24px,3.6vw,44px);font-weight:800;letter-spacing:-.02em}
-.hook-row .risk{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--red);font-weight:600;white-space:nowrap}
-.hook-row .arrow{color:var(--faint);font-weight:400;font-size:clamp(18px,2.4vw,28px)}
+.hook-row .risk{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--red);font-weight:600;white-space:nowrap;text-align:right}
+.hook-row .arrow{color:var(--faint);font-weight:400;font-size:clamp(18px,2.4vw,28px);text-align:center}
 
 /* ---------- hypothesis cards ---------- */
 .hyp-grid{display:flex;flex-direction:column}
@@ -109,16 +110,91 @@ h2.title{font-size:clamp(30px,4.6vw,56px);font-weight:800;letter-spacing:-.02em;
 .divider .speaker{margin-top:40px;font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--faint)}
 .divider .speaker b{color:var(--amber);font-weight:600}
 
+/* ---------- signature moments ---------- */
+/* 1 · curtain reveal on chapter changes */
+#curtain{position:fixed;inset:0;z-index:45;pointer-events:none;opacity:0}
+#curtain.run{opacity:1}
+#curtain .panel{position:absolute;left:0;width:100%;height:50.2%;background:#fff;will-change:transform}
+#curtain .panel.t{top:0;box-shadow:0 30px 70px -26px rgba(8,32,90,.22)}
+#curtain .panel.b{bottom:0;box-shadow:0 -30px 70px -26px rgba(8,32,90,.22)}
+#curtain .panel::after{content:"";position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(11,87,255,.55),transparent)}
+#curtain .panel.t::after{bottom:0}
+#curtain .panel.b::after{top:0}
+#curtain.run .panel.t{animation:curtainT .66s cubic-bezier(.76,0,.24,1) both}
+#curtain.run .panel.b{animation:curtainB .66s cubic-bezier(.76,0,.24,1) both}
+@keyframes curtainT{from{transform:translate3d(0,0,0)}to{transform:translate3d(0,-100%,0)}}
+@keyframes curtainB{from{transform:translate3d(0,0,0)}to{transform:translate3d(0,100%,0)}}
+
+/* 2 · scanner line across the reveal hero */
+.reveal-hero::after{content:"";position:absolute;top:-14%;bottom:-14%;left:-2%;width:2px;opacity:0;
+  background:linear-gradient(180deg,transparent,rgba(11,87,255,.85),transparent);pointer-events:none}
+.active .reveal-hero::after{animation:scanBar 1.05s .7s cubic-bezier(.45,.05,.25,1) both}
+@keyframes scanBar{0%{left:-2%;opacity:0}12%{opacity:1}86%{opacity:1}100%{left:102%;opacity:0}}
+
+/* 3 · page number flip */
+#pageNo.flip{animation:pgFlip .32s cubic-bezier(.22,1,.36,1)}
+@keyframes pgFlip{0%{opacity:0;transform:translateY(7px)}100%{opacity:1;transform:none}}
+
+/* ---------- WHITE BOX MODE ---------- */
+#wb{position:fixed;top:0;right:0;bottom:0;width:min(392px,94vw);z-index:55;
+  background:rgba(255,255,255,.975);backdrop-filter:blur(18px);
+  border-left:1px solid var(--hair);box-shadow:-40px 0 90px -50px rgba(8,32,90,.45);
+  transform:translateX(103%);transition:transform .52s cubic-bezier(.22,1,.36,1);
+  display:flex;flex-direction:column;padding:74px 26px 22px;overflow-y:auto}
+#wb.on{transform:none}
+#wb::before{content:"";position:absolute;left:-1px;top:0;bottom:0;width:1px;
+  background:linear-gradient(180deg,transparent,rgba(11,87,255,.75),transparent);
+  opacity:0;transition:opacity .5s .1s}
+#wb.on::before{opacity:1}
+.wb-head{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--amber)}
+.wb-x{border:1px solid var(--hair);width:26px;height:26px;border-radius:8px;background:none;
+  color:var(--dim);font-size:11px;line-height:1;cursor:pointer;transition:.2s}
+.wb-x:hover{color:#fff;background:var(--amber);border-color:var(--amber)}
+.wb-claim{margin-top:18px;font-size:17px;font-weight:700;line-height:1.42;letter-spacing:-.01em;color:var(--ink)}
+.wb-scene{margin-top:8px;font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;color:var(--faint);text-transform:uppercase}
+.wb-rows{margin-top:22px}
+.wb-row{border-top:1px solid var(--hair2);padding:14px 0;opacity:0;transform:translateY(8px);
+  transition:opacity .45s ease,transform .45s cubic-bezier(.22,1,.36,1)}
+#wb.on .wb-row{opacity:1;transform:none}
+#wb.on .wb-row:nth-child(1){transition-delay:.12s}
+#wb.on .wb-row:nth-child(2){transition-delay:.2s}
+#wb.on .wb-row:nth-child(3){transition-delay:.28s}
+#wb .k{font-family:var(--mono);font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:var(--faint);margin-bottom:7px}
+#wb .v{font-size:13.5px;line-height:1.62;color:var(--dim)}
+#wb .wb-row.omit .k{color:var(--red)}
+#wb .wb-row.ask .k{color:var(--amber)}
+#wb .wb-row.ask .v{color:var(--ink);font-weight:600}
+.wb-foot{margin-top:auto;padding-top:18px;border-top:1px solid var(--hair2);
+  font-family:var(--mono);font-size:9.5px;line-height:1.7;letter-spacing:.05em;color:var(--faint)}
+@media (min-width:1180px){body.auditing .scene{padding-right:calc(392px + 3vw)}}
+@media (max-width:1179px) and (min-width:761px){body.auditing .scene{padding-right:calc(392px + 2vw)}}
+@media (max-width:760px){
+  #wb{top:auto;height:66vh;width:100%;border-left:none;border-top:1px solid var(--hair);border-radius:18px 18px 0 0;
+    transform:translateY(103%);padding:20px 20px 24px;box-shadow:0 -30px 70px -40px rgba(8,32,90,.45)}
+  #wb.on{transform:none}
+  #wb.on::before{display:none}
+  .wb-claim{font-size:15.5px}
+  #wb .v{font-size:13px}
+}
+/* invite on the closing slide */
+.wb-invite{margin-top:26px;padding:18px 20px;border:1px dashed rgba(11,87,255,.4);border-radius:14px;
+  max-width:620px;background:rgba(11,87,255,.03)}
+.wb-invite p{font-size:14px;line-height:1.6;color:var(--dim)}
+.wb-invite p b{color:var(--ink)}
+.wb-invite button{margin-top:12px}
+.wb-hint{margin-top:14px;font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:rgba(11,87,255,.55);text-transform:uppercase}
+
 /* ---------- replay / demo ---------- */
-.badge{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--hair);padding:9px 16px;
+.badge{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--hair);padding:9px 16px;white-space:nowrap;
   font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
 .badge .dot{width:7px;height:7px;border-radius:50%;background:var(--red);animation:pulse 1.6s infinite}
 .badge.calm .dot{background:var(--green);animation:none}
 .demo-stage{width:100%;max-width:820px;border:1px solid var(--hair);background:#fff;padding:36px;position:relative;
   box-shadow:var(--shadow);transition:box-shadow .4s,border-color .4s}
 .demo-stage:hover{border-color:rgba(11,87,255,.3);box-shadow:0 30px 70px -34px rgba(8,32,90,.45)}
-.demo-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
-.demo-tag{font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint)}
+.demo-head{display:flex;flex-direction:column;align-items:flex-start;gap:10px;margin-bottom:24px}
+.demo-tag{font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .ai-row{display:flex;gap:16px;align-items:flex-start}
 .ai-avatar{width:38px;height:38px;border-radius:10px;background:var(--amber);color:#fff;display:flex;align-items:center;justify-content:center;
   font-size:13px;font-weight:800;flex-shrink:0;letter-spacing:.02em}
@@ -172,7 +248,7 @@ h2.title{font-size:clamp(30px,4.6vw,56px);font-weight:800;letter-spacing:-.02em;
 .predict-btn.picked{border-color:var(--amber);background:rgba(11,87,255,.08)}
 
 /* ---------- reveal ---------- */
-.reveal-hero{display:flex;align-items:baseline;gap:26px;flex-wrap:wrap}
+.reveal-hero{display:flex;align-items:baseline;gap:26px;flex-wrap:wrap;position:relative}
 .reveal-hero .from{font-size:clamp(30px,4.4vw,56px);font-weight:800;color:var(--faint);text-decoration:line-through;text-decoration-thickness:2px}
 .reveal-hero .arr{color:var(--amber);font-size:clamp(24px,3vw,40px)}
 .reveal-hero .to{font-size:clamp(56px,10vw,120px);font-weight:800;letter-spacing:-.04em;line-height:1;color:var(--amber);font-variant-numeric:tabular-nums}
@@ -217,8 +293,9 @@ h2.title{font-size:clamp(30px,4.6vw,56px);font-weight:800;letter-spacing:-.02em;
 .quote .q-src{display:block;margin-top:10px;font-style:normal;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint)}
 
 /* ---------- end ---------- */
-.end-big{font-size:clamp(38px,7vw,92px);font-weight:800;letter-spacing:-.03em;line-height:1.05}
+.end-big{font-size:clamp(36px,6.2vw,76px);font-weight:800;letter-spacing:-.03em;line-height:1.05}
 .end-big span{color:var(--amber)}
+.end-stats{margin-top:20px;font-family:var(--mono);font-size:12.5px;letter-spacing:.06em;color:var(--dim)}
 
 /* ---------- menu overlay ---------- */
 #menu{position:fixed;inset:0;background:rgba(255,255,255,.97);backdrop-filter:blur(18px);z-index:80;display:none;
@@ -242,22 +319,72 @@ h2.title{font-size:clamp(30px,4.6vw,56px);font-weight:800;letter-spacing:-.02em;
 
 /* ---------- responsive ---------- */
 @media (max-width:760px){
-  .scene{padding:76px 6vw 110px;justify-content:flex-start}
+  .scene{padding:60px 5vw 96px;justify-content:flex-start}
   .wrap{margin:0}
+  .kicker{margin-bottom:18px}
   .hyp{gap:16px;flex-wrap:wrap}
   .hyp .who{margin-left:0;width:100%}
   .mech{grid-template-columns:1fr}
-  .app-row{flex-wrap:wrap;gap:10px}
+  .mech>div{padding:20px 18px}
+  .app-row{flex-wrap:wrap;gap:6px 12px;align-items:baseline}
   .app-row .a-t{min-width:0}
+  .app-row .a-d{flex:1 1 100%}
+  .hook-row{display:flex;flex-wrap:wrap;gap:6px 14px}
+  .hook-row .risk{white-space:normal;text-align:left}
+  .hook-row .arrow{text-align:left}
+  .hook-row .verb{font-size:clamp(21px,6.4vw,32px)}
+  .facts{gap:10px}
+  .fact{min-width:calc(50% - 5px);flex:1 1 calc(50% - 5px);padding:14px 16px}
+  .fact .fv{font-size:clamp(22px,6.4vw,32px)}
+  .fact .fk{font-size:9.5px;letter-spacing:.1em;margin-top:6px}
+  .sub{font-size:15px;margin-top:16px}
+  .hyp .body p{font-size:14px}
+  .hyp .no{min-width:56px;font-size:clamp(24px,6.4vw,40px)}
+  .predict-btns{gap:12px;margin-top:24px}
+  .predict-btn{min-width:100%;padding:20px 18px;font-size:19px}
+  .stat-chips{gap:8px;margin-top:14px}
+  .chip{padding:10px 13px;font-size:14px;gap:8px}
+  .chip .tag{padding:2px 6px}
+  .punch{font-size:clamp(24px,6.8vw,36px);margin-top:18px}
+  .reveal-hero{gap:14px}
+  .reveal-hero .from{font-size:clamp(26px,7.5vw,40px)}
+  .reveal-hero .arr{font-size:clamp(20px,5vw,30px)}
+  .reveal-hero .to{font-size:clamp(46px,13vw,72px)}
+  .reveal-hero .unit{flex-basis:100%;font-size:clamp(16px,4.4vw,24px)}
+  .chart-box{margin-top:16px}
+  /* demo cards */
+  .demo-stage{padding:20px 18px;box-shadow:var(--shadow-sm)}
+  .demo-head{flex-direction:column;align-items:flex-start;gap:10px;margin-bottom:16px}
+  .badge{padding:8px 12px;font-size:11px;letter-spacing:.12em}
+  .demo-tag{font-size:10px;letter-spacing:.14em;white-space:normal}
+  .ai-row{gap:10px}
+  .ai-bubble{font-size:clamp(17px,4.8vw,22px)}
+  .ai-meta{margin-top:12px;padding-top:12px}
+  .ai-meta span:first-child{font-size:13px}
+  .ai-meta span+span{font-size:14px}
+  .truth-line{font-size:14px;margin-top:14px}
+  .verdict{font-size:15px;padding:14px 16px;margin-top:16px}
+  .cd-panel{padding:16px 16px}
+  .cd-top{font-size:12px}
+  .cd-top b{font-size:30px}
+  .demo-tools{gap:8px;margin-top:16px}
+  .tool-btn{padding:10px 14px;font-size:12px}
+  /* dividers */
+  .divider .chapter-no{font-size:clamp(90px,30vw,160px)}
+  .divider .hyp-line{font-size:14.5px;margin-top:18px}
+  .divider .speaker{margin-top:24px}
+  /* chrome */
   .pager{padding:14px 16px;gap:10px}
   #keyHint{display:none}
   .hud{padding:12px 14px}
-  .divider .chapter-no{font-size:clamp(90px,30vw,160px)}
   .brand{display:none}
   .hud-btn{padding:7px 10px;font-size:10px;letter-spacing:.08em}
   #telemetry{font-size:9px;letter-spacing:.06em;gap:8px}
   #pageNo{display:none}
   .nav-btn{width:40px;height:40px}
+  /* end page */
+  .end-big{font-size:clamp(30px,8.6vw,56px)}
+  .cover-team{gap:14px;font-size:11px}
 }
 /* ================= TECH LAYER ================= */
 :root{--mono:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace}
@@ -357,11 +484,8 @@ body.dragging .scene.active{transition:none!important}
 .hook-row .arrow{transition:transform .35s cubic-bezier(.16,1,.3,1),color .3s;display:inline-block}
 
 /* hypothesis rows */
-.hyp{position:relative;transition:padding-left .4s cubic-bezier(.16,1,.3,1)}
-.hyp::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--amber);
-  transform:scaleY(0);transform-origin:top;transition:transform .45s cubic-bezier(.16,1,.3,1)}
-.hyp:hover{padding-left:22px}
-.hyp:hover::before{transform:scaleY(1)}
+.hyp{position:relative;transition:padding-left .4s cubic-bezier(.16,1,.3,1),background .4s ease;border-radius:14px}
+.hyp:hover{padding-left:22px;background:linear-gradient(90deg,rgba(11,87,255,.055),rgba(11,87,255,0) 72%)}
 .hyp:hover .body h3{color:var(--amber)}
 .hyp .body h3{transition:color .3s}
 
@@ -447,12 +571,26 @@ body.dragging .scene.active{transition:none!important}
 <div class="gridlines"></div>
 <div class="scanlines"></div>
 <div id="tip"></div>
+<div id="curtain"><div class="panel t"></div><div class="panel b"></div></div>
+
+<aside id="wb" aria-hidden="true">
+  <div class="wb-head"><span>White box · 白盒</span><button class="wb-x" id="wbClose" aria-label="Close">✕</button></div>
+  <div class="wb-claim" id="wbClaim"></div>
+  <div class="wb-scene" id="wbScene"></div>
+  <div class="wb-rows">
+    <div class="wb-row"><div class="k" data-en="Evidence" data-zh="依据">Evidence</div><div class="v" id="wbE"></div></div>
+    <div class="wb-row omit"><div class="k" data-en="What this slide omits" data-zh="这页省略了什么">What this slide omits</div><div class="v" id="wbO"></div></div>
+    <div class="wb-row ask"><div class="k" data-en="What we want from you" data-zh="我们希望你">What we want from you</div><div class="v" id="wbA"></div></div>
+  </div>
+  <div class="wb-foot" id="wbFoot"></div>
+</aside>
 
 <header class="hud">
   <div class="brand">TRUST, BUT VERIFY <b id="chapLabel"></b></div>
   <div class="hud-right">
     <button class="hud-btn" id="sndBtn" title="Sound (click to enable)">SND</button>
     <button class="hud-btn" id="notesBtn" title="Speaker notes (S)">Notes</button>
+    <button class="hud-btn" id="wbBtn" title="White box — show the evidence behind this slide (W)" data-en="White box" data-zh="白盒">White box</button>
     <button class="hud-btn" id="menuBtn" title="Chapters (M)">Menu</button>
     <button class="hud-btn" id="langBtn">中文</button>
   </div>
@@ -470,6 +608,7 @@ body.dragging .scene.active{transition:none!important}
       <span><b>Zihan Wang</b></span><span><b>Yibo Xu</b></span><span><b>Zhuoyi Ye</b></span>
     </div>
     <div class="press-hint reveal-item d5" data-en="Scroll · drag · or click anywhere to begin" data-zh="滚动 · 拖拽 · 或点击任意处开始">Scroll · drag · or click anywhere to begin</div>
+    <p class="wb-hint reveal-item d6" data-en="W — at any time, open this deck's white box and audit every claim we make" data-zh="随时按 W，打开这份 deck 的白盒，审计我们提出的每一个论断">W — at any time, open this deck's white box and audit every claim we make</p>
   </div>
 </section>
 
@@ -598,7 +737,7 @@ body.dragging .scene.active{transition:none!important}
     <div class="demo-stage reveal-item d1">
       <div class="demo-head">
         <span class="badge"><span class="dot"></span><span data-en="Task A · Black box" data-zh="任务 A · 黑盒">Task A · Black box</span></span>
-        <span class="demo-tag" data-en="Try it — you are participant #35" data-zh="试试看——你是第 35 号被试">Try it — you are participant #35</span>
+        <span class="demo-tag" data-en="Round 1 of 2 · try it — you are participant #35" data-zh="第 1 轮 / 共 2 轮 · 试试看——你是第 35 号被试">Round 1 of 2 · try it — you are participant #35</span>
       </div>
       <div class="ai-row">
         <div class="ai-avatar">AI</div>
@@ -627,7 +766,7 @@ body.dragging .scene.active{transition:none!important}
     <div class="demo-stage reveal-item d1">
       <div class="demo-head">
         <span class="badge"><span class="dot"></span><span data-en="Task A · White box" data-zh="任务 A · 白盒">Task A · White box</span></span>
-        <span class="demo-tag" data-en="Same task. One extra signal." data-zh="同样的任务。多了一条线索。">Same task. One extra signal.</span>
+        <span class="demo-tag" data-en="Round 2 of 2 · the same question, now with an uncertainty score" data-zh="第 2 轮 / 共 2 轮 · 同一道题，多了一条不确定性分数">Round 2 of 2 · the same question, now with an uncertainty score</span>
       </div>
       <div class="ai-row">
         <div class="ai-avatar">AI</div>
@@ -700,7 +839,7 @@ body.dragging .scene.active{transition:none!important}
     <div class="demo-stage reveal-item d1">
       <div class="demo-head">
         <span class="badge"><span class="dot"></span><span data-en="Task B · Black box" data-zh="任务 B · 黑盒">Task B · Black box</span></span>
-        <span class="demo-tag" data-en="Watch the clock" data-zh="注意倒计时">Watch the clock</span>
+        <span class="demo-tag" data-en="Round 1 of 2 · watch the clock" data-zh="第 1 轮 / 共 2 轮 · 注意倒计时">Round 1 of 2 · watch the clock</span>
       </div>
       <div class="ai-row">
         <div class="ai-avatar">AI</div>
@@ -734,7 +873,7 @@ body.dragging .scene.active{transition:none!important}
     <div class="demo-stage reveal-item d1">
       <div class="demo-head">
         <span class="badge"><span class="dot"></span><span data-en="Task B · White box" data-zh="任务 B · 白盒">Task B · White box</span></span>
-        <span class="demo-tag" data-en="Same agent. One gate." data-zh="同样的 Agent。加一道闸。">Same agent. One gate.</span>
+        <span class="demo-tag" data-en="Round 2 of 2 · same agent, one confirmation gate" data-zh="第 2 轮 / 共 2 轮 · 同一个 Agent，加一道确认闸">Round 2 of 2 · same agent, one confirmation gate</span>
       </div>
       <div class="ai-row">
         <div class="ai-avatar">AI</div>
@@ -945,14 +1084,12 @@ body.dragging .scene.active{transition:none!important}
   <div class="wrap">
     <div class="kicker reveal-item d1" data-en="Conclusion" data-zh="结论">Conclusion</div>
     <h2 class="end-big reveal-item d2" data-en="Transparency changed <span>behaviour</span> — not just opinions." data-zh="透明化改变的是<span>行为</span>——而不仅是态度。">Transparency changed <span>behaviour</span> — not just opinions.</h2>
-    <div class="stat-chips reveal-item d3">
-      <span class="chip"><b>816</b> <span data-en="decisions collected" data-zh="有效决策">decisions collected</span></span>
-      <span class="chip"><b>34</b> <span data-en="participants" data-zh="被试">participants</span></span>
-      <span class="chip"><b>2 / 3</b> <span data-en="hypotheses supported" data-zh="假设获支持">hypotheses supported</span></span>
-      <span class="chip"><b>1</b> <span data-en="hypothesis that taught us more by failing" data-zh="因「失败」而更有价值的假设">hypothesis that taught us more by failing</span></span>
-    </div>
+    <p class="end-stats reveal-item d3" data-en="816 decisions · 34 participants · 2 / 3 hypotheses supported · 1 that taught us more by failing" data-zh="816 个有效决策 · 34 名被试 · 2 / 3 假设获支持 · 1 个因「失败」而更有价值">816 decisions · 34 participants · 2 / 3 hypotheses supported · 1 that taught us more by failing</p>
     <p class="sub reveal-item d4" data-en="Show the uncertainty. Gate the action. Explain the score — and make the explanation checkable. That is how an interface earns verified trust instead of borrowed trust." data-zh="展示不确定性。给行动设闸。解释评分——并让解释可被核对。这便是界面赢得「已验证的信任」而非「借来的信任」的方式。">Show the uncertainty. Gate the action. Explain the score — and make the explanation checkable. That is how an interface earns verified trust instead of borrowed trust.</p>
-    <div class="hr reveal-item d5"></div>
+    <div class="wb-invite reveal-item d5">
+      <p data-en="Everything you just saw was selected, framed and simplified by three people. <b>That is a black box too.</b> Every slide in this deck can show its evidence, what it leaves out, and what it wants from you." data-zh="你刚刚看到的一切，是被三个人挑选、组织、简化过的。<b>这本身也是一个黑盒。</b>这份 deck 的每一页，都能显示它的依据、它省略了什么，以及它想从你这里得到什么。">Everything you just saw was selected, framed and simplified by three people. <b>That is a black box too.</b> Every slide in this deck can show its evidence, what it leaves out, and what it wants from you.</p>
+      <button class="tool-btn primary" onclick="toggleAudit(true)" data-en="Open our white box (W)" data-zh="打开我们的白盒（W）">Open our white box (W)</button>
+    </div>
     <div class="press-hint reveal-item d6" data-en="Thank you — questions welcome" data-zh="谢谢——欢迎提问">Thank you — questions welcome</div>
     <p class="foot-note reveal-item d7" data-en="Lab 5R · Zihan Wang · Yibo Xu · Zhuoyi Ye · PSP404TC Applied Research Techniques and Methodologies · XJTLU Entrepreneur College (Taicang)" data-zh="Lab 5R · 王子涵 · 叶卓易 · 徐一博 · PSP404TC 应用研究技术与方法 · 西交利物浦大学创业家学院（太仓）">Lab 5R · Zihan Wang · Yibo Xu · Zhuoyi Ye · PSP404TC Applied Research Techniques and Methodologies · XJTLU Entrepreneur College (Taicang)</p>
   </div>
@@ -1075,14 +1212,48 @@ function runScene(s){
   s.classList.remove('active');
   void s.offsetWidth;
   s.classList.add('active');
-  // count-up numbers
+  // count-up numbers — the result hero locks in like a meter
   s.querySelectorAll('.num').forEach(el=>{
     const target=parseFloat(el.dataset.v||el.textContent)||0;
-    const suf=el.dataset.suffix||'';const t0=performance.now();const dur=1300;
-    function tick(t){const k=Math.min(1,(t-t0)/dur);const e=1-Math.pow(1-k,3);
-      el.textContent=(target*e).toFixed(1)+suf;if(k<1)requestAnimationFrame(tick);}
-    requestAnimationFrame(tick);
+    const suf=el.dataset.suffix||'';
+    const fmt=v=>v.toFixed(1)+suf;
+    const t0=performance.now();
+    if(el.classList.contains('to')){
+      const SCR=420,SET=1000;
+      el.classList.add('locking');
+      (function tick(t){
+        const d=t-t0;
+        if(d<SCR){
+          el.textContent=fmt(target*(0.62+Math.random()*0.52));
+        }else{
+          const k=Math.min(1,(d-SCR)/SET);
+          const amp=target*0.15*Math.pow(1-k,2);
+          el.textContent=fmt(target+Math.sin(k*Math.PI*5.5)*amp);
+          if(k>=1){el.textContent=fmt(target);el.classList.remove('locking');return;}
+        }
+        requestAnimationFrame(tick);
+      })(t0);
+    }else{
+      const dur=760;
+      (function tick(t){const k=Math.min(1,(t-t0)/dur);const e=1-Math.pow(1-k,3);
+        el.textContent=fmt(target*e);if(k<1)requestAnimationFrame(tick);else el.textContent=fmt(target);})(t0);
+    }
   });
+  // chapter number rolls in like a slot
+  const cno=s.querySelector('.chapter-no');
+  if(cno){
+    if(!cno.dataset.final)cno.dataset.final=cno.textContent.trim();
+    const fin=cno.dataset.final;
+    if(/^\d{2}$/.test(fin)){
+      const t0=performance.now();
+      (function tick(t){
+        const d=t-t0;
+        if(d<330){cno.textContent=String(Math.floor(Math.random()*100)).padStart(2,'0');}
+        else{cno.textContent=fin;return;}
+        requestAnimationFrame(tick);
+      })(t0);
+    }
+  }
   // charts
   const cid=s.querySelector('[id^=chartH]');
   if(cid&&!cid.dataset.drawn){cid.dataset.drawn='1';drawChart(cid.id);}
@@ -1093,6 +1264,17 @@ function stopScene(s){
   cancelCdAuto();
   if(s.querySelector('#cdPanel'))resetCountdown();
 }
+/* curtain reveal — plays on chapter changes */
+const curtainEl=document.getElementById('curtain');
+let __curtainT=null;
+function curtainReveal(){
+  if(!curtainEl)return;
+  clearTimeout(__curtainT);
+  curtainEl.classList.remove('run');
+  void curtainEl.offsetWidth;
+  curtainEl.classList.add('run');
+  __curtainT=setTimeout(()=>curtainEl.classList.remove('run'),760);
+}
 function go(i){
   i=Math.max(0,Math.min(scenes.length-1,i));
   if(i===idx&&scenes[idx].classList.contains('active'))return;
@@ -1101,9 +1283,13 @@ function go(i){
   idx=i;
   scenes.forEach((s,j)=>{s.classList.toggle('past',j<idx)});
   history.replaceState(null,'','#s'+(idx+1));
-  document.getElementById('pageNo').textContent=(idx+1)+' / '+scenes.length;
+  const pn=document.getElementById('pageNo');
+  pn.textContent=(idx+1)+' / '+scenes.length;
+  pn.classList.remove('flip');void pn.offsetWidth;pn.classList.add('flip');
   updateProgress();buildMenu();updateNotes();
   runScene(scenes[idx]);
+  if(document.getElementById('wb').classList.contains('on'))renderAudit();
+  if(scenes[idx].classList.contains('divider'))curtainReveal();
 }
 function next(){go(idx+1)} function prev(){go(idx-1)}
 
@@ -1116,6 +1302,7 @@ function applyLang(){
   document.documentElement.lang=lang;
   document.getElementById('langBtn').textContent=lang==='en'?'中文':'EN';
   updateProgress();buildMenu();updateNotes();
+  if(document.getElementById('wb').classList.contains('on'))renderAudit();
 }
 document.getElementById('langBtn').onclick=()=>{
   lang=lang==='en'?'zh':'en';localStorage.setItem('tbv-lang',lang);applyLang();
@@ -1136,13 +1323,140 @@ function updateNotes(){
 }
 document.getElementById('notesBtn').onclick=()=>notesEl.classList.toggle('open');
 
+/* ============ WHITE BOX · the deck audits itself ============ */
+const AUDIT={
+ 0:{e:{en:'Our framing, taken from the calibration literature we reviewed in Assignment 1: trust should be calibrated, not maximised.',zh:'我们的框架来自 Assignment 1 综述的校准（calibration）文献：信任应被校准，而不是被最大化。'},
+    o:{en:'This deck is itself a black box — until you press W.',zh:'这份 deck 本身就是一个黑盒——直到你按下 W。'},
+    a:{en:'You will be asked to judge three times. Guess honestly, not kindly.',zh:'接下来请你判断三次。请诚实作答，而不是给我们面子。'}},
+ 1:{e:{en:'Self-report from our 34 participants — 26 of 34 use AI tools every day.',zh:'来自 34 名被试的自陈数据——34 人中有 26 人每天使用 AI 工具。'},
+    o:{en:'A convenience sample of CS/AI students, not the general public.',zh:'这是 CS/AI 学生的便利样本，并不代表普通公众。'},
+    a:{en:'Notice that none of these three moments came with a way to check.',zh:'请留意：这三个瞬间，没有任何一个给了你可核对的入口。'}},
+ 2:{e:{en:'The question the three hypotheses were built to answer (PSP404TC Lab 5R design).',zh:'三个假设共同要回答的问题（PSP404TC Lab 5R 的设计）。'},
+    o:{en:'We test interface cues, not the model’s internal reasoning.',zh:'我们检验的是界面线索，而不是模型内部的推理过程。'},
+    a:{en:'Hold us to this question for the next twenty minutes.',zh:'接下来二十分钟，请用这个问题来检验我们。'}},
+ 3:{e:{en:'Three cues → three hypotheses → three screens. One mechanism.',zh:'三条线索 → 三个假设 → 三个界面。一套机制。'},
+    o:{en:'Participants met the cues interleaved inside one session, not one at a time as we present them here.',zh:'被试是在同一次实验中交错遇到这些线索的，并非像我们这里逐条展示。'},
+    a:{en:'Remember which cue maps to which hypothesis — that is the spine of this talk.',zh:'记住哪条线索对应哪个假设——这是整场汇报的骨架。'}},
+ 4:{e:{en:'35 Web3Forms submissions, de-duplicated → n = 34. Within-subject: 24 decisions + 18 ratings per person.',zh:'35 份 Web3Forms 提交，去重后 n = 34。被试内设计：每人 24 个决策 + 18 个评定。'},
+    o:{en:'Order was not fully counterbalanced — every participant met the black box first.',zh:'顺序未完全平衡——每位被试都是先接触黑盒版本。'},
+    a:{en:'Within-subject makes each person their own control. It does not remove order effects.',zh:'被试内设计让每个人成为自己的对照，但它不能消除顺序效应。'}},
+ 5:{e:{en:'Demographics from the same 34 submissions.',zh:'被试构成同样来自这 34 份提交。'},
+    o:{en:'Only 62% passed the manipulation check — a third may have been rating the interface, not the AI.',zh:'只有 62% 通过操纵检验——三分之一的人可能评的是界面，而不是 AI。'},
+    a:{en:'Read every number in this talk as a pilot in a tech-savvy sample.',zh:'请把本场所有数字当作「技术熟练样本中的一次 pilot」。'}},
+ 6:{e:{en:'Deterministic replay of the original stimuli: fixed text, fixed timing, no live model, 100% offline.',zh:'对原始刺激的确定性重放：文案固定、时序固定、不调用任何在线模型、完全离线。'},
+    o:{en:'The original study did not log timing or mouse behaviour, so we cannot show who actually inspected what.',zh:'原始实验没有记录停留时间或鼠标行为，所以我们无法展示「谁真的查看了什么」。'},
+    a:{en:'Play it as if the data on screen were yours.',zh:'请把它当作你自己屏幕上的数据来玩。'}},
+ 7:{e:{en:'H1 exactly as pre-specified, no post-hoc rewording.',zh:'H1 与预先设定完全一致，没有事后改写。'},
+    o:{en:'The “uncertainty score” was a fixed 58% cue, not a calibrated model probability.',zh:'所谓「不确定性分数」是固定的 58% 线索，不是模型校准后的概率。'},
+    a:{en:'Predict on the next screen before you see the numbers.',zh:'在看到数字之前，先做出你的预测。'}},
+ 8:{e:{en:'Real stimulus: eight scores whose median is 79. The AI says 80.',zh:'真实刺激：八个分数的中位数是 79，而 AI 说 80。'},
+    o:{en:'Nothing on this screen can tell you it is wrong. That is what a black box is.',zh:'这一屏上没有任何东西能提示你它是错的。这就是黑盒。'},
+    a:{en:'Decide now — then we show you what 34 people did.',zh:'现在就决定——随后我们展示 34 个人做了什么。'}},
+ 9:{e:{en:'Identical stimulus. The only change is one 58% confidence bar.',zh:'完全相同的刺激。唯一的改动是一条 58% 的置信条。'},
+    o:{en:'The bar is a design cue. It is not evidence about this specific claim.',zh:'这条置信条是设计线索，并不是关于这条具体结论的证据。'},
+    a:{en:'If your answer changed between the two cards, that change is H1.',zh:'如果你在两张卡之间的答案变了，那个变化就是 H1。'}},
+ 10:{e:{en:'Your call. On the next slide it is compared with the 34 participants.',zh:'你来判断。下一页会与 34 名被试的真实数据对照。'},
+    o:{en:'Your hand is not recorded. You are not in the dataset.',zh:'你的举手不会被记录。你不在数据集里。'},
+    a:{en:'Commit before the reveal — hindsight is always smarter.',zh:'在看到结果前先定下答案——事后总是更聪明。'}},
+ 11:{e:{en:'Per-participant detection and adoption rates. Wilcoxon signed-rank, n = 34, α = .0167 after Bonferroni.',zh:'逐人的检出率与采纳率。Wilcoxon 符号秩检验，n = 34，Bonferroni 校正后 α = .0167。'},
+    o:{en:'Correct-answer acceptance barely moved (79.4% → 80.9%, n.s.). We report it, but we do not put it in the headline.',zh:'对正确答案的接受几乎没变（79.4% → 80.9%，不显著）。我们如实报告，但没把它放进大标题。'},
+    a:{en:'Caution without paralysis — that is the whole finding.',zh:'变得警惕，而没有变得多疑——这就是全部结论。'}},
+ 12:{e:{en:'H2 exactly as pre-specified.',zh:'H2 与预先设定完全一致。'},
+    o:{en:'We measure executed actions — not whether anyone actually read the warning.',zh:'我们测量的是「被执行的动作」，而不是「有没有人真的读了警告」。'},
+    a:{en:'Watch the clock on the next screen.',zh:'留意下一页的倒计时。'}},
+ 13:{e:{en:'Replay of the auto-execution stimulus. The 10-second delay is fixed.',zh:'自动执行刺激的重放。10 秒延迟是固定的。'},
+    o:{en:'In the original study the delay was identical for everyone — no individual differences.',zh:'原始实验中每个人看到的延迟都一样——不存在个体差异。'},
+    a:{en:'Do nothing, and see how the silence feels.',zh:'什么都别做，感受一下那段沉默。'}},
+ 14:{e:{en:'Same action. The only change is one confirmation request.',zh:'同一个动作。唯一的改动是一道确认请求。'},
+    o:{en:'A gate can be dismissed without being read — and mostly it was.',zh:'闸门可以在不读的情况下被点掉——而且大多数时候正是如此。'},
+    a:{en:'Notice how easy it is to click straight through.',zh:'留意：一路点过去有多容易。'}},
+ 15:{e:{en:'Your call. Compared with H2 on the next slide.',zh:'你来判断。下一页与 H2 的真实结果对照。'},
+    o:{en:'Not recorded — you are participant #35 only in spirit.',zh:'不会记录——你只是在精神上是第 35 号被试。'},
+    a:{en:'Guess the size of the effect, not just its direction.',zh:'猜效应的大小，而不只是方向。'}},
+ 16:{e:{en:'Risky executions 82.4% → 51.5%. Wilcoxon signed-rank, n = 34, p = .002 — survives Bonferroni.',zh:'危险执行 82.4% → 51.5%。Wilcoxon 符号秩检验，n = 34，p = .002——通过 Bonferroni 校正。'},
+    o:{en:'Executions “without opening details”: 44.1% → 39.7%, n.s. The gate worked even when nobody read it.',zh:'「未查看详情即执行」：44.1% → 39.7%，不显著。闸门起作用时，根本没人读它。'},
+    a:{en:'Friction — not inspection.',zh:'起作用的是摩擦，不是查看。'}},
+ 17:{e:{en:'H3 exactly as pre-specified.',zh:'H3 与预先设定完全一致。'},
+    o:{en:'The explanation was a fixed template, not a rationale generated per score.',zh:'解释是固定模板，并不是针对每个分数生成的推理。'},
+    a:{en:'Ask yourself whether an explanation should change acceptance at all.',zh:'先问自己：解释是否本就应该改变接受度。'}},
+ 18:{e:{en:'Same score, two versions. The toggle shows the only difference between them.',zh:'同一个分数，两个版本。切换开关会显示两者唯一的差别。'},
+    o:{en:'The explanation is plausible but not checkable by the participant.',zh:'这段解释听起来合理，但被试无法核对它。'},
+    a:{en:'Notice whether the explanation makes the score feel fairer — or merely finished.',zh:'留意：解释让你觉得分数更公平，还是只是「更像回事」。'}},
+ 19:{e:{en:'Your call. Compared with H3 next.',zh:'你来判断。下一页与 H3 的真实结果对照。'},
+    o:{en:'Not recorded.',zh:'不会记录。'},
+    a:{en:'Decide whether accepting a score and judging it wisely are the same thing.',zh:'想清楚：接受一个评分，和明智地评判它，是不是同一件事。'}},
+ 20:{e:{en:'Acceptance 49.3% → 61.0%, p = .049. It does NOT survive our Bonferroni threshold of α = .0167.',zh:'接受度 49.3% → 61.0%，p = .049。它没有通过我们自己的 Bonferroni 阈值 α = .0167。'},
+    o:{en:'Acceptance of unreasonable scores also rose (30.9% → 38.2%), while fairness ratings stayed flat.',zh:'对不合理评分的接受度也上升了（30.9% → 38.2%），而公平感评分没有变化。'},
+    a:{en:'By our own correction, H3 is not supported as stated. We say so on the slide, not in the appendix.',zh:'按我们自己的校正，H3 按原表述不成立。这句话写在页面上，而不是藏在附录里。'}},
+ 21:{e:{en:'H1 supported, H2 supported, H3 not supported after correction.',zh:'H1 获支持，H2 获支持，H3 经校正后不成立。'},
+    o:{en:'H3 is still on the slide because its direction is meaningful — not because it passed.',zh:'H3 仍留在页面上，是因为方向有意义——而不是因为它通过了检验。'},
+    a:{en:'Notice which finding we did not dress up.',zh:'请留意：哪一个发现我们没给它化妆。'}},
+ 22:{e:{en:'Design implications derived from the three findings — not from new data.',zh:'这些设计含义由三个发现推导而来，不是来自新数据。'},
+    o:{en:'None of these rules has been tested in a shipped product.',zh:'这些准则都还没有在真实上线产品中验证过。'},
+    a:{en:'Treat them as hypotheses for the next study, not as conclusions.',zh:'把它们当作下一次研究的假设，而不是结论。'}},
+ 23:{e:{en:'Sample size, stakes, measurement, timing, counterbalancing — the four ways this pilot is limited.',zh:'样本、利害、测量、时序与平衡——这次 pilot 的四处局限。'},
+    o:{en:'This design also cannot separate “friction” from “attention”.',zh:'这个设计也无法把「摩擦」和「注意力」分开。'},
+    a:{en:'These are the reasons to read our numbers as a pilot.',zh:'这些就是为什么请把我们的数字当作 pilot 来看。'}},
+ 24:{e:{en:'Behaviour moved where a cue added friction or a checkable signal. Attitudes barely moved.',zh:'在有摩擦或可核对信号的地方，行为改变了；态度几乎没有。'},
+    o:{en:'One 34-person pilot, one session, no follow-up. The effect sizes need replication.',zh:'一次 34 人的 pilot，单次实验，没有追踪。效应量需要重复验证。'},
+    a:{en:'If you take one thing: transparency changes what people do, not what they say.',zh:'如果只带走一件事：透明化改变的是人做什么，而不是人说什么。'}}
+};
+function sceneClaim(s){
+  const g=q=>{const el=s.querySelector(q);return el?el.innerText.replace(/\s+/g,' ').trim():''};
+  const parts=[g('.kicker'),g('.badge'),g('h1'),g('h2'),g('.chapter-name')].filter(Boolean);
+  let t=parts.join(' · ');
+  if(t.length>170)t=t.slice(0,168)+'…';
+  return t||'—';
+}
+function renderAudit(){
+  const wb=document.getElementById('wb');if(!wb)return;
+  const s=scenes[idx];const a=AUDIT[idx]||{};
+  const note=NOTES[Math.min(idx,NOTES.length-1)];
+  document.getElementById('wbClaim').textContent=sceneClaim(s);
+  const ch=chapNames[+s.dataset.ch]?chapNames[+s.dataset.ch][lang]:'';
+  document.getElementById('wbScene').textContent='SCENE '+(idx+1)+' / '+scenes.length+' · '+ch;
+  const set=(id,val,fb)=>{const el=document.getElementById(id);
+    if(!el)return;const v=val?val[lang]:(fb||'—');el.textContent=v||'—'};
+  set('wbE',a.e,note?(lang==='en'?note.en:note.zh):'—');
+  set('wbO',a.o,'—');
+  set('wbA',a.a,'—');
+  document.getElementById('wbFoot').textContent=(lang==='en'
+    ?'Same move we tested: show the basis, not just the answer.  ·  W to close'
+    :'用的就是我们在实验里检验的那一招：给出依据，而不只是结论。  ·  W 关闭');
+}
+let auditOn=false;
+function toggleAudit(on){
+  const wb=document.getElementById('wb');if(!wb)return;
+  auditOn=(typeof on==='boolean')?on:!wb.classList.contains('on');
+  wb.classList.toggle('on',auditOn);
+  wb.setAttribute('aria-hidden',auditOn?'false':'true');
+  document.body.classList.toggle('auditing',auditOn);
+  const b=document.getElementById('wbBtn');if(b)b.classList.toggle('on',auditOn);
+  if(auditOn){
+    renderAudit();
+    try{SND.tone(520,.08,.016,'sine')}catch(err){}
+    setTimeout(()=>{ // charts are narrower now — redraw once
+      const s=scenes[idx];const cid=s&&s.querySelector('[id^=chartH]');
+      if(cid){cid.dataset.drawn='1';drawChart(cid.id);}
+    },560);
+  }else{
+    setTimeout(()=>{
+      const s=scenes[idx];const cid=s&&s.querySelector('[id^=chartH]');
+      if(cid){cid.dataset.drawn='1';drawChart(cid.id);}
+    },560);
+  }
+}
+document.getElementById('wbBtn').onclick=()=>toggleAudit();
+document.getElementById('wbClose').onclick=()=>toggleAudit(false);
+
 /* keys */
 document.addEventListener('keydown',e=>{
   if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'||e.key==='Enter'){e.preventDefault();next()}
   else if(e.key==='ArrowLeft'||e.key==='PageUp'||e.key==='Backspace'){e.preventDefault();prev()}
   else if(e.key==='m'||e.key==='M'){menuEl.classList.toggle('open')}
   else if(e.key==='s'||e.key==='S'){notesEl.classList.toggle('open')}
-  else if(e.key==='Escape'){closeMenu();notesEl.classList.remove('open')}
+  else if(e.key==='w'||e.key==='W'){toggleAudit()}
+  else if(e.key==='Escape'){closeMenu();notesEl.classList.remove('open');toggleAudit(false)}
 });
 
 /* touch */
@@ -1252,12 +1566,18 @@ document.addEventListener('mousemove',moveTip);
 
 function drawChart(id){
   const NS='http://www.w3.org/2000/svg';
-  const box=document.getElementById(id);
-  const W=820,H=320,pad=70;
+  const box=document.getElementById(id);if(!box)return;
+  box.innerHTML='';
+  const cw=box.clientWidth||820;
+  const mobile=cw<560;
+  const W=Math.round(Math.max(280,Math.min(820,cw)));
+  const H=mobile?300:320;
+  const pad=mobile?24:70;
   const svg=document.createElementNS(NS,'svg');
   svg.setAttribute('viewBox','0 0 '+W+' '+H);
+  svg.setAttribute('width','100%');
+  svg.style.display='block';
   const mk=(t,at)=>{const e=document.createElementNS(NS,t);for(const k in at)e.setAttribute(k,at[k]);return e};
-  const label=(x,y,txt,anchor)=>{const e=mk('text',{x,y,'text-anchor':anchor||'middle',class:'axis-lab'});e.textContent=txt;svg.appendChild(e)};
 
   if(id==='chartH2'||id==='chartH3'||id==='chartH1'){
     let rows;
@@ -1271,31 +1591,33 @@ function drawChart(id){
       rows=[{l:{en:'Accepted the score',zh:'接受了评分'},a:.493,b:.610,sig:true},
             {l:{en:'Accepted an unreasonable score',zh:'接受了不合理评分'},a:.309,b:.382,sig:false}];
     }
-    const rowH=(H-92)/rows.length;
-    const bw=(W-pad*2-130);
+    const fsL=mobile?15:23, fsT=mobile?10:14, fsV=mobile?16:21;
+    const barH=mobile?20:26, barGap=10, valGap=mobile?58:130;
+    const rowH=(H-(mobile?96:92))/rows.length;
+    const bw=Math.max(60,W-pad*2-valGap);
     rows.forEach((row,ri)=>{
-      const cy=80+ri*rowH;
-      const lb=mk('text',{x:pad,y:cy-22,fill:'#080d18','font-size':23,'font-weight':'700','font-family':'var(--display)','letter-spacing':'-.01em'});
+      const cy=(mobile?64:80)+ri*rowH;
+      const lb=mk('text',{x:pad,y:cy-(mobile?20:22),fill:'#080d18','font-size':fsL,'font-weight':'700','font-family':'var(--display)','letter-spacing':'-.01em'});
       lb.textContent=row.l[lang];
       svg.appendChild(lb);
       let tw=0;try{tw=lb.getComputedTextLength()}catch(err){}
-      if(!tw){for(const ch of row.l[lang])tw+=ch.charCodeAt(0)>0x2E80?23.5:12.2}
-      const tag=mk('text',{x:pad+tw+20,y:cy-24,fill:row.sig?'#0a8f5b':'rgba(8,13,24,.4)','font-size':14,'letter-spacing':'.14em','font-family':'var(--display)'});
+      if(!tw){for(const ch of row.l[lang])tw+=ch.charCodeAt(0)>0x2E80?(fsL*1.02):(fsL*.55)}
+      const tag=mk('text',{x:pad+tw+(mobile?10:20),y:cy-(mobile?21:24),fill:row.sig?'#0a8f5b':'rgba(8,13,24,.4)','font-size':fsT,'letter-spacing':'.14em','font-family':'var(--display)'});
       tag.textContent=row.sig?(lang==='en'?'SIGNIFICANT':'显著'):'N.S.';
       svg.appendChild(tag);
-      const b1=mk('rect',{x:pad,y:cy,width:bw*row.a,height:26,fill:'rgba(8,13,24,.26)'});
-      const b2=mk('rect',{x:pad,y:cy+36,width:0.001,height:26,fill:'#0b57ff'});
+      const b1=mk('rect',{x:pad,y:cy,width:bw*row.a,height:barH,fill:'rgba(8,13,24,.26)'});
+      const b2=mk('rect',{x:pad,y:cy+barH+barGap,width:0.001,height:barH,fill:'#0b57ff'});
       svg.appendChild(b1);svg.appendChild(b2);
-      const v1=mk('text',{x:pad+bw*row.a+14,y:cy+20,fill:'rgba(8,13,24,.62)','font-size':21,'font-weight':'600','font-family':'var(--display)'});
+      const v1=mk('text',{x:pad+bw*row.a+(mobile?8:14),y:cy+barH*.78,fill:'rgba(8,13,24,.62)','font-size':fsV,'font-weight':'600','font-family':'var(--display)'});
       v1.textContent=(row.a*100).toFixed(1)+'%';
-      const v2=mk('text',{x:pad+bw*row.b+14,y:cy+56,fill:'#0b57ff','font-size':21,'font-weight':'800','font-family':'var(--display)'});
+      const v2=mk('text',{x:pad+bw*row.b+(mobile?8:14),y:cy+barH+barGap+barH*.78,fill:'#0b57ff','font-size':fsV,'font-weight':'800','font-family':'var(--display)'});
       v2.textContent=(row.b*100).toFixed(1)+'%';
       svg.appendChild(v1);svg.appendChild(v2);
       requestAnimationFrame(()=>requestAnimationFrame(()=>{
         b2.style.transition='width 1.1s cubic-bezier(.22,1,.36,1) '+(ri*.25+.3)+'s';
         b2.setAttribute('width',bw*row.b);
       }));
-      const hit=mk('rect',{x:pad-6,y:cy-40,width:W-pad*2+30,height:104,class:'hit'});
+      const hit=mk('rect',{x:pad-6,y:cy-40,width:W-pad*2+30,height:barH*2+barGap+40,class:'hit'});
       hit.addEventListener('pointerenter',ev=>{
         b1.setAttribute('fill','rgba(8,13,24,.42)');b2.setAttribute('fill','#2f74ff');
         showTip(row.l[lang]+' · '+Math.round(row.a*1000)/10+'% → <b>'+Math.round(row.b*1000)/10+'%</b>',ev);
@@ -1304,12 +1626,30 @@ function drawChart(id){
       hit.addEventListener('pointerleave',()=>{b1.setAttribute('fill','rgba(8,13,24,.26)');b2.setAttribute('fill','#0b57ff');hideTip()});
       svg.appendChild(hit);
     });
-    const lg=(x,txt,fill)=>{const e=mk('text',{x,y:H-14,fill,'font-size':17,'font-family':'var(--display)','letter-spacing':'.02em'});e.textContent=txt;svg.appendChild(e)};
-    lg(pad,'■ '+(lang==='en'?'Black box (baseline)':'黑盒（基线）'),'rgba(8,13,24,.45)');
-    lg(pad+330,'■ '+(lang==='en'?'White box (cue)':'白盒（透明化线索）'),'#0b57ff');
+    const lgFs=mobile?12:17;
+    const lg=(x,y,txt,fill)=>{const e=mk('text',{x,y,fill,'font-size':lgFs,'font-family':'var(--display)','letter-spacing':'.02em'});e.textContent=txt;svg.appendChild(e)};
+    if(mobile){
+      lg(pad,H-30,'■ '+(lang==='en'?'Black box (baseline)':'黑盒（基线）'),'rgba(8,13,24,.45)');
+      lg(pad,H-11,'■ '+(lang==='en'?'White box (cue)':'白盒（线索）'),'#0b57ff');
+    }else{
+      lg(pad,H-14,'■ '+(lang==='en'?'Black box (baseline)':'黑盒（基线）'),'rgba(8,13,24,.45)');
+      lg(pad+330,H-14,'■ '+(lang==='en'?'White box (cue)':'白盒（透明化线索）'),'#0b57ff');
+    }
   }
   box.appendChild(svg);
 }
+
+/* redraw charts when the viewport changes (rotation / resize) */
+let __rsT=null;
+addEventListener('resize',()=>{
+  clearTimeout(__rsT);
+  __rsT=setTimeout(()=>{
+    document.querySelectorAll('[id^=chartH]').forEach(b=>{b.dataset.drawn='';});
+    const s=scenes[idx];if(!s)return;
+    const cid=s.querySelector('[id^=chartH]');
+    if(cid&&s.classList.contains('active')){cid.dataset.drawn='1';drawChart(cid.id);}
+  },220);
+});
 
 /* ================= FX LAYER ================= */
 
@@ -1479,8 +1819,8 @@ demoPick=function(btn,which){
     '63.2% of participants also accepted this wrong statement in the black box.',
     '黑盒条件下，63.2% 的被试也同样接受了这条错误结论。');
   if(t&&t.id==='truthAW')addAgg(t.parentElement,
-    'With the 58% bar, wrong-answer uptake dropped to 47.1%.',
-    '有了这条 58% 的置信条，错误答案的采纳率降到 47.1%。');
+    'Same question as Round 1 — with the 58% bar, acceptance fell 63.2% → 47.1%.',
+    '和第 1 轮同一道题——有了 58% 置信条，采纳率从 63.2% 降到 47.1%。');
 };
 const _bPick=bPick;
 bPick=function(btn,blocked){
