@@ -661,10 +661,24 @@ body.dragging .scene.active{transition:none!important}
 }
 /* ---------- 深色模式 ---------- */
 body.dark{
-  --bg:#0a0e18;--panel:#101726;--ink:#e8ecf7;--dim:rgba(232,238,250,.66);
-  --faint:rgba(232,238,250,.4);--hair:rgba(232,238,250,.16);--hair2:rgba(232,238,250,.08);
+  --bg:#0a0e18;--panel:#101726;--ink:#f4f7ff;--dim:rgba(240,244,255,.78);
+  --faint:rgba(240,244,255,.55);--hair:rgba(240,244,255,.17);--hair2:rgba(240,244,255,.09);
   --shadow:0 22px 55px -30px rgba(0,0,0,.75);--shadow-sm:0 8px 22px -14px rgba(0,0,0,.65);
 }
+/* 深色下按钮统一表面：同一底色 + 同级边框，primary 保持科技蓝 */
+body.dark .tool-btn{background:#141d31;border-color:rgba(240,244,255,.18);color:#dbe4f7}
+body.dark .tool-btn:hover{background:#182339;border-color:#2e8bff;color:#fff}
+body.dark .tool-btn.primary,body.dark .live-input .tool-btn{background:linear-gradient(135deg,#2e8bff,#0a5ce6);border-color:transparent;color:#fff}
+body.dark .tool-btn.primary:hover{background:linear-gradient(135deg,#3d97ff,#1170f0);color:#fff}
+body.dark .choice-btn{background:#111827;border-color:rgba(240,244,255,.16);color:#eef2fb}
+body.dark .choice-btn:hover{border-color:#2e8bff;background:#16203a;color:#fff}
+body.dark .choice-btn .key{color:rgba(240,244,255,.6);border-color:rgba(240,244,255,.22)}
+body.dark .choice-btn.picked{background:rgba(11,87,255,.18)}
+body.dark .chip{background:#141d31;border-color:rgba(240,244,255,.16);color:#dbe4f7}
+body.dark .live-chips .chip{background:rgba(10,132,255,.1);border-color:rgba(10,132,255,.3);color:#a5cbff}
+body.dark .live-chips .chip:hover{background:rgba(10,132,255,.18);color:#cfe4ff}
+body.dark .badge{background:#141d31}
+body.dark .predict-btn{background:#141d31;border-color:rgba(240,244,255,.16);color:#dbe4f7}
 body,html{transition:background .35s ease,color .35s ease}
 body.dark .demo-stage{background:#101726;border-color:rgba(232,238,250,.12)}
 body.dark #curtain .panel{background:#0a0e18}
