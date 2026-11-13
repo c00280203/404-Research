@@ -1,0 +1,1674 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trust, But Verify — Human-AI Transparency · Lab 5R</title>
+<meta name="description" content="PSP404TC Lab 5R research presentation: can transparency cues — uncertainty scores, confirmation requests, score explanations — change what people do with AI?">
+<style>
+:root{
+  --bg:#ffffff; --panel:#f5f8fd; --ink:#080d18; --dim:rgba(8,13,24,.62);
+  --faint:rgba(8,13,24,.36); --hair:rgba(8,13,24,.13); --hair2:rgba(8,13,24,.055);
+  --amber:#0b57ff; --red:#dd2b2b; --green:#0a8f5b; --blue:#0b57ff;
+  --shadow:0 22px 55px -30px rgba(8,32,90,.38); --shadow-sm:0 8px 22px -14px rgba(8,32,90,.32);
+  --display:"Helvetica Neue",-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--display);overflow:hidden;
+  font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;color:inherit;background:none;border:none;cursor:pointer}
+::selection{background:var(--amber);color:#fff}
+
+/* ---------- HUD ---------- */
+#progress{position:fixed;top:0;left:0;right:0;height:2px;z-index:60;display:flex;gap:2px;padding:0 10px;align-items:center}
+#progress .seg{flex:1;height:2px;background:var(--hair2);position:relative;overflow:hidden}
+#progress .seg i{position:absolute;inset:0;background:var(--amber);transform:scaleX(0);transform-origin:left;transition:transform .5s cubic-bezier(.22,1,.36,1)}
+#progress .seg.done i{transform:scaleX(1)}
+#progress .seg.part i{transform:scaleX(var(--p,0))}
+.hud{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;justify-content:space-between;align-items:center;
+  padding:18px 26px;pointer-events:none}
+.hud>*{pointer-events:auto}
+.brand{font-size:11px;letter-spacing:.28em;color:var(--faint);font-weight:600;text-transform:uppercase}
+.brand b{color:var(--ink);font-weight:600}
+.hud-right{display:flex;gap:10px;align-items:center}
+.hud-btn{font-size:11px;letter-spacing:.14em;padding:8px 14px;white-space:nowrap;border:1px solid var(--hair);color:var(--dim);
+  transition:color .22s,background .22s,border-color .22s,transform .22s;text-transform:uppercase;
+  background:rgba(255,255,255,.8);backdrop-filter:blur(10px)}
+.hud-btn:hover{color:#fff;background:var(--amber);border-color:var(--amber);transform:translateY(-1px)}
+.pager{position:fixed;bottom:0;left:0;right:0;z-index:50;display:flex;justify-content:space-between;align-items:flex-end;
+  padding:20px 26px;pointer-events:none}
+.pager>*{pointer-events:auto}
+#pageNo{font-size:11px;letter-spacing:.2em;color:var(--faint);font-variant-numeric:tabular-nums}
+.nav-btns{display:flex;gap:8px}
+.nav-btn{width:44px;height:44px;border:1px solid var(--hair);display:flex;align-items:center;justify-content:center;
+  font-size:16px;color:var(--dim);transition:.22s;background:rgba(255,255,255,.8);backdrop-filter:blur(10px)}
+.nav-btn:hover{color:#fff;background:var(--amber);border-color:var(--amber)}
+#keyHint{font-size:10px;letter-spacing:.16em;color:var(--faint);text-transform:uppercase}
+
+/* ---------- DECK ---------- */
+#deck{position:fixed;inset:0}
+.scene{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-start;align-items:center;
+  padding:76px 7vw 72px;opacity:0;visibility:hidden;transform:translate3d(3.5%,0,0) scale(.975);
+  filter:blur(2px);
+  transition:opacity .38s ease,transform .5s cubic-bezier(.22,1,.3,1),filter .34s ease,visibility 0s .5s;
+  overflow-y:auto;will-change:transform,opacity}
+.scene.active{opacity:1;visibility:visible;transform:none;filter:none;transition-delay:0s;z-index:5}
+.scene.past{transform:translate3d(-3.5%,0,0) scale(.975)}
+.wrap{width:100%;max-width:1060px;margin:auto}
+.kicker{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);font-weight:600;margin-bottom:26px;display:flex;align-items:center;gap:14px}
+.kicker::before{content:"";display:block;width:34px;height:1px;background:var(--amber)}
+.kicker.plain::before{display:none}
+.giant{font-size:clamp(44px,9vw,118px);font-weight:800;letter-spacing:-.03em;line-height:1.02}
+h2.title{font-size:clamp(30px,4.6vw,56px);font-weight:800;letter-spacing:-.02em;line-height:1.12}
+.sub{color:var(--dim);font-size:clamp(15px,1.6vw,19px);max-width:640px;margin-top:22px;font-weight:400}
+.foot-note{margin-top:34px;font-size:12px;color:var(--faint);letter-spacing:.04em;line-height:1.7}
+.reveal-item{opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .6s cubic-bezier(.22,1,.36,1)}
+.active .reveal-item{opacity:1;transform:none}
+.active .d1{transition-delay:.1s}.active .d2{transition-delay:.25s}.active .d3{transition-delay:.4s}
+.active .d4{transition-delay:.55s}.active .d5{transition-delay:.7s}.active .d6{transition-delay:.85s}
+.active .d7{transition-delay:1s}.active .d8{transition-delay:1.15s}
+.accent{color:var(--amber)}
+.hr{height:1px;background:var(--hair);margin:34px 0}
+
+/* ---------- cover ---------- */
+.cover-team{display:flex;gap:26px;flex-wrap:wrap;margin-top:40px;font-size:13px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase}
+.cover-team span b{color:var(--ink);font-weight:600}
+.press-hint{margin-top:56px;font-size:11px;letter-spacing:.26em;color:var(--faint);text-transform:uppercase;animation:pulse 2.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.45}50%{opacity:1}}
+
+/* ---------- hook rows ---------- */
+.hook-row{display:flex;justify-content:space-between;align-items:baseline;gap:20px;padding:26px 0;border-bottom:1px solid var(--hair)}
+.hook-row:first-of-type{border-top:1px solid var(--hair)}
+.hook-row .verb{font-size:clamp(24px,3.6vw,44px);font-weight:800;letter-spacing:-.02em}
+.hook-row .risk{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--red);font-weight:600;white-space:nowrap}
+.hook-row .arrow{color:var(--faint);font-weight:400;font-size:clamp(18px,2.4vw,28px)}
+
+/* ---------- hypothesis cards ---------- */
+.hyp-grid{display:flex;flex-direction:column}
+.hyp{display:flex;gap:30px;align-items:baseline;padding:30px 0;border-bottom:1px solid var(--hair)}
+.hyp:first-of-type{border-top:1px solid var(--hair)}
+.hyp .no{font-size:clamp(30px,4vw,52px);font-weight:800;color:var(--amber);letter-spacing:-.02em;min-width:86px;font-variant-numeric:tabular-nums}
+.hyp .body h3{font-size:clamp(19px,2.4vw,28px);font-weight:700;letter-spacing:-.01em}
+.hyp .body p{color:var(--dim);margin-top:6px;font-size:15px;max-width:620px}
+.hyp .who{margin-left:auto;font-size:11px;letter-spacing:.2em;color:var(--faint);text-transform:uppercase;white-space:nowrap;align-self:center}
+
+/* ---------- fact chips ---------- */
+.facts{display:flex;flex-wrap:wrap;gap:14px;margin-top:8px}
+.fact{border:1px solid var(--hair);padding:20px 24px;min-width:170px;flex:1}
+.fact .fv{font-size:clamp(26px,3.4vw,42px);font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.fact .fk{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin-top:8px}
+
+/* ---------- chapter divider ---------- */
+.divider .chapter-no{font-size:clamp(120px,26vw,340px);font-weight:800;line-height:.9;color:transparent;
+  -webkit-text-stroke:1.5px rgba(8,13,24,.3);letter-spacing:-.04em;
+  transition:color .8s cubic-bezier(.16,1,.3,1),-webkit-text-stroke-color .8s}
+.active .divider .chapter-no,.divider.active .chapter-no{color:rgba(11,87,255,.06);-webkit-text-stroke-color:rgba(11,87,255,.55)}
+.divider .chapter-name{font-size:clamp(26px,4.4vw,54px);font-weight:800;letter-spacing:-.02em;margin-top:10px}
+.divider .hyp-line{margin-top:26px;color:var(--dim);max-width:680px;font-size:clamp(15px,1.7vw,19px)}
+.divider .speaker{margin-top:40px;font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--faint)}
+.divider .speaker b{color:var(--amber);font-weight:600}
+
+/* ---------- replay / demo ---------- */
+.badge{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--hair);padding:9px 16px;
+  font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
+.badge .dot{width:7px;height:7px;border-radius:50%;background:var(--red);animation:pulse 1.6s infinite}
+.badge.calm .dot{background:var(--green);animation:none}
+.demo-stage{width:100%;max-width:820px;border:1px solid var(--hair);background:#fff;padding:36px;position:relative;
+  box-shadow:var(--shadow);transition:box-shadow .4s,border-color .4s}
+.demo-stage:hover{border-color:rgba(11,87,255,.3);box-shadow:0 30px 70px -34px rgba(8,32,90,.45)}
+.demo-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+.demo-tag{font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint)}
+.ai-row{display:flex;gap:16px;align-items:flex-start}
+.ai-avatar{width:38px;height:38px;border-radius:10px;background:var(--amber);color:#fff;display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:800;flex-shrink:0;letter-spacing:.02em}
+.ai-bubble{font-size:clamp(22px,2.6vw,29px);font-weight:600;line-height:1.42;letter-spacing:-.01em}
+.ai-meta{margin-top:18px;padding-top:16px;border-top:1px dashed var(--hair);display:flex;flex-direction:column;gap:8px;
+  font-size:18px;color:rgba(8,13,24,.55);letter-spacing:.02em;line-height:1.4}
+.ai-meta span+span{font-size:22px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:.04em}
+.conf-bar{margin-top:18px}
+.conf-bar .cb-top{display:flex;justify-content:space-between;font-size:18px;color:var(--dim);letter-spacing:.06em;margin-bottom:10px}
+.conf-bar .cb-top b{color:var(--amber);font-variant-numeric:tabular-nums}
+.conf-track{height:8px;background:var(--hair2);position:relative;overflow:hidden}
+.conf-fill{position:absolute;inset:0;background:var(--amber);transform:scaleX(0);transform-origin:left;transition:transform 1.1s cubic-bezier(.22,1,.36,1)}
+.active .conf-fill{transform:scaleX(var(--w,1))}
+.choice-btn{display:flex;align-items:center;gap:14px;width:100%;text-align:left;border:1px solid var(--hair);
+  padding:20px 24px;margin-top:14px;font-size:21px;font-weight:600;transition:.2s;background:transparent}
+.choice-btn:hover{border-color:var(--amber)}
+.choice-btn .key{font-size:13px;color:var(--faint);border:1px solid var(--hair);padding:4px 9px;letter-spacing:.06em}
+.choice-btn .k2{margin-left:auto;font-size:13px;letter-spacing:.16em;color:var(--faint);text-transform:uppercase}
+.choice-btn.picked{border-color:var(--amber);background:rgba(11,87,255,.08)}
+.choice-btn.danger:hover{border-color:var(--red)}
+.truth-line{margin-top:24px;font-size:18px;color:var(--dim);border-left:3px solid var(--amber);padding-left:18px;line-height:1.55}
+.truth-line b{color:var(--ink)}
+.verdict{margin-top:24px;padding:20px 22px;font-size:19px;font-weight:700;letter-spacing:.04em;display:none;align-items:center;gap:12px}
+.verdict.show{display:flex;animation:stamp .45s cubic-bezier(.34,1.56,.64,1)}
+.verdict.bad{border:1px solid var(--red);color:var(--red)}
+.verdict.good{border:1px solid var(--green);color:var(--green)}
+@keyframes stamp{0%{transform:scale(1.25);opacity:0}100%{transform:scale(1);opacity:1}}
+.cd-panel{margin-top:24px;border:1px solid rgba(11,87,255,.35);background:rgba(11,87,255,.05);padding:22px 24px;border-radius:16px}
+.cd-top{display:flex;justify-content:space-between;align-items:baseline;font-size:18px;gap:10px;flex-wrap:wrap}
+.cd-top b{display:inline-block;font-size:36px;color:var(--amber);font-variant-numeric:tabular-nums}
+.cd-track{height:4px;background:var(--hair2);margin-top:14px;position:relative;overflow:hidden}
+.cd-fill{position:absolute;inset:0;background:var(--amber);transform-origin:left;transform:scaleX(1);
+  transition:background .45s ease,box-shadow .45s ease}
+.demo-tools{display:flex;gap:12px;margin-top:26px;flex-wrap:wrap}
+.tool-btn{border:1px solid var(--hair);padding:13px 20px;font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);transition:.2s}
+.tool-btn:hover{color:var(--ink);border-color:var(--faint)}
+.tool-btn.primary{border-color:var(--amber);color:var(--amber)}
+.tool-btn.primary:hover{background:rgba(11,87,255,.1)}
+.breakdown{margin-top:16px;border-top:1px dashed var(--hair)}
+.bd-row{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--hair2);font-size:17px;color:var(--dim)}
+.bd-row b{color:var(--ink);font-variant-numeric:tabular-nums}
+.score-big{font-size:clamp(40px,6vw,72px);font-weight:800;letter-spacing:-.03em;line-height:1;margin-top:14px}
+.score-big small{font-size:.4em;color:var(--faint);font-weight:600}
+
+/* ---------- predict ---------- */
+.predict-btns{display:flex;gap:18px;margin-top:36px;flex-wrap:wrap}
+.predict-btn{flex:1;min-width:180px;border:1px solid var(--hair);padding:30px 24px;font-size:clamp(20px,2.6vw,28px);
+  font-weight:800;letter-spacing:-.01em;transition:.25s;position:relative}
+.predict-btn small{display:block;font-size:11px;letter-spacing:.18em;color:var(--faint);margin-top:8px;text-transform:uppercase;font-weight:600}
+.predict-btn:hover{border-color:var(--faint)}
+.predict-btn.picked{border-color:var(--amber);background:rgba(11,87,255,.08)}
+
+/* ---------- reveal ---------- */
+.reveal-hero{display:flex;align-items:baseline;gap:26px;flex-wrap:wrap}
+.reveal-hero .from{font-size:clamp(30px,4.4vw,56px);font-weight:800;color:var(--faint);text-decoration:line-through;text-decoration-thickness:2px}
+.reveal-hero .arr{color:var(--amber);font-size:clamp(24px,3vw,40px)}
+.reveal-hero .to{font-size:clamp(56px,10vw,120px);font-weight:800;letter-spacing:-.04em;line-height:1;color:var(--amber);font-variant-numeric:tabular-nums}
+.reveal-hero .unit{font-size:clamp(20px,2.6vw,34px);color:var(--dim);font-weight:600}
+.stat-chips{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px}
+.chip{border:1px solid var(--hair);padding:13px 19px;font-size:16px;color:var(--dim);display:flex;gap:10px;align-items:baseline}
+.chip b{color:var(--ink);font-variant-numeric:tabular-nums;font-weight:700;font-size:19px}
+.chip .tag{font-size:12px;letter-spacing:.14em;padding:2px 8px;border:1px solid var(--hair);color:var(--faint)}
+.chip .tag.sig{border-color:rgba(10,143,91,.5);color:var(--green)}
+.chip .tag.ns{color:var(--faint)}
+.twist{margin-top:26px;border-left:2px solid var(--red);padding:6px 0 6px 22px}
+.twist .tw-label{font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:var(--red);font-weight:700}
+.twist p{margin-top:10px;font-size:clamp(17px,2.2vw,24px);font-weight:700;letter-spacing:-.01em;line-height:1.4}
+.twist p em{font-style:normal;color:var(--red)}
+.punch{margin-top:20px;font-size:clamp(24px,3.4vw,44px);font-weight:800;letter-spacing:-.02em;line-height:1.24}
+.punch span{color:var(--amber)}
+
+/* ---------- charts ---------- */
+.chart-box{margin-top:22px;width:100%;max-width:820px}
+.chart-box svg{width:100%;height:auto;display:block}
+.axis-lab{font-size:10px;letter-spacing:.18em;fill:var(--faint);text-transform:uppercase;font-family:var(--display)}
+.chart-note{font-size:11px;color:var(--faint);margin-top:14px;letter-spacing:.05em}
+
+/* ---------- mechanism ---------- */
+.mech{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--hair);border:1px solid var(--hair)}
+.mech>div{background:var(--bg);padding:30px 26px}
+.mech .m-k{font-size:11px;letter-spacing:.24em;color:var(--amber);text-transform:uppercase;font-weight:700}
+.mech .m-t{font-size:clamp(17px,1.9vw,23px);font-weight:800;margin-top:12px;letter-spacing:-.01em}
+.mech .m-d{font-size:13px;color:var(--dim);margin-top:10px;line-height:1.6}
+.mech .warn .m-k{color:var(--red)}
+
+/* ---------- list rows (applications / limits) ---------- */
+.app-row{display:flex;gap:26px;padding:22px 0;border-bottom:1px solid var(--hair);align-items:baseline}
+.app-row:first-of-type{border-top:1px solid var(--hair)}
+.app-row .a-no{font-size:11px;color:var(--amber);letter-spacing:.2em;font-weight:700;min-width:36px}
+.app-row .a-t{font-size:clamp(16px,2vw,21px);font-weight:700;letter-spacing:-.01em;min-width:230px}
+.app-row .a-d{color:var(--dim);font-size:14px;flex:1;line-height:1.6}
+.app-row .a-d b{color:var(--ink)}
+
+/* ---------- quote ---------- */
+.quote{border-left:2px solid var(--hair);padding-left:22px;margin-top:30px;color:var(--dim);font-size:15px;line-height:1.7;font-style:italic}
+.quote .q-src{display:block;margin-top:10px;font-style:normal;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint)}
+
+/* ---------- end ---------- */
+.end-big{font-size:clamp(38px,7vw,92px);font-weight:800;letter-spacing:-.03em;line-height:1.05}
+.end-big span{color:var(--amber)}
+
+/* ---------- menu overlay ---------- */
+#menu{position:fixed;inset:0;background:rgba(255,255,255,.97);backdrop-filter:blur(18px);z-index:80;display:none;
+  flex-direction:column;padding:90px 8vw 60px;overflow-y:auto}
+#menu.open{display:flex}
+#menu .m-title{font-size:11px;letter-spacing:.3em;color:var(--faint);text-transform:uppercase;margin-bottom:26px}
+.menu-row{display:flex;gap:24px;align-items:baseline;padding:18px 0;border-bottom:1px solid var(--hair2);cursor:pointer;transition:.2s}
+.menu-row:hover{padding-left:10px}
+.menu-row .mr-no{font-size:12px;color:var(--faint);letter-spacing:.16em;min-width:40px;font-variant-numeric:tabular-nums}
+.menu-row .mr-t{font-size:clamp(18px,2.6vw,28px);font-weight:800;letter-spacing:-.02em}
+.menu-row .mr-s{margin-left:auto;font-size:10px;letter-spacing:.2em;color:var(--faint);text-transform:uppercase}
+.menu-row.cur .mr-t{color:var(--amber)}
+
+/* ---------- speaker notes ---------- */
+#notes{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.985);border-top:1px solid var(--hair);
+  z-index:70;padding:22px 8vw 26px;transform:translateY(110%);transition:transform .4s cubic-bezier(.22,1,.36,1);max-height:44vh;overflow-y:auto}
+#notes.open{transform:none}
+#notes .n-role{font-size:10px;letter-spacing:.26em;color:var(--amber);text-transform:uppercase;font-weight:700;margin-bottom:10px}
+#notes .n-body{font-size:14px;line-height:1.75;color:var(--dim);max-width:860px}
+#notes .n-body b{color:var(--ink)}
+
+/* ---------- responsive ---------- */
+@media (max-width:760px){
+  .scene{padding:76px 6vw 110px;justify-content:flex-start}
+  .wrap{margin:0}
+  .hyp{gap:16px;flex-wrap:wrap}
+  .hyp .who{margin-left:0;width:100%}
+  .mech{grid-template-columns:1fr}
+  .app-row{flex-wrap:wrap;gap:10px}
+  .app-row .a-t{min-width:0}
+  .pager{padding:14px 16px;gap:10px}
+  #keyHint{display:none}
+  .hud{padding:12px 14px}
+  .divider .chapter-no{font-size:clamp(90px,30vw,160px)}
+  .brand{display:none}
+  .hud-btn{padding:7px 10px;font-size:10px;letter-spacing:.08em}
+  #telemetry{font-size:9px;letter-spacing:.06em;gap:8px}
+  #pageNo{display:none}
+  .nav-btn{width:40px;height:40px}
+}
+/* ================= TECH LAYER ================= */
+:root{--mono:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace}
+#bg{position:fixed;inset:0;z-index:0;pointer-events:none;display:none}
+.gridlines{position:fixed;inset:0;z-index:1;pointer-events:none;
+  --gx:50%; --gy:45%;
+  background-image:radial-gradient(circle at var(--gx) var(--gy),rgba(11,87,255,.17) 1px,transparent 1.4px);
+  background-size:30px 30px;
+  -webkit-mask-image:radial-gradient(circle 440px at var(--gx) var(--gy),rgba(0,0,0,.8) 0%,rgba(0,0,0,.25) 45%,transparent 72%);
+  mask-image:radial-gradient(circle 440px at var(--gx) var(--gy),rgba(0,0,0,.8) 0%,rgba(0,0,0,.25) 45%,transparent 72%);
+  transition:opacity .4s}
+#deck{position:fixed;inset:0;z-index:2}
+.scanlines{display:none}
+body.grid-off .gridlines{display:none}
+
+/* mono micro-type */
+.brand,.hud-btn,#pageNo,#keyHint,#telemetry,.kicker,.demo-tag,.badge,.speaker,.chart-note,.foot-note,.q-src,.fact .fk,.m-k,.tw-label,.a-no{font-family:var(--mono)}
+
+/* HUD */
+#telemetry{font-size:10px;letter-spacing:.14em;color:var(--faint);text-transform:uppercase;display:flex;gap:12px;align-items:center;white-space:nowrap}
+#telemetry .rec{width:6px;height:6px;border-radius:50%;background:var(--red);animation:pulse 1.7s infinite}
+#telemetry b{color:var(--dim);font-weight:600}
+.tele{display:flex;flex-direction:column;gap:7px}
+#sndBtn.on{color:#fff;background:var(--amber);border-color:var(--amber)}
+
+/* title wipe */
+.active .wipe{animation:wipein .85s cubic-bezier(.22,1,.36,1) both}
+@keyframes wipein{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+
+
+/* holo demo stage */
+
+@media (hover:hover) and (pointer:fine){.demo-stage{will-change:transform}}
+
+/* countdown + urgency */
+.cd-panel{margin-top:24px;border:1px solid rgba(11,87,255,.35);background:rgba(11,87,255,.05);padding:22px 24px;
+  border-radius:16px;transition:border-color .5s ease,background .5s ease,box-shadow .5s ease}
+.cd-panel.urgent{border-color:rgba(221,43,43,.55);background:rgba(221,43,43,.05);box-shadow:0 0 0 5px rgba(221,43,43,.06)}
+.cd-panel.urgent b{color:var(--red);animation:softPulse 1s ease-in-out infinite}
+.cd-panel.urgent .cd-fill{background:var(--red);box-shadow:0 0 10px rgba(221,43,43,.45)}
+.cd-panel.urgent .cd-track{background:rgba(221,43,43,.14)}
+.cd-track{transition:background .45s ease}
+.cd-panel b{transition:color .4s ease}
+@keyframes softPulse{50%{opacity:.55}}
+@keyframes numPop{0%{transform:scale(1.14)}100%{transform:scale(1)}}
+
+/* chart hover */
+.chart-box svg .hit{fill:transparent;cursor:crosshair}
+#tip{position:fixed;z-index:96;pointer-events:none;background:#fff;border:1px solid rgba(11,87,255,.4);box-shadow:var(--shadow-sm);
+  padding:8px 12px;font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--ink);
+  opacity:0;transform:translateY(5px);transition:opacity .14s,transform .14s;white-space:nowrap}
+#tip.on{opacity:1;transform:none}
+#tip b{color:var(--amber)}
+
+/* boot */
+#boot{position:fixed;inset:0;z-index:130;background:#fff;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:9px;font-family:var(--mono);font-size:12px;letter-spacing:.12em;color:var(--dim);transition:opacity .55s}
+#boot.out{opacity:0;pointer-events:none}
+#boot .bline{opacity:0;animation:bootin .3s forwards}
+#boot .ok{color:var(--green)}
+#boot .bmark{width:190px;height:1px;background:var(--hair);margin-top:14px;position:relative;overflow:hidden}
+#boot .bmark i{position:absolute;inset:0;background:var(--amber);transform-origin:left;transform:scaleX(0);animation:bootbar 1.15s .3s cubic-bezier(.4,0,.2,1) forwards}
+@keyframes bootin{to{opacity:1}}
+@keyframes bootbar{to{transform:scaleX(1)}}
+#boot .bskip{margin-top:12px;font-size:10px;letter-spacing:.2em;color:rgba(8,13,24,.25)}
+
+/* extra pulse on interactive rows */
+
+.hyp:hover .body h3{color:var(--amber)}
+.predict-btn:hover{border-color:var(--amber);box-shadow:0 18px 40px -26px rgba(11,87,255,.6)}
+.tool-btn:hover{box-shadow:var(--shadow-sm)}
+@media (prefers-reduced-motion: reduce){
+  #bg,.gridlines,.scanlines,.demo-stage .scan{display:none}
+  .active .wipe{animation:none}
+}
+
+/* ================= INTERACTION LAYER v2 (white / blue) ================= */
+#spot{position:fixed;left:0;top:0;width:100%;height:100%;z-index:1;pointer-events:none;
+  background:radial-gradient(circle 380px at var(--sx,50%) var(--sy,40%),rgba(11,87,255,.065),rgba(11,87,255,.02) 42%,transparent 68%);
+  transition:opacity .5s}
+body.dragging,body.dragging *{cursor:grabbing!important}
+body.dragging .scene.active{transition:none!important}
+
+/* progress bar = clickable chapter rail */
+#progress{pointer-events:none}
+#progress .seg{pointer-events:auto;cursor:pointer;transition:height .2s,background .2s}
+#progress .seg::before{content:"";position:absolute;left:0;right:0;top:-11px;bottom:-11px}
+#progress .seg:hover{height:4px;background:rgba(11,87,255,.28)}
+#progress .seg.done:hover{background:var(--amber)}
+
+/* hook rows respond */
+.hook-row{transition:padding-left .35s cubic-bezier(.16,1,.3,1),background .35s}
+.hook-row:hover{padding-left:16px;background:linear-gradient(90deg,rgba(11,87,255,.05),transparent 70%)}
+.hook-row:hover .verb{color:var(--amber)}
+.hook-row .verb{transition:color .3s}
+.hook-row:hover .arrow{transform:translateX(8px);color:var(--amber)}
+.hook-row .arrow{transition:transform .35s cubic-bezier(.16,1,.3,1),color .3s;display:inline-block}
+
+/* hypothesis rows */
+.hyp{position:relative;transition:padding-left .4s cubic-bezier(.16,1,.3,1)}
+.hyp::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--amber);
+  transform:scaleY(0);transform-origin:top;transition:transform .45s cubic-bezier(.16,1,.3,1)}
+.hyp:hover{padding-left:22px}
+.hyp:hover::before{transform:scaleY(1)}
+.hyp:hover .body h3{color:var(--amber)}
+.hyp .body h3{transition:color .3s}
+
+/* buttons: quiet hover */
+.choice-btn,.tool-btn,.predict-btn,.hud-btn,.nav-btn{position:relative;overflow:hidden;isolation:isolate}
+.choice-btn::after,.tool-btn::after,.predict-btn::after{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;
+  background:rgba(11,87,255,.05);opacity:0;transition:opacity .22s ease}
+.choice-btn:hover::after,.tool-btn:hover::after,.predict-btn:hover::after{opacity:1}
+.choice-btn:hover,.tool-btn:hover,.predict-btn:hover{color:var(--ink);border-color:rgba(11,87,255,.35)}
+.choice-btn.picked::after{opacity:1}
+.choice-btn.picked,.predict-btn.picked{color:var(--ink)}
+.app-row{transition:padding-left .35s cubic-bezier(.16,1,.3,1),background .35s}
+.app-row:hover{padding-left:14px;background:linear-gradient(90deg,rgba(11,87,255,.045),transparent 65%)}
+
+/* titles: parallax */
+.giant,h2.title,.end-big{transition:transform .5s cubic-bezier(.16,1,.3,1)}
+
+/* scene chrome: a hairline that draws in */
+.scene::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:linear-gradient(90deg,transparent,rgba(11,87,255,.25),transparent);
+  transform:scaleX(0);opacity:0}
+.scene.active::after{animation:railIn 1.1s .15s cubic-bezier(.16,1,.3,1) forwards}
+@keyframes railIn{from{transform:scaleX(0);opacity:0}to{transform:scaleX(1);opacity:1}}
+
+
+.choice-btn:active,.hud-btn:active{transform:scale(.99)}
+
+/* quiet verdict — a tint and a small mark, nothing shouting */
+.choice-btn.picked.ok{border-color:rgba(10,143,91,.45);background:rgba(10,143,91,.05)}
+.choice-btn.picked.ok::after{background:rgba(10,143,91,.06);opacity:1}
+.choice-btn.picked.bad{border-color:rgba(221,43,43,.4);background:rgba(221,43,43,.045)}
+.choice-btn.picked.bad::after{background:rgba(221,43,43,.05);opacity:1}
+.pick-mark{margin-left:auto;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.06em}
+.pick-mark.ok{color:var(--green)}
+.pick-mark.bad{color:var(--red)}
+.truth-line.ok{border-left-color:var(--green)}
+.truth-line.bad{border-left-color:var(--red)}
+.truth-line{transition:border-color .3s}
+
+/* ---------- rounded geometry ---------- */
+.demo-stage{border-radius:18px;overflow:hidden}
+.choice-btn{border-radius:10px;overflow:hidden}
+.tool-btn{border-radius:10px}
+.predict-btn{border-radius:14px}
+.hud-btn{border-radius:8px}
+.nav-btn{border-radius:12px}
+.badge{border-radius:999px}
+.chip{border-radius:10px}
+.fact{border-radius:12px}
+.choice-btn .key{border-radius:6px}
+#tip{border-radius:8px}
+.conf-track,.cd-track{border-radius:999px}
+.conf-track,.cd-track,.cd-track::after,.conf-fill,.cd-fill{overflow:hidden}
+.conf-fill,.cd-fill{border-radius:999px}
+.mech{border-radius:14px;overflow:hidden}
+.verdict{border-radius:10px}
+.demo-stage .pick-mark{margin-left:auto}
+
+/* ---------- rounded geometry ---------- */
+.demo-stage{border-radius:18px;overflow:hidden}
+.choice-btn{border-radius:10px;overflow:hidden}
+.tool-btn{border-radius:10px}
+.predict-btn{border-radius:14px}
+.hud-btn{border-radius:8px}
+.nav-btn{border-radius:12px}
+.badge{border-radius:999px}
+.chip{border-radius:10px}
+.fact{border-radius:12px}
+.choice-btn .key{border-radius:6px}
+#tip{border-radius:8px}
+.conf-track,.cd-track{border-radius:999px}
+.conf-track,.cd-track,.cd-track::after,.conf-fill,.cd-fill{overflow:hidden}
+.conf-fill,.cd-fill{border-radius:999px}
+.mech{border-radius:14px;overflow:hidden}
+.verdict{border-radius:10px}
+.demo-stage .pick-mark{margin-left:auto}
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+<canvas id="bg"></canvas>
+<div id="spot"></div>
+<div class="gridlines"></div>
+<div class="scanlines"></div>
+<div id="tip"></div>
+
+<header class="hud">
+  <div class="brand">TRUST, BUT VERIFY <b id="chapLabel"></b></div>
+  <div class="hud-right">
+    <button class="hud-btn" id="sndBtn" title="Sound (click to enable)">SND</button>
+    <button class="hud-btn" id="notesBtn" title="Speaker notes (S)">Notes</button>
+    <button class="hud-btn" id="menuBtn" title="Chapters (M)">Menu</button>
+    <button class="hud-btn" id="langBtn">中文</button>
+  </div>
+</header>
+
+<main id="deck">
+
+<!-- 1 · COVER -->
+<section class="scene divider" data-ch="0" data-speaker="Zihan Wang">
+  <div class="wrap" style="text-align:left">
+    <div class="kicker reveal-item d1">PSP404TC · Applied Research Techniques and Methodologies · Lab 5R</div>
+    <h1 class="giant reveal-item d2" data-en="Trust, but <span class='accent'>verify.</span>" data-zh="信任，但要<span class='accent'>验证</span>。">Trust, but <span class="accent">verify.</span></h1>
+    <p class="sub reveal-item d3" data-en="Can transparency change what people actually do with an AI? A 34-participant experiment on three transparency cues." data-zh="透明化设计，能否真正改变人们对待 AI 的行为？一项 34 人参与的实验，检验三种透明化线索。">Can transparency change what people actually do with an AI? A 34-participant experiment on three transparency cues.</p>
+    <div class="cover-team reveal-item d4">
+      <span><b>Zihan Wang</b></span><span><b>Yibo Xu</b></span><span><b>Zhuoyi Ye</b></span>
+    </div>
+    <div class="press-hint reveal-item d5" data-en="Scroll · drag · or click anywhere to begin" data-zh="滚动 · 拖拽 · 或点击任意处开始">Scroll · drag · or click anywhere to begin</div>
+  </div>
+</section>
+
+<!-- 2 · HOOK -->
+<section class="scene" data-ch="0" data-speaker="Zihan Wang">
+  <div class="wrap">
+    <div class="kicker reveal-item d1" data-en="Every day" data-zh="每一天">Every day</div>
+    <div class="hook-row reveal-item d2">
+      <span class="verb" data-en="AI answers for us" data-zh="AI 替我们回答">AI answers for us</span>
+      <span class="arrow">→</span>
+      <span class="risk" data-en="Hallucination" data-zh="幻觉">Hallucination</span>
+    </div>
+    <div class="hook-row reveal-item d3">
+      <span class="verb" data-en="AI acts for us" data-zh="AI 替我们行动">AI acts for us</span>
+      <span class="arrow">→</span>
+      <span class="risk" data-en="Overreach" data-zh="越权">Overreach</span>
+    </div>
+    <div class="hook-row reveal-item d4">
+      <span class="verb" data-en="AI scores for us" data-zh="AI 替我们打分">AI scores for us</span>
+      <span class="arrow">→</span>
+      <span class="risk" data-en="Opaque & unfair" data-zh="不透明·不公">Opaque & unfair</span>
+    </div>
+    <p class="sub reveal-item d5" data-en="We rarely check. Not because we are lazy — because the interface gives us nothing to check with." data-zh="我们很少去核对。不是因为懒——而是界面没给我们任何可用于核对的线索。">We rarely check. Not because we are lazy — because the interface gives us nothing to check with.</p>
+  </div>
+</section>
+
+<!-- 3 · RQ -->
+<section class="scene" data-ch="0" data-speaker="Zihan Wang">
+  <div class="wrap">
+    <div class="kicker reveal-item d1" data-en="Research question" data-zh="研究问题">Research question</div>
+    <h2 class="title reveal-item d2" data-en="What if users could see how the AI reached its answer — before they trust it?" data-zh="如果用户能在信任之前，看见 AI 是如何得出答案的呢？">What if users could see how the AI reached its answer — before they trust it?</h2>
+    <p class="sub reveal-item d3" data-en="We tested one integrated transparency mechanism built from three cues: uncertainty scores, action confirmation, and score explanations." data-zh="我们检验了一套由三种线索构成的透明化机制：不确定性分数、行动确认、评分解释。">We tested one integrated transparency mechanism built from three cues: uncertainty scores, action confirmation, and score explanations.</p>
+    <div class="hr reveal-item d4"></div>
+    <p class="foot-note reveal-item d5" data-en="Built on Kim et al. (FAccT ’24) on uncertainty expression · Fregosi et al. (AAAI ’26) on calibrated confidence · Zhang et al. (2025) on agent autonomy and trust · Orgill et al. (2026) on transparent autograders." data-zh="理论基础：Kim 等（FAccT ’24）不确定性表达 · Fregosi 等（AAAI ’26）校准置信度 · Zhang 等（2025）Agent 自主性与信任 · Orgill 等（2026）透明自动评分。">Built on Kim et al. (FAccT ’24) on uncertainty expression · Fregosi et al. (AAAI ’26) on calibrated confidence · Zhang et al. (2025) on agent autonomy and trust · Orgill et al. (2026) on transparent autograders.</p>
+  </div>
+</section>
+
+<!-- 4 · HYPOTHESES -->
+<section class="scene" data-ch="0" data-speaker="Zihan Wang">
+  <div class="wrap">
+    <div class="kicker reveal-item d1" data-en="Three cues · one mechanism" data-zh="三种线索 · 一套机制">Three cues · one mechanism</div>
+    <div class="hyp-grid">
+      <div class="hyp reveal-item d2">
+        <span class="no">H1</span>
+        <div class="body">
+          <h3 data-en="Uncertainty score" data-zh="不确定性分数">Uncertainty score</h3>
+          <p data-en="Helps users detect wrong answers — without losing trust in right ones." data-zh="帮助用户发现错误答案——同时不失去对正确答案的信任。">Helps users detect wrong answers — without losing trust in right ones.</p>
+        </div>
+        <span class="who">Zihan Wang</span>
+      </div>
+      <div class="hyp reveal-item d3">
+        <span class="no">H2</span>
+        <div class="body">
+          <h3 data-en="Confirmation request" data-zh="行动前确认">Confirmation request</h3>
+          <p data-en="Keeps AI actions under the user's control before they happen." data-zh="在 AI 行动发生前，把它控制在用户手里。">Keeps AI actions under the user's control before they happen.</p>
+        </div>
+        <span class="who">Yibo Xu</span>
+      </div>
+      <div class="hyp reveal-item d4">
+        <span class="no">H3</span>
+        <div class="body">
+          <h3 data-en="Score explanation" data-zh="评分解释">Score explanation</h3>
+          <p data-en="Makes AI scoring feel fair — and shows whether it is actually justified." data-zh="让 AI 评分显得公平——并检验它是否真的公正。">Makes AI scoring feel fair — and shows whether it is actually justified.</p>
+        </div>
+        <span class="who">Zhuoyi Ye</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 · METHOD -->
+<section class="scene" data-ch="1" data-speaker="Zihan Wang">
+  <div class="wrap">
+    <div class="kicker reveal-item d1" data-en="How we tested" data-zh="研究方法">How we tested</div>
+    <h2 class="title reveal-item d2" data-en="Same people. Both versions. Every person is their own control." data-zh="同一批人，体验两个版本。每个人都是自己的对照组。">Same people. Both versions. Every person is their own control.</h2>
+    <div class="facts">
+      <div class="fact reveal-item d3"><div class="fv">34</div><div class="fk" data-en="Participants (within-subjects)" data-zh="被试（被试内设计）">Participants (within-subjects)</div></div>
+      <div class="fact reveal-item d4"><div class="fv">3 × 2</div><div class="fk" data-en="Tasks × versions (black / white box)" data-zh="任务 × 版本（黑盒 / 白盒）">Tasks × versions (black / white box)</div></div>
+      <div class="fact reveal-item d5"><div class="fv">24+18</div><div class="fk" data-en="Decisions + Likert ratings each" data-zh="每人决策 + 量表评定">Decisions + Likert ratings each</div></div>
+      <div class="fact reveal-item d6"><div class="fv">W</div><div class="fk" data-en="Wilcoxon signed-rank tests" data-zh="Wilcoxon 符号秩检验">Wilcoxon signed-rank tests</div></div>
+    </div>
+    <p class="foot-note reveal-item d7" data-en="A web experiment deployed on GitHub Pages: each task paired a black-box version (confident assertion / auto-execution / score only) with a white-box version (uncertainty score / confirmation request / score + breakdown). Version order randomised; parallel stimulus sets balanced." data-zh="基于 GitHub Pages 的网页实验：每个任务将黑盒版本（自信断言 / 自动执行 / 仅分数）与白盒版本（不确定性分数 / 请求确认 / 分数 + 分项解释）配对。版本顺序随机，平行材料平衡。">A web experiment deployed on GitHub Pages: each task paired a black-box version (confident assertion / auto-execution / score only) with a white-box version (uncertainty score / confirmation request / score + breakdown). Version order randomised; parallel stimulus sets balanced.</p>
+  </div>
+</section>
+
+<!-- 6 · SAMPLE -->
+<section class="scene" data-ch="1" data-speaker="Zihan Wang">
+  <div class="wrap">
+    <div class="kicker reveal-item d1" data-en="Who took part" data-zh="被试构成">Who took part</div>
+    <div class="facts">
+      <div class="fact reveal-item d2"><div class="fv">26<span style="font-size:.5em;color:var(--faint)">/34</span></div><div class="fk" data-en="Use AI tools every day" data-zh="每天都使用 AI 工具">Use AI tools every day</div></div>
+      <div class="fact reveal-item d3"><div class="fv">32<span style="font-size:.5em;color:var(--faint)">/34</span></div><div class="fk" data-en="Study computer science / AI" data-zh="计算机 / AI 相关专业">Study computer science / AI</div></div>
+      <div class="fact reveal-item d4"><div class="fv">≈7<span style="font-size:.5em;color:var(--faint)">&nbsp;min</span></div><div class="fk" data-en="Median session length" data-zh="中位完成时长">Median session length</div></div>
+      <div class="fact reveal-item d5"><div class="fv">62<span style="font-size:.5em;color:var(--faint)">%</span></div><div class="fk" data-en=" Noticed the extra cues (manipulation check)" data-zh="注意到了实验操纵（操纵检验）">Noticed the extra cues (manipulation check)</div></div>
+    </div>
+    <p class="sub reveal-item d6" data-en="An AI-heavy, tech-savvy audience — close to the profile of early adopters who will actually live with these interfaces." data-zh="一群高频使用 AI、熟悉技术的被试——正接近未来真正使用这些界面的早期用户画像。">An AI-heavy, tech-savvy audience — close to the profile of early adopters who will actually live with these interfaces.</p>
+  </div>
+</section>
+
+<!-- 7 · DEMO INTRO -->
+<section class="scene" data-ch="1" data-speaker="Zihan Wang">
+  <div class="wrap">
+    <div class="kicker reveal-item d1" data-en="Live replay" data-zh="现场重放">Live replay</div>
+    <h2 class="title reveal-item d2" data-en="The real interface. You decide." data-zh="真实实验界面。你来决定。">The real interface. You decide.</h2>
+    <p class="sub reveal-item d3" data-en="These are the exact screens our 34 participants used. Then we will show you what those 34 people actually did." data-zh="这就是 34 名被试使用的原始界面。接下来，我们会揭晓这 34 个人真实做了什么。">These are the exact screens our 34 participants used. Then we will show you what those 34 people actually did.</p>
+    <div style="margin-top:34px" class="reveal-item d4">
+      <span class="badge calm"><span class="dot"></span><span data-en="No language model inside — by design" data-zh="刻意不内置语言模型">No language model inside — by design</span></span>
+    </div>
+    <p class="foot-note reveal-item d5" data-en="Deterministic replays of the original stimuli, 100% offline-safe. We study transparency — we won't hide a black box inside our own slides." data-zh="对原始实验刺激的确定性重放，100% 离线可用。我们研究的是透明化——所以不会在自己的演示里藏一个黑盒。">Deterministic replays of the original stimuli, 100% offline-safe. We study transparency — we won't hide a black box inside our own slides.</p>
+  </div>
+</section>
+
+<!-- 8 · H1 DIVIDER -->
+<section class="scene divider" data-ch="2" data-speaker="Zihan Wang">
+  <div class="wrap">
+    <div class="chapter-no reveal-item d1">01</div>
+    <div class="chapter-name reveal-item d2" data-en="Uncertainty scores" data-zh="不确定性分数">Uncertainty scores</div>
+    <p class="hyp-line reveal-item d3" data-en="H1 — Compared with confident assertions, AI uncertainty scores increase users' detection of hallucinated or incorrect outputs, and reduce adoption of incorrect outputs." data-zh="H1——与自信断言相比，AI 的不确定性分数能提高用户对错误输出的检出率，并降低对错误输出的采纳率。">H1 — Compared with confident assertions, AI uncertainty scores increase users' detection of hallucinated or incorrect outputs, and reduce adoption of incorrect outputs.</p>
+    <div class="speaker reveal-item d4" data-en="Presented by <b>Zihan Wang</b>" data-zh="报告人 <b>Zihan Wang</b>">Presented by <b>Zihan Wang</b></div>
+  </div>
+</section>
+
+<!-- 9 · DEMO A BLACK BOX -->
+<section class="scene" data-ch="2" data-speaker="Zihan Wang">
+  <div class="wrap">
+    <div class="demo-stage reveal-item d1">
+      <div class="demo-head">
+        <span class="badge"><span class="dot"></span><span data-en="Task A · Black box" data-zh="任务 A · 黑盒">Task A · Black box</span></span>
+        <span class="demo-tag" data-en="Try it — you are participant #35" data-zh="试试看——你是第 35 号被试">Try it — you are participant #35</span>
+      </div>
+      <div class="ai-row">
+        <div class="ai-avatar">AI</div>
+        <div>
+          <p class="ai-bubble" data-en="I checked 8 students' raw scores. The median of these 8 scores is 80." data-zh="我核对了 8 位同学的原始分数。这 8 个分数的中位数是 80。">I checked 8 students' raw scores. The median of these 8 scores is 80.</p>
+          <div class="ai-meta">
+            <span data-en="Confident assertion · no further info" data-zh="自信断言 · 无附加信息">Confident assertion · no further info</span>
+            <span>78 · 85 · 92 · 66 · 74 · 88 · 71 · 80</span>
+          </div>
+        </div>
+      </div>
+      <button class="choice-btn" onclick="demoPick(this,'a-b')" style="margin-top:24px">
+        <span class="key">1</span><span data-en="Accept the conclusion" data-zh="接受该结论">Accept the conclusion</span>
+      </button>
+      <button class="choice-btn" data-ok="1" onclick="demoPick(this,'a-b')">
+        <span class="key">2</span><span data-en="Reject the conclusion (I think it is wrong)" data-zh="拒绝该结论（我认为有误）">Reject the conclusion (I think it is wrong)</span>
+      </button>
+      <div class="truth-line" id="truthA" style="display:none" data-en="Truth: the median of {78, 85, 92, 66, 74, 88, 71, 80} is <b>79</b> — the AI is wrong. In the black box, nothing about this message tells you that." data-zh="真相：{78, 85, 92, 66, 74, 88, 71, 80} 的中位数是 <b>79</b>——AI 说错了。而在黑盒里，这句话没有任何线索提醒你。">Truth: the median of {78, 85, 92, 66, 74, 88, 71, 80} is <b>79</b> — the AI is wrong. In the black box, nothing about this message tells you that.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 · DEMO A WHITE BOX -->
+<section class="scene" data-ch="2" data-speaker="Zihan Wang">
+  <div class="wrap">
+    <div class="demo-stage reveal-item d1">
+      <div class="demo-head">
+        <span class="badge"><span class="dot"></span><span data-en="Task A · White box" data-zh="任务 A · 白盒">Task A · White box</span></span>
+        <span class="demo-tag" data-en="Same task. One extra signal." data-zh="同样的任务。多了一条线索。">Same task. One extra signal.</span>
+      </div>
+      <div class="ai-row">
+        <div class="ai-avatar">AI</div>
+        <div>
+          <p class="ai-bubble" data-en="I checked 8 students' raw scores. The median of these 8 scores is 80." data-zh="我核对了 8 位同学的原始分数。这 8 个分数的中位数是 80。">I checked 8 students' raw scores. The median of these 8 scores is 80.</p>
+          <div class="conf-bar">
+            <div class="cb-top"><span data-en="Confidence" data-zh="置信度">Confidence</span><b>58%</b></div>
+            <div class="conf-track"><div class="conf-fill" style="--w:.58"></div></div>
+          </div>
+          <div class="ai-meta"><span data-en="Auto-generated · may contain errors" data-zh="自动生成 · 可能存在误差">Auto-generated · may contain errors</span></div>
+        </div>
+      </div>
+      <button class="choice-btn" onclick="demoPick(this,'a-w')" style="margin-top:24px">
+        <span class="key">1</span><span data-en="Accept the conclusion" data-zh="接受该结论">Accept the conclusion</span>
+      </button>
+      <button class="choice-btn" data-ok="1" onclick="demoPick(this,'a-w')">
+        <span class="key">2</span><span data-en="Reject the conclusion (I think it is wrong)" data-zh="拒绝该结论（我认为有误）">Reject the conclusion (I think it is wrong)</span>
+      </button>
+      <div class="truth-line" id="truthAW" style="display:none" data-en="With a 58% confidence bar, the claim no longer sounds like a fact — it sounds like a guess. That single change is H1." data-zh="当一条 58% 的置信条出现，这个结论听起来不再像事实，而像一次猜测。这一个改变，就是 H1。">With a 58% confidence bar, the claim no longer sounds like a fact — it sounds like a guess. That single change is H1.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 · PREDICT H1 -->
+<section class="scene" data-ch="2" data-speaker="Zihan Wang">
+  <div class="wrap">
+    <div class="kicker reveal-item d1" data-en="Before the data — your call" data-zh="数据揭晓之前——请你判断">Before the data — your call</div>
+    <h2 class="title reveal-item d2" data-en="Does a visible uncertainty score make people better at catching wrong answers?" data-zh="一条可见的不确定性分数，能让人更容易发现错误答案吗？">Does a visible uncertainty score make people better at catching wrong answers?</h2>
+    <div class="predict-btns reveal-item d3">
+      <button class="predict-btn" onclick="predictPick(this)" data-en="Yes — it will help" data-zh="会——有帮助">Yes — it will help<small data-en="Raise your hand" data-zh="请举手">Raise your hand</small></button>
+      <button class="predict-btn" onclick="predictPick(this)" data-en="No — people will ignore it" data-zh="不会——没人理会">No — people will ignore it<small data-en="Raise your hand" data-zh="请举手">Raise your hand</small></button>
+    </div>
+    <div class="demo-tools reveal-item d4">
+      <button class="tool-btn primary" onclick="next()" data-en="Reveal the data →" data-zh="揭晓数据 →">Reveal the data →</button>
+    </div>
+  </div>
+</section>
+
+<!-- 12 · REVEAL H1 -->
+<section class="scene" data-ch="2" data-speaker="Zihan Wang">
+  <div class="wrap">
+    <div class="kicker reveal-item d1" data-en="H1 · What 34 people did" data-zh="H1 · 34 人的真实行为">H1 · What 34 people did</div>
+    <div class="reveal-hero reveal-item d2">
+      <span class="from num" data-v="36.8" data-suffix="%">36.8%</span>
+      <span class="arr">→</span>
+      <span class="to num" data-v="52.9" data-suffix="%">52.9%</span>
+      <span class="unit" data-en="wrong answers detected" data-zh="错误答案检出率">wrong answers detected</span>
+    </div>
+    <div class="stat-chips reveal-item d3">
+      <span class="chip"><b>+16.2 pp</b> <span data-en="detection gain" data-zh="检出率提升">detection gain</span><span class="tag sig">p = .016</span></span>
+    </div>
+    <p class="punch reveal-item d4" data-en="Caution <span>without paralysis</span>." data-zh="变得警惕，<span>而没有变得多疑</span>。">Caution <span>without paralysis</span>.</p>
+    <div class="chart-box reveal-item d5" id="chartH1"></div>
+  </div>
+</section>
+
+<!-- 13 · H2 DIVIDER -->
+<section class="scene divider" data-ch="3" data-speaker="Yibo Xu">
+  <div class="wrap">
+    <div class="chapter-no reveal-item d1">02</div>
+    <div class="chapter-name reveal-item d2" data-en="Confirmation before action" data-zh="行动前的确认">Confirmation before action</div>
+    <p class="hyp-line reveal-item d3" data-en="H2 — Compared with automatic execution, AI confirmation requests increase users' perceived safety and control, and reduce risky automatic execution." data-zh="H2——与自动执行相比，AI 的确认请求能提升用户感知的安全感与控制感，并减少危险的自动执行。">H2 — Compared with automatic execution, AI confirmation requests increase users' perceived safety and control, and reduce risky automatic execution.</p>
+    <div class="speaker reveal-item d4" data-en="Presented by <b>Yibo Xu</b>" data-zh="报告人 <b>Yibo Xu</b>">Presented by <b>Yibo Xu</b></div>
+  </div>
+</section>
+
+<!-- 14 · DEMO B BLACK BOX -->
+<section class="scene" data-ch="3" data-speaker="Yibo Xu">
+  <div class="wrap">
+    <div class="demo-stage reveal-item d1">
+      <div class="demo-head">
+        <span class="badge"><span class="dot"></span><span data-en="Task B · Black box" data-zh="任务 B · 黑盒">Task B · Black box</span></span>
+        <span class="demo-tag" data-en="Watch the clock" data-zh="注意倒计时">Watch the clock</span>
+      </div>
+      <div class="ai-row">
+        <div class="ai-avatar">AI</div>
+        <div>
+          <p class="ai-bubble" data-en="I'm about to send our progress report to the course tutor — cc all 12 group members." data-zh="我准备向课程助教发送本组进度汇报邮件，并抄送全组 12 位成员。">I'm about to send our progress report to the course tutor — cc all 12 group members.</p>
+          <div class="ai-meta">
+            <span data-en="Added to execution queue" data-zh="已加入执行队列">Added to execution queue</span>
+            <span data-en="Auto-executes in 10 s — no action needed" data-zh="10 秒后自动执行，无需操作">Auto-executes in 10 s — no action needed</span>
+          </div>
+        </div>
+      </div>
+      <div class="cd-panel" id="cdPanel">
+        <div class="cd-top"><span style="display:flex;align-items:baseline;gap:8px"><b id="cdNum">10</b><span data-en="seconds to auto-execution" data-zh="秒后自动执行">seconds to auto-execution</span></span>
+          <span style="color:var(--faint);font-size:14px" data-en="You can interrupt — or do nothing" data-zh="你可以干预——也可以什么都不做">You can interrupt — or do nothing</span></div>
+        <div class="cd-track"><div class="cd-fill" id="cdFill"></div></div>
+      </div>
+      <div class="demo-tools">
+        <button class="tool-btn primary" id="cdStart" onclick="cdManual()" data-en="Restart the 10 s" data-zh="重新开始 10 秒">Restart the 10 s</button>
+        <button class="tool-btn" onclick="cdPause()" data-en="Pause & inspect" data-zh="暂停并查看详情">Pause & inspect</button>
+        <button class="tool-btn danger" onclick="cdRevoke()" data-en="Revoke execution" data-zh="撤销执行">Revoke execution</button>
+      </div>
+      <div class="verdict bad" id="vSent">⚠ <span data-en="SENT — 13 recipients. This was the risky item." data-zh="已发送——13 位收件人。这就是危险项。">SENT — 13 recipients. This was the risky item.</span></div>
+      <div class="verdict good" id="vSaved">✓ <span data-en="Stopped in time." data-zh="及时阻止。">Stopped in time.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 15 · DEMO B WHITE BOX -->
+<section class="scene" data-ch="3" data-speaker="Yibo Xu">
+  <div class="wrap">
+    <div class="demo-stage reveal-item d1">
+      <div class="demo-head">
+        <span class="badge"><span class="dot"></span><span data-en="Task B · White box" data-zh="任务 B · 白盒">Task B · White box</span></span>
+        <span class="demo-tag" data-en="Same agent. One gate." data-zh="同样的 Agent。加一道闸。">Same agent. One gate.</span>
+      </div>
+      <div class="ai-row">
+        <div class="ai-avatar">AI</div>
+        <div>
+          <p class="ai-bubble" data-en="I'm about to send our progress report to the course tutor — cc all 12 group members." data-zh="我准备向课程助教发送本组进度汇报邮件，并抄送全组 12 位成员。">I'm about to send our progress report to the course tutor — cc all 12 group members.</p>
+          <div class="ai-meta"><span data-en="Waiting for your confirmation" data-zh="等待你的确认">Waiting for your confirmation</span></div>
+        </div>
+      </div>
+      <button class="choice-btn" onclick="bPick(this,false)" style="margin-top:24px">
+        <span class="key">1</span><span data-en="Execute — send the email" data-zh="执行——发送邮件">Execute — send the email</span>
+      </button>
+      <button class="choice-btn" data-ok="1" onclick="bPick(this,true)">
+        <span class="key">2</span><span data-en="Don't execute" data-zh="不执行">Don't execute</span>
+      </button>
+      <div class="verdict bad" id="vBsent">⚠ <span data-en="SENT — 13 recipients." data-zh="已发送——13 位收件人。">SENT — 13 recipients.</span></div>
+      <div class="verdict good" id="vBstop">✓ <span data-en="Blocked. In the study, this is the response that cut risk." data-zh="已阻止。在实验里，正是这个按钮砍掉了风险。">Blocked. In the study, this is the response that cut risk.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 16 · PREDICT H2 -->
+<section class="scene" data-ch="3" data-speaker="Yibo Xu">
+  <div class="wrap">
+    <div class="kicker reveal-item d1" data-en="Before the data — your call" data-zh="数据揭晓之前——请你判断">Before the data — your call</div>
+    <h2 class="title reveal-item d2" data-en="Will a confirmation request cut risky auto-executions by a third or more?" data-zh="一道确认闸，能把危险执行砍掉三分之一以上吗？">Will a confirmation request cut risky auto-executions by a third or more?</h2>
+    <div class="predict-btns reveal-item d3">
+      <button class="predict-btn" onclick="predictPick(this)" data-en="Yes — by a third or more" data-zh="会——至少三分之一">Yes — by a third or more<small data-en="Raise your hand" data-zh="请举手">Raise your hand</small></button>
+      <button class="predict-btn" onclick="predictPick(this)" data-en="No — people will just click through" data-zh="不会——大家会直接点掉">No — people will just click through<small data-en="Raise your hand" data-zh="请举手">Raise your hand</small></button>
+    </div>
+    <div class="demo-tools reveal-item d4">
+      <button class="tool-btn primary" onclick="next()" data-en="Reveal the data →" data-zh="揭晓数据 →">Reveal the data →</button>
+    </div>
+  </div>
+</section>
+
+<!-- 17 · REVEAL H2 -->
+<section class="scene" data-ch="3" data-speaker="Yibo Xu">
+  <div class="wrap">
+    <div class="kicker reveal-item d1" data-en="H2 · What 34 people did" data-zh="H2 · 34 人的真实行为">H2 · What 34 people did</div>
+    <div class="reveal-hero reveal-item d2">
+      <span class="from num" data-v="82.4" data-suffix="%">82.4%</span>
+      <span class="arr">→</span>
+      <span class="to num" data-v="51.5" data-suffix="%">51.5%</span>
+      <span class="unit" data-en="risky actions executed" data-zh="危险操作被执行">risky actions executed</span>
+    </div>
+    <p class="punch reveal-item d4" data-en="<span>Friction</span> — not inspection." data-zh="起作用的是<span>摩擦</span>，不是查看。">​<span>Friction</span> — not inspection.</p>
+    <div class="chart-box reveal-item d5" id="chartH2"></div>
+  </div>
+</section>
+
+<!-- 18 · H3 DIVIDER -->
+<section class="scene divider" data-ch="4" data-speaker="Zhuoyi Ye">
+  <div class="wrap">
+    <div class="chapter-no reveal-item d1">03</div>
+    <div class="chapter-name reveal-item d2" data-en="Explaining the score" data-zh="解释这个分数">Explaining the score</div>
+    <p class="hyp-line reveal-item d3" data-en="H3 — Compared with score-only feedback, AI score explanations increase users' perceived fairness and acceptance of AI scoring." data-zh="H3——与仅显示分数相比，AI 的评分解释能提升用户对 AI 评分的公平感知与接受度。">H3 — Compared with score-only feedback, AI score explanations increase users' perceived fairness and acceptance of AI scoring.</p>
+    <div class="speaker reveal-item d4" data-en="Presented by <b>Zhuoyi Ye</b>" data-zh="报告人 <b>Zhuoyi Ye</b>">Presented by <b>Zhuoyi Ye</b></div>
+  </div>
+</section>
+
+<!-- 19 · DEMO C -->
+<section class="scene" data-ch="4" data-speaker="Zhuoyi Ye">
+  <div class="wrap">
+    <div class="demo-stage reveal-item d1" id="demoC">
+      <div class="demo-head">
+        <span class="badge"><span class="dot"></span><span data-en="Task C · Grading" data-zh="任务 C · 评分">Task C · Grading</span></span>
+        <span class="demo-tag" data-en="Toggle the version" data-zh="切换版本">Toggle the version</span>
+      </div>
+      <div class="ai-row">
+        <div class="ai-avatar">AI</div>
+        <div>
+          <p class="ai-bubble" data-en="I graded the essay. Final score:" data-zh="我完成了这篇作文的评分。最终得分：">I graded the essay. Final score:</p>
+          <div class="score-big">62<small>&nbsp;/ 100</small></div>
+          <div class="breakdown" id="cBreakdown" style="display:none">
+            <div class="bd-row"><span data-en="Content & argument" data-zh="内容与论证">Content & argument</span><b>18 / 25</b></div>
+            <div class="bd-row"><span data-en="Organization" data-zh="结构组织">Organization</span><b>14 / 25</b></div>
+            <div class="bd-row"><span data-en="Language & style" data-zh="语言与表达">Language & style</span><b>20 / 25</b></div>
+            <div class="bd-row"><span data-en="Mechanics" data-zh="格式规范">Mechanics</span><b>10 / 25</b></div>
+          </div>
+          <div class="ai-meta"><span data-en="Auto-generated scoring" data-zh="自动生成评分">Auto-generated scoring</span></div>
+        </div>
+      </div>
+      <div class="demo-tools" style="margin-top:26px">
+        <button class="tool-btn" id="cBlackBtn" onclick="showC(false)" data-en="Black box · score only" data-zh="黑盒 · 仅分数">Black box · score only</button>
+        <button class="tool-btn primary" id="cWhiteBtn" onclick="showC(true)" data-en="White box · + breakdown" data-zh="白盒 · 分项解释">White box · + breakdown</button>
+      </div>
+      <p class="foot-note" id="cNote" style="margin-top:18px"></p>
+    </div>
+  </div>
+</section>
+
+<!-- 20 · PREDICT H3 -->
+<section class="scene" data-ch="4" data-speaker="Zhuoyi Ye">
+  <div class="wrap">
+    <div class="kicker reveal-item d1" data-en="Before the data — your call" data-zh="数据揭晓之前——请你判断">Before the data — your call</div>
+    <h2 class="title reveal-item d2" data-en="Does an explanation make people accept AI scores — and judge them more wisely?" data-zh="解释会让人更接受 AI 评分吗——也会让人判得更明智吗？">Does an explanation make people accept AI scores — and judge them more wisely?</h2>
+    <div class="predict-btns reveal-item d3">
+      <button class="predict-btn" onclick="predictPick(this)" data-en="Yes — and they judge better" data-zh="会——而且判得更准">Yes — and they judge better<small data-en="Raise your hand" data-zh="请举手">Raise your hand</small></button>
+      <button class="predict-btn" onclick="predictPick(this)" data-en="Yes — but only accept more" data-zh="会——但只是更顺从">Yes — but only accept more<small data-en="Raise your hand" data-zh="请举手">Raise your hand</small></button>
+    </div>
+    <div class="demo-tools reveal-item d4">
+      <button class="tool-btn primary" onclick="next()" data-en="Reveal the data →" data-zh="揭晓数据 →">Reveal the data →</button>
+    </div>
+  </div>
+</section>
+
+<!-- 21 · REVEAL H3 -->
+<section class="scene" data-ch="4" data-speaker="Zhuoyi Ye">
+  <div class="wrap">
+    <div class="kicker reveal-item d1" data-en="H3 · What 34 people did" data-zh="H3 · 34 人的真实行为">H3 · What 34 people did</div>
+    <div class="reveal-hero reveal-item d2">
+      <span class="from num" data-v="49.3" data-suffix="%">49.3%</span>
+      <span class="arr">→</span>
+      <span class="to num" data-v="61.0" data-suffix="%">61.0%</span>
+      <span class="unit" data-en="accepted the AI score" data-zh="接受了 AI 评分">accepted the AI score</span>
+    </div>
+    <div class="stat-chips reveal-item d3">
+      <span class="chip"><b>+11.7 pp</b> <span data-en="acceptance gain" data-zh="接受度提升">acceptance gain</span><span class="tag sig">p = .049</span></span>
+    </div>
+    <p class="punch reveal-item d5" data-en="Explanation <span>persuaded</span>. It did not yet enlighten." data-zh="解释带来了<span>说服</span>，还没有带来明辨。">Explanation <span>persuaded</span>. It did not yet enlighten.</p>
+    <div class="chart-box reveal-item d6" id="chartH3"></div>
+  </div>
+</section>
+
+<!-- 22 · MECHANISM -->
+<section class="scene" data-ch="5" data-speaker="Zihan Wang">
+  <div class="wrap">
+    <div class="kicker reveal-item d1" data-en="One mechanism · three findings" data-zh="一套机制 · 三个发现">One mechanism · three findings</div>
+    <div class="mech reveal-item d2">
+      <div>
+        <div class="m-k" data-en="See" data-zh="看见">See</div>
+        <div class="m-t" data-en="Uncertainty score" data-zh="不确定性分数">Uncertainty score</div>
+        <div class="m-d" data-en="Users caught 16 pp more errors — and still accepted the correct ones." data-zh="错误检出率提升 16 个百分点——正确结论照常被采纳。">Users caught 16 pp more errors — and still accepted the correct ones.</div>
+      </div>
+      <div>
+        <div class="m-k" data-en="Gate" data-zh="闸门">Gate</div>
+        <div class="m-t" data-en="Confirmation request" data-zh="确认请求">Confirmation request</div>
+        <div class="m-d" data-en="Risky executions fell by a third — through friction, not reading." data-zh="危险执行下降三分之一——靠的是摩擦，不是阅读。">Risky executions fell by a third — through friction, not reading.</div>
+      </div>
+      <div class="warn">
+        <div class="m-k" data-en="Justify — with care" data-zh="解释——需谨慎">Justify — with care</div>
+        <div class="m-t" data-en="Score explanation" data-zh="评分解释">Score explanation</div>
+        <div class="m-d" data-en="Raised acceptance — including of bad scores. Persuasion ≠ discernment." data-zh="提升了接受度——包括对坏评分的接受。说服 ≠ 明辨。">Raised acceptance — including of bad scores. Persuasion ≠ discernment.</div>
+      </div>
+    </div>
+    <p class="sub reveal-item d3" data-en="Transparency cues are cheap UI. Their effects are measurable behaviour." data-zh="透明化线索是廉价的界面元素，其效果却是可测量的行为改变。">Transparency cues are cheap UI. Their effects are measurable behaviour.</p>
+  </div>
+</section>
+
+<!-- 23 · APPLICATIONS -->
+<section class="scene" data-ch="5" data-speaker="Yibo Xu">
+  <div class="wrap">
+    <div class="kicker reveal-item d1" data-en="From lab to product" data-zh="从实验室到产品">From lab to product</div>
+    <div class="app-row reveal-item d2">
+      <span class="a-no">A</span>
+      <span class="a-t" data-en="Agents that act" data-zh="会行动的 Agent">Agents that act</span>
+      <span class="a-d" data-en="Hard-stop confirmation for irreversible actions — email, payments, bookings. Even a gate nobody reads cut risky runs by <b>37%</b>." data-zh="对不可逆操作（邮件、支付、订票）设置硬性确认。即使没人细读，这道闸也把危险执行砍掉了 <b>37%</b>。">Hard-stop confirmation for irreversible actions — email, payments, bookings. Even a gate nobody reads cut risky runs by <b>37%</b>.</span>
+    </div>
+    <div class="app-row reveal-item d3">
+      <span class="a-no">B</span>
+      <span class="a-t" data-en="LLMs that answer" data-zh="会回答的 LLM">LLMs that answer</span>
+      <span class="a-d" data-en="Surface calibrated uncertainty. Our participants caught <b>16 pp more</b> hallucinations when the model said how sure it was." data-zh="展示校准的不确定性。当模型说出自己的把握，被试多发现了 <b>16 个百分点</b> 的幻觉。">Surface calibrated uncertainty. Our participants caught <b>16 pp more</b> hallucinations when the model said how sure it was.</span>
+    </div>
+    <div class="app-row reveal-item d4">
+      <span class="a-no">C</span>
+      <span class="a-t" data-en="AI grading in education" data-zh="教育中的 AI 评分">AI grading in education</span>
+      <span class="a-d" data-en="Breakdowns make scores acceptable — but pair them with <b>checkable evidence</b>, or they only persuade." data-zh="分项解释让评分更易被接受——但必须配上<b>可核对的依据</b>，否则只是说服。">Breakdowns make scores acceptable — but pair them with <b>checkable evidence</b>, or they only persuade.</span>
+    </div>
+    <div class="app-row reveal-item d5">
+      <span class="a-no">D</span>
+      <span class="a-t" data-en="For builders & regulators" data-zh="对开发者与监管者">For builders & regulators</span>
+      <span class="a-d" data-en="Three concrete, testable design rules: <b>when to show uncertainty, when to confirm, when to explain</b> — each with a measurable behavioural effect." data-zh="三条具体、可测的设计准则：<b>何时展示不确定性、何时请求确认、何时给出解释</b>——每条都有可测量的行为效应。">Three concrete, testable design rules: <b>when to show uncertainty, when to confirm, when to explain</b> — each with a measurable behavioural effect.</span>
+    </div>
+  </div>
+</section>
+
+<!-- 24 · LIMITATIONS -->
+<section class="scene" data-ch="5" data-speaker="Zhuoyi Ye">
+  <div class="wrap">
+    <div class="kicker reveal-item d1" data-en="What this pilot cannot say" data-zh="本次 pilot 不能说明的">What this pilot cannot say</div>
+    <div class="app-row reveal-item d2">
+      <span class="a-no">01</span>
+      <span class="a-t" data-en="Small, local sample" data-zh="样本小且同源">Small, local sample</span>
+      <span class="a-d" data-en="34 classmates from one campus — mostly CS/AI students. Effects may differ for general users." data-zh="34 名同校同学，且多为 CS/AI 专业。对普通用户的效果可能不同。">34 classmates from one campus — mostly CS/AI students. Effects may differ for general users.</span>
+    </div>
+    <div class="app-row reveal-item d3">
+      <span class="a-no">02</span>
+      <span class="a-t" data-en="Synthetic tasks, no stakes" data-zh="合成任务、无真实代价">Synthetic tasks, no stakes</span>
+      <span class="a-d" data-en="A wrong &quot;median&quot; costs nothing. Real stakes could change both trust and friction effects." data-zh="算错「中位数」没有代价。真实利害可能同时改变信任与摩擦效应。">A wrong &quot;median&quot; costs nothing. Real stakes could change both trust and friction effects.</span>
+    </div>
+    <div class="app-row reveal-item d4">
+      <span class="a-no">03</span>
+      <span class="a-t" data-en="Fixed task order" data-zh="任务顺序固定">Fixed task order</span>
+      <span class="a-d" data-en="H1 → H2 → H3 for everyone; only version order was randomised. Fatigue and learning may confound later tasks." data-zh="所有人都是 H1 → H2 → H3，仅版本顺序随机。疲劳与学习效应可能混淆后续任务。">H1 → H2 → H3 for everyone; only version order was randomised. Fatigue and learning may confound later tasks.</span>
+    </div>
+    <div class="app-row reveal-item d5">
+      <span class="a-no">04</span>
+      <span class="a-t" data-en="The 10-second window" data-zh="10 秒的窗口">The 10-second window</span>
+      <span class="a-d" data-en="Participants pushed back on it — in their own words:" data-zh="被试对它有意见——用他们自己的话说：">Participants pushed back on it — in their own words:</span>
+    </div>
+    <div class="quote reveal-item d6" data-en="“Ten seconds before the AI takes an automatic action is too short. Better have an accept / decline button without a time limit — like Claude.”" data-zh="“10 秒就自动执行太短了。最好像 Claude 那样，给一个不限时的接受 / 拒绝按钮。”">“Ten seconds before the AI takes an automatic action is too short. Better have an accept / decline button without a time limit — like Claude.”<span class="q-src" data-en="— Real participant, open feedback" data-zh="—— 真实被试，开放题反馈">— Real participant, open feedback</span></div>
+    <p class="sub reveal-item d7" data-en="Next: a larger sample, real stakes, tracked inspection behaviour, adjustable timing, and full counterbalancing." data-zh="下一步：更大样本、真实利害、直接记录查看行为、可调时间窗、完整平衡设计。">Next: a larger sample, real stakes, tracked inspection behaviour, adjustable timing, and full counterbalancing.</p>
+  </div>
+</section>
+
+<!-- 25 · CONCLUSION -->
+<section class="scene" data-ch="5" data-speaker="Zihan Wang">
+  <div class="wrap">
+    <div class="kicker reveal-item d1" data-en="Conclusion" data-zh="结论">Conclusion</div>
+    <h2 class="end-big reveal-item d2" data-en="Transparency changed <span>behaviour</span> — not just opinions." data-zh="透明化改变的是<span>行为</span>——而不仅是态度。">Transparency changed <span>behaviour</span> — not just opinions.</h2>
+    <div class="stat-chips reveal-item d3">
+      <span class="chip"><b>816</b> <span data-en="decisions collected" data-zh="有效决策">decisions collected</span></span>
+      <span class="chip"><b>34</b> <span data-en="participants" data-zh="被试">participants</span></span>
+      <span class="chip"><b>2 / 3</b> <span data-en="hypotheses supported" data-zh="假设获支持">hypotheses supported</span></span>
+      <span class="chip"><b>1</b> <span data-en="hypothesis that taught us more by failing" data-zh="因「失败」而更有价值的假设">hypothesis that taught us more by failing</span></span>
+    </div>
+    <p class="sub reveal-item d4" data-en="Show the uncertainty. Gate the action. Explain the score — and make the explanation checkable. That is how an interface earns verified trust instead of borrowed trust." data-zh="展示不确定性。给行动设闸。解释评分——并让解释可被核对。这便是界面赢得「已验证的信任」而非「借来的信任」的方式。">Show the uncertainty. Gate the action. Explain the score — and make the explanation checkable. That is how an interface earns verified trust instead of borrowed trust.</p>
+    <div class="hr reveal-item d5"></div>
+    <div class="press-hint reveal-item d6" data-en="Thank you — questions welcome" data-zh="谢谢——欢迎提问">Thank you — questions welcome</div>
+    <p class="foot-note reveal-item d7" data-en="Lab 5R · Zihan Wang · Yibo Xu · Zhuoyi Ye · PSP404TC Applied Research Techniques and Methodologies · XJTLU Entrepreneur College (Taicang)" data-zh="Lab 5R · 王子涵 · 叶卓易 · 徐一博 · PSP404TC 应用研究技术与方法 · 西交利物浦大学创业家学院（太仓）">Lab 5R · Zihan Wang · Yibo Xu · Zhuoyi Ye · PSP404TC Applied Research Techniques and Methodologies · XJTLU Entrepreneur College (Taicang)</p>
+  </div>
+</section>
+
+</main>
+
+<nav class="pager">
+  <div class="tele">
+    <div id="telemetry"><span class="rec"></span><span id="telMain">T+00:00 · SCENE 01/25 · n=34</span></div>
+    <span id="keyHint">CLICK / SCROLL / DRAG</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px">
+    <span id="pageNo">1 / 25</span>
+    <div class="nav-btns">
+      <button class="nav-btn" id="prevBtn" onclick="prev()" aria-label="Previous">←</button>
+      <button class="nav-btn" id="nextBtn" onclick="next()" aria-label="Next">→</button>
+    </div>
+  </div>
+</nav>
+
+<div id="menu">
+  <div class="m-title">Chapters</div>
+  <div id="menuList"></div>
+</div>
+
+<aside id="notes">
+  <div class="n-role" id="noteRole"></div>
+  <div class="n-body" id="noteBody"></div>
+</aside>
+
+<script>
+/* ============ DATA (computed from 34 deduplicated participants) ============ */
+const DATA = {
+  n: 34,
+  h1: { det_cue:[0.0,1.0,0.5,0.0,0.0,1.0,1.0,0.5,0.5,0.0,0.5,0.5,1.0,0.0,0.0,1.0,0.0,1.0,1.0,1.0,1.0,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.0,0.5,0.5,1.0,1.0,0.0], det_base:[0.0,1.0,0.5,0.0,0.0,0.0,0.5,0.0,0.0,0.0,1.0,0.5,1.0,0.0,0.5,0.0,0.0,0.5,0.5,0.5,1.0,0.5,0.0,1.0,0.5,0.0,0.5,0.5,0.0,0.0,0.5,1.0,0.5,0.0] },
+  h2: { rex_cue:[1.0,1.0,1.0,1.0,1.0,0.0,0.5,1.0,0.5,1.0,0.5,0.5,0.0,1.0,1.0,0.0,0.0,0.0,0.0,0.5,0.0,0.0,0.0,0.0,0.5,0.5,0.5,0.5,1.0,0.5,1.0,1.0,0.5,0.0], rex_base:[1.0,0.5,0.5,1.0,1.0,0.0,1.0,1.0,1.0,1.0,0.0,1.0,0.0,1.0,1.0,1.0,1.0,1.0,0.5,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.5,0.0,1.0,1.0,1.0,1.0,1.0,1.0] },
+  h3: { acc_cue:[0.75,0.75,1.0,1.0,0.25,1.0,0.0,1.0,0.75,0.75,0.5,0.5,0.75,0.5,0.5,0.75,0.75,0.5,0.5,0.0,0.0,1.0,0.5,0.75,1.0,0.75,0.75,1.0,0.0,0.5,0.5,0.5,0.5,0.5], acc_base:[0.5,0.5,0.25,0.5,1.0,0.25,0.0,1.0,0.75,0.75,0.0,0.5,0.25,0.5,0.5,0.5,0.25,0.25,0.5,0.0,0.0,1.0,0.75,0.0,0.75,0.5,0.5,1.0,0.25,1.0,0.5,0.5,0.75,0.5] }
+};
+/* mean helper */
+const mean = a => a.reduce((x,y)=>x+y,0)/a.length;
+
+/* ============ SPEAKER NOTES ============ */
+const NOTES = [
+ {r:"Opening · Zihan Wang", en:"Welcome. One line: we tested whether small acts of transparency — a score, a prompt, an explanation — change what people do with AI. 34 participants, real data.", zh:"开场：我们检验了小小的透明化设计（一个分数、一次确认、一段解释）能否改变人们对待 AI 的行为。34 名被试，全部真实数据。"},
+ {r:"Hook · Zihan Wang", en:"Three things AI does for us daily: answers, acts, scores. Each has a known failure mode. The point: interfaces rarely give us tools to check.", zh:"AI 每天替我们回答、行动、打分，各有已知失效模式。关键：界面几乎没给我们核对工具。"},
+ {r:"Research question · Zihan Wang", en:"Frame it as a visibility problem: people can't check what they can't see. Our RQ asks whether making the AI's reasoning visible changes behaviour. Name the four papers briefly if asked.", zh:"把它框成「可见性」问题：看不见就无法核对。RQ 问的是：让 AI 的推理可见，能否改变行为。被问到时可简述四篇文献。"},
+ {r:"Hypotheses · Zihan Wang", en:"Three cues, one mechanism, one hypothesis each — and one presenter each. H1 mine, H2 Yibo's, H3 Zhuoyi's.", zh:"三种线索、一套机制、三个假设，一人一条：H1 我、H2 徐一博、H3 叶卓易。"},
+ {r:"Method · Zihan Wang", en:"Within-subjects is the key phrase: same people experience black box and white box, so each person is their own control. Wilcoxon signed-rank for paired comparison. Bonferroni α = .0167.", zh:"关键词是被试内设计：同一人体验黑盒与白盒，自己当自己的对照。配对比较用 Wilcoxon 符号秩检验。Bonferroni 校正 α=.0167。"},
+ {r:"Sample · Zihan Wang", en:"Emphasise: daily AI users, mostly CS/AI — exactly the population that will use these tools first. Manipulation check: 62% noticed the cues, so the manipulation was visible.", zh:"强调：被试多为每日使用 AI 的 CS/AI 学生，正是最早使用这些工具的人群。操纵检验 62% 注意到线索，说明操纵有效。"},
+ {r:"Live replay · Zihan Wang", en:"Wink line: 'We study transparency, so we won't hide a black box in our own slides.' Everything from here replays the real stimuli — works offline.", zh:"点睛句：我们研究透明化，所以不会在自己的演示里藏黑盒。接下来全部是对真实实验刺激的重放，离线可用。"},
+ {r:"H1 chapter · Zihan Wang", en:"Read the hypothesis once, slowly. Then move to the demo.", zh:"先慢读一遍 H1，然后进入演示。"},
+ {r:"Demo A black box · Zihan Wang", en:"Ask the audience to decide before you click. Reveal the truth: the median is 79, the AI is wrong. Point out: nothing in the black box hints at it.", zh:"先让观众判断再点击。揭晓：真实中位数是 79，AI 说错了。指出黑盒毫无线索。"},
+ {r:"Demo A white box · Zihan Wang", en:"Same numbers, now with a 58% confidence bar. Ask: does it change your gut feeling? That bar is the entire manipulation.", zh:"同样的数字，多了 58% 置信条。问观众：感觉变了吗？这个置信条就是全部操纵。"},
+ {r:"Predict H1 · Zihan Wang", en:"Audience vote by show of hands. Click the majority. Either way, the data on the next slide creates the moment.", zh:"举手投票，点击多数项。无论结果如何，下一页数据都会形成反差。"},
+ {r:"Reveal H1 · Zihan Wang", en:"Land three numbers: detection 36.8→52.9 (p=.016), adoption of errors down, trust in correct answers unchanged. Say the line: caution without paralysis. Note Bonferroni: it holds.", zh:"落三个数：检出率 36.8→52.9（p=.016），错误采纳下降，对正确答案的信任不变。金句：警惕而不多疑。Bonferroni 校正后仍成立。"},
+ {r:"H2 chapter · Yibo Xu", en:"Hand over to Yibo. Read H2 once.", zh:"交给徐一博，读一遍 H2。"},
+ {r:"Demo B black box · Yibo Xu", en:"The countdown starts by itself when this slide opens — let it run, do nothing. 'Restart the 10 s' replays it. The stamp SENT is the risky outcome. That silence is the baseline condition.", zh:"翻到这一页倒计时会自动开始——什么都不用做。「重新开始 10 秒」可重放。「已发送」就是危险结局。这份沉默就是基线条件。"},
+ {r:"Demo B white box · Yibo Xu", en:"Now the agent waits. The only new element is a question. Ask the audience: what do you press?", zh:"现在 Agent 会等你。唯一的新元素是一个问题。问观众：你会按哪个？"},
+ {r:"Predict H2 · Yibo Xu", en:"Vote. Most people say yes here — that's fine, the twist comes later.", zh:"投票。多数人会答「会」——没关系，反转在后面。"},
+ {r:"Reveal H2 · Yibo Xu", en:"Three numbers: risky execution 82.4→51.5 (p=.002), safety 4.12→4.97, control 5.12→5.50. Then the twist: uninspected execution didn't move. Punchline: friction, not inspection. Anticipate the question 'isn't that just annoyance?' — answer: annoyance that changes behaviour measurably, and we can now tune it.", zh:"三个数：危险执行 82.4→51.5（p=.002），安全感与控制感均升。反转：不看详情直接执行的比例没变。金句：起作用的是摩擦，不是查看。若被问「这不就是烦人吗」——答：这是一种可测量改变行为的摩擦，而且现在我们知道如何调节它。"},
+ {r:"H3 chapter · Zhuoyi Ye", en:"Hand over to Zhuoyi. Read H3 once.", zh:"交给叶卓易，读一遍 H3。"},
+ {r:"Demo C · Zhuoyi Ye", en:"Toggle black box → white box. Same 62/100, but now with a breakdown. Ask: do you trust it more?", zh:"从黑盒切到白盒。同样是 62 分，多了分项。问观众：你更信了吗？"},
+ {r:"Predict H3 · Zhuoyi Ye", en:"Vote between 'accept and judge better' vs 'only accept more'. This is where the audience usually over-estimates explanations.", zh:"在「更准」与「只是更顺从」之间投票。观众通常会高估解释的作用。"},
+ {r:"Reveal H3 · Zhuoyi Ye", en:"Be honest and precise: acceptance rose significantly (p=.049) but fairness and understanding didn't move, and acceptance of unreasonable scores also rose (n.s., wrong direction). Under Bonferroni, H3 fails as stated — and that's the finding: explanation persuades, it doesn't yet enlighten. Own it; a failed hypothesis honestly read is a strength, not a weakness.", zh:"诚实精确：接受度显著上升（p=.049），但公平感、理解度不动，不合理评分的接受度也上升。Bonferroni 下 H3 不成立——这正是发现：解释带来说服而非明辨。坦然讲出，这是加分项。"},
+ {r:"Mechanism · Zihan Wang", en:"Pull the three results into one frame: See / Gate / Justify. The third column carries the warning. One sentence each, no new data.", zh:"把三个结果收进一个框架：看见 / 闸门 / 解释。第三列带警示。每列一句话，不引入新数据。"},
+ {r:"Applications · Yibo Xu", en:"Tie each finding to a product surface: acting agents (confirmations), answering LLMs (uncertainty), AI grading (evidence-backed explanations). End with the design-rules sentence for regulators.", zh:"把每个发现对应到产品场景：行动型 Agent（确认）、问答 LLM（不确定性）、AI 评分（可核对的解释）。最后落到给监管者的设计准则。"},
+ {r:"Limitations · Zhuoyi Ye", en:"Say it before they ask: small local sample, synthetic stakes, fixed task order, tight 10-second window. Read the participant quote aloud — it's real feedback and it sets up 'next steps'.", zh:"在被问前先说：样本小且同源、任务无真实代价、顺序固定、10 秒窗太紧。朗读真实被试引语，自然过渡到改进方向。"},
+ {r:"Conclusion · Zihan Wang", en:"Close with the frame: behaviour, not opinions. 816 decisions, 34 people, 2 of 3 hypotheses supported, 1 that taught more by failing. Then: thank you.", zh:"收尾：改变的是行为而非态度。816 个决策、34 人、3 条假设支持 2 条、1 条因失败更有价值。致谢结束。"},
+ {r:"Q&A · all", en:"Likely questions: Why Wilcoxon? (paired, non-normal proportions) · Why within-subjects? (power with n=34) · Is friction just dark pattern? (transparent by design, reversible, and we measured it) · Why didn't explanations help fairness? (persuasion without evidence).", zh:"常见问题：为何用 Wilcoxon（配对、非正态比例）？为何被试内设计（n=34 下更有统计功效）？摩擦算不算黑暗模式（设计透明、可逆、且被测量）？为何解释没提升公平感（只有说服、没有证据）。"}
+];
+
+/* ============ ENGINE ============ */
+const scenes=[...document.querySelectorAll('.scene')];
+let idx=0, lang=localStorage.getItem('tbv-lang')||'en';
+const chapNames=[
+ {en:"Opening",zh:"开场"},{en:"Method",zh:"方法"},{en:"H1 · Uncertainty",zh:"H1 · 不确定性"},
+ {en:"H2 · Confirmation",zh:"H2 · 确认"},{en:"H3 · Explanation",zh:"H3 · 解释"},{en:"So what",zh:"启示"}];
+
+/* progress segments per chapter */
+const prog=document.getElementById('progress');
+const chapters=[...new Set(scenes.map(s=>+s.dataset.ch))];
+chapters.forEach(()=>{
+  const seg=document.createElement('div');seg.className='seg';seg.innerHTML='<i></i>';prog.appendChild(seg);
+});
+const segs=[...prog.children];
+
+scenes.forEach((s,i)=>s.dataset.idx=i);
+const hashIdx=()=>{const m=location.hash.match(/s(\d+)/);if(!m)return 0;const i=+m[1]-1;return i>=0&&i<scenes.length?i:0};
+idx=hashIdx();
+
+function buildMenu(){
+  const list=document.getElementById('menuList');list.innerHTML='';
+  chapters.forEach((c,ci)=>{
+    const first=scenes.findIndex(s=>+s.dataset.ch===c);
+    const sp=scenes[first].dataset.speaker;
+    const row=document.createElement('div');row.className='menu-row'+(c===+scenes[idx].dataset.ch?' cur':'');
+    row.innerHTML=`<span class="mr-no">0${ci}</span><span class="mr-t"></span><span class="mr-s"></span>`;
+    row.querySelector('.mr-t').textContent=chapNames[ci][lang];
+    row.querySelector('.mr-s').textContent=sp;
+    row.onclick=()=>{closeMenu();go(first)};
+    list.appendChild(row);
+  });
+}
+function updateProgress(){
+  const curCh=+scenes[idx].dataset.ch;
+  segs.forEach((s,i)=>{
+    s.classList.remove('done','part');
+    if(i<curCh)s.classList.add('done');
+    else if(i===curCh){
+      const inCh=scenes.filter(x=>+x.dataset.ch===curCh);
+      const p=(inCh.indexOf(scenes[idx])+1)/inCh.length;
+      s.style.setProperty('--p',p);s.classList.add('part');
+    }
+  });
+  document.getElementById('chapLabel').textContent=' · '+chapNames[curCh][lang];
+}
+function runScene(s){
+  // restart reveal animations
+  s.classList.remove('active');
+  void s.offsetWidth;
+  s.classList.add('active');
+  // count-up numbers
+  s.querySelectorAll('.num').forEach(el=>{
+    const target=parseFloat(el.dataset.v||el.textContent)||0;
+    const suf=el.dataset.suffix||'';const t0=performance.now();const dur=1300;
+    function tick(t){const k=Math.min(1,(t-t0)/dur);const e=1-Math.pow(1-k,3);
+      el.textContent=(target*e).toFixed(1)+suf;if(k<1)requestAnimationFrame(tick);}
+    requestAnimationFrame(tick);
+  });
+  // charts
+  const cid=s.querySelector('[id^=chartH]');
+  if(cid&&!cid.dataset.drawn){cid.dataset.drawn='1';drawChart(cid.id);}
+  // auto-run demos
+  if(s.querySelector('#cdPanel'))scheduleCountdown();
+}
+function stopScene(s){
+  cancelCdAuto();
+  if(s.querySelector('#cdPanel'))resetCountdown();
+}
+function go(i){
+  i=Math.max(0,Math.min(scenes.length-1,i));
+  if(i===idx&&scenes[idx].classList.contains('active'))return;
+  stopScene(scenes[idx]);
+  scenes[idx].classList.remove('active');scenes[idx].classList.add('past');
+  idx=i;
+  scenes.forEach((s,j)=>{s.classList.toggle('past',j<idx)});
+  history.replaceState(null,'','#s'+(idx+1));
+  document.getElementById('pageNo').textContent=(idx+1)+' / '+scenes.length;
+  updateProgress();buildMenu();updateNotes();
+  runScene(scenes[idx]);
+}
+function next(){go(idx+1)} function prev(){go(idx-1)}
+
+/* language */
+function applyLang(){
+  document.querySelectorAll('[data-en]').forEach(el=>{
+    const v=lang==='en'?el.dataset.en:el.dataset.zh;
+    if(el.dataset.html!==undefined||/<[a-z]/.test(v))el.innerHTML=v;else el.textContent=v;
+  });
+  document.documentElement.lang=lang;
+  document.getElementById('langBtn').textContent=lang==='en'?'中文':'EN';
+  updateProgress();buildMenu();updateNotes();
+}
+document.getElementById('langBtn').onclick=()=>{
+  lang=lang==='en'?'zh':'en';localStorage.setItem('tbv-lang',lang);applyLang();
+};
+
+/* menu */
+const menuEl=document.getElementById('menu');
+function openMenu(){menuEl.classList.add('open')} function closeMenu(){menuEl.classList.remove('open')}
+document.getElementById('menuBtn').onclick=()=>menuEl.classList.toggle('open');
+menuEl.onclick=e=>{if(e.target===menuEl)closeMenu()};
+
+/* notes */
+const notesEl=document.getElementById('notes');
+function updateNotes(){
+  const n=NOTES[Math.min(idx,NOTES.length-1)];
+  document.getElementById('noteRole').textContent=(scenes[idx].dataset.speaker||'')+' — '+n.r;
+  document.getElementById('noteBody').textContent=(lang==='en'?n.en:n.zh);
+}
+document.getElementById('notesBtn').onclick=()=>notesEl.classList.toggle('open');
+
+/* keys */
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'||e.key==='Enter'){e.preventDefault();next()}
+  else if(e.key==='ArrowLeft'||e.key==='PageUp'||e.key==='Backspace'){e.preventDefault();prev()}
+  else if(e.key==='m'||e.key==='M'){menuEl.classList.toggle('open')}
+  else if(e.key==='s'||e.key==='S'){notesEl.classList.toggle('open')}
+  else if(e.key==='Escape'){closeMenu();notesEl.classList.remove('open')}
+});
+
+/* touch */
+let tx=0,ty=0;
+document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+document.addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;
+  if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.4){dx<0?next():prev()}
+},{passive:true});
+
+/* ============ DEMOS ============ */
+function demoPick(btn,which){
+  const stage=btn.closest('.demo-stage');
+  stage.querySelectorAll('.choice-btn').forEach(b=>b.classList.remove('picked'));
+  btn.classList.add('picked');
+  const t=stage.querySelector('.truth-line');if(t)t.style.display='block';
+}
+/* H2 countdown */
+let cdTimer=null,cdLeft=10,cdDone=false,cdAuto=null;
+function cancelCdAuto(){if(cdAuto){clearTimeout(cdAuto);cdAuto=null}}
+function scheduleCountdown(){
+  cancelCdAuto();resetCountdown();
+  cdAuto=setTimeout(()=>{cdAuto=null;startCountdown()},1400);
+}
+function cdManual(){cancelCdAuto();resetCountdown();startCountdown()}
+function startCountdown(){
+  if(cdTimer||cdDone)return;
+  document.getElementById('vSent').classList.remove('show');
+  document.getElementById('vSaved').classList.remove('show');
+  const total=cdLeft<=0?10:cdLeft;
+  const t0=performance.now();
+  cdTimer=setInterval(()=>{
+    const el=(performance.now()-t0)/1000;
+    const left=Math.max(0,total-el);
+    cdLeft=left;
+    const numEl=document.getElementById('cdNum');
+    if(+numEl.textContent!==Math.ceil(left)){
+      numEl.textContent=Math.ceil(left);
+      numEl.style.animation='none';void numEl.offsetWidth;
+      numEl.style.animation='numPop .32s cubic-bezier(.34,1.56,.64,1)';
+    }
+    document.getElementById('cdFill').style.transform='scaleX('+(left/total)+')';
+    const p=document.getElementById('cdPanel');
+    if(p)p.classList.toggle('urgent',left>0&&left<=3.6);
+    if(left<=0){clearInterval(cdTimer);cdTimer=null;cdDone=true;
+      if(p)p.classList.remove('urgent');
+      try{SND.tone(220,.22,.035,'sawtooth')}catch(err){}
+      document.getElementById('vSent').classList.add('show');}
+  },80);
+}
+function cdPause(){
+  if(cdTimer){clearInterval(cdTimer);cdTimer=null;}
+}
+function cdRevoke(){
+  cdPause();cdDone=true;
+  document.getElementById('vSent').classList.remove('show');
+  document.getElementById('vSaved').classList.add('show');
+}
+function resetCountdown(){
+  cdPause();cdLeft=10;cdDone=false;
+  const n=document.getElementById('cdNum');if(n)n.textContent='10';
+  const f=document.getElementById('cdFill');if(f)f.style.transform='scaleX(1)';
+  const a=document.getElementById('vSent');if(a)a.classList.remove('show');
+  const b=document.getElementById('vSaved');if(b)b.classList.remove('show');
+  const p=document.getElementById('cdPanel');if(p)p.classList.remove('urgent');
+}
+/* H2 white box */
+function bPick(btn,blocked){
+  const stage=btn.closest('.demo-stage');
+  stage.querySelectorAll('.choice-btn').forEach(b=>b.classList.remove('picked'));
+  btn.classList.add('picked');
+  document.getElementById('vBsent').classList.toggle('show',!blocked);
+  document.getElementById('vBstop').classList.toggle('show',blocked);
+}
+/* H3 toggle */
+function showC(white){
+  document.getElementById('cBreakdown').style.display=white?'block':'none';
+  document.getElementById('cBlackBtn').classList.toggle('primary',!white);
+  document.getElementById('cWhiteBtn').classList.toggle('primary',white);
+  const note=document.getElementById('cNote');
+  note.innerHTML=lang==='en'
+    ?(white?'Same score — now the user can see <b>where</b> it came from. H3 asks what that visibility does to acceptance and fairness.':'Score only. The user must take it or leave it.')
+    :(white?'同样的分数——现在用户能看到它<b>从哪来</b>。H3 检验这种可见性对接受度与公平感的影响。':'仅显示分数。用户只能接受或拒绝。');
+}
+/* predict */
+function predictPick(btn){
+  const group=btn.closest('.predict-btns');
+  group.querySelectorAll('.predict-btn').forEach(b=>b.classList.remove('picked'));
+  btn.classList.add('picked');
+}
+
+/* ============ CHARTS ============ */
+const tipEl=document.getElementById('tip');
+function showTip(html,e){
+  if(!tipEl)return;
+  tipEl.innerHTML=html;tipEl.classList.add('on');
+  tipEl.style.left=Math.min(innerWidth-tipEl.offsetWidth-12,e.clientX+18)+'px';
+  tipEl.style.top=Math.max(8,e.clientY-16)+'px';
+}
+function moveTip(e){
+  if(!tipEl||!tipEl.classList.contains('on'))return;
+  tipEl.style.left=Math.min(innerWidth-tipEl.offsetWidth-12,e.clientX+18)+'px';
+  tipEl.style.top=Math.max(8,e.clientY-16)+'px';
+}
+function hideTip(){if(tipEl)tipEl.classList.remove('on')}
+document.addEventListener('mousemove',moveTip);
+
+function drawChart(id){
+  const NS='http://www.w3.org/2000/svg';
+  const box=document.getElementById(id);
+  const W=820,H=320,pad=70;
+  const svg=document.createElementNS(NS,'svg');
+  svg.setAttribute('viewBox','0 0 '+W+' '+H);
+  const mk=(t,at)=>{const e=document.createElementNS(NS,t);for(const k in at)e.setAttribute(k,at[k]);return e};
+  const label=(x,y,txt,anchor)=>{const e=mk('text',{x,y,'text-anchor':anchor||'middle',class:'axis-lab'});e.textContent=txt;svg.appendChild(e)};
+
+  if(id==='chartH2'||id==='chartH3'||id==='chartH1'){
+    let rows;
+    if(id==='chartH1'){
+      rows=[{l:{en:'Wrong answers detected',zh:'检出了 AI 的错误'},a:mean(DATA.h1.det_base),b:mean(DATA.h1.det_cue),sig:true},
+            {l:{en:'Wrong answers adopted',zh:'采纳了错误答案'},a:.632,b:.471,sig:true}];
+    }else if(id==='chartH2'){
+      rows=[{l:{en:'Risky actions executed',zh:'危险操作被执行'},a:.824,b:.515,sig:true},
+            {l:{en:'…without opening details',zh:'……未查看详情即执行'},a:.441,b:.397,sig:false}];
+    }else{
+      rows=[{l:{en:'Accepted the score',zh:'接受了评分'},a:.493,b:.610,sig:true},
+            {l:{en:'Accepted an unreasonable score',zh:'接受了不合理评分'},a:.309,b:.382,sig:false}];
+    }
+    const rowH=(H-92)/rows.length;
+    const bw=(W-pad*2-130);
+    rows.forEach((row,ri)=>{
+      const cy=80+ri*rowH;
+      const lb=mk('text',{x:pad,y:cy-22,fill:'#080d18','font-size':23,'font-weight':'700','font-family':'var(--display)','letter-spacing':'-.01em'});
+      lb.textContent=row.l[lang];
+      svg.appendChild(lb);
+      let tw=0;try{tw=lb.getComputedTextLength()}catch(err){}
+      if(!tw){for(const ch of row.l[lang])tw+=ch.charCodeAt(0)>0x2E80?23.5:12.2}
+      const tag=mk('text',{x:pad+tw+20,y:cy-24,fill:row.sig?'#0a8f5b':'rgba(8,13,24,.4)','font-size':14,'letter-spacing':'.14em','font-family':'var(--display)'});
+      tag.textContent=row.sig?(lang==='en'?'SIGNIFICANT':'显著'):'N.S.';
+      svg.appendChild(tag);
+      const b1=mk('rect',{x:pad,y:cy,width:bw*row.a,height:26,fill:'rgba(8,13,24,.26)'});
+      const b2=mk('rect',{x:pad,y:cy+36,width:0.001,height:26,fill:'#0b57ff'});
+      svg.appendChild(b1);svg.appendChild(b2);
+      const v1=mk('text',{x:pad+bw*row.a+14,y:cy+20,fill:'rgba(8,13,24,.62)','font-size':21,'font-weight':'600','font-family':'var(--display)'});
+      v1.textContent=(row.a*100).toFixed(1)+'%';
+      const v2=mk('text',{x:pad+bw*row.b+14,y:cy+56,fill:'#0b57ff','font-size':21,'font-weight':'800','font-family':'var(--display)'});
+      v2.textContent=(row.b*100).toFixed(1)+'%';
+      svg.appendChild(v1);svg.appendChild(v2);
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        b2.style.transition='width 1.1s cubic-bezier(.22,1,.36,1) '+(ri*.25+.3)+'s';
+        b2.setAttribute('width',bw*row.b);
+      }));
+      const hit=mk('rect',{x:pad-6,y:cy-40,width:W-pad*2+30,height:104,class:'hit'});
+      hit.addEventListener('pointerenter',ev=>{
+        b1.setAttribute('fill','rgba(8,13,24,.42)');b2.setAttribute('fill','#2f74ff');
+        showTip(row.l[lang]+' · '+Math.round(row.a*1000)/10+'% → <b>'+Math.round(row.b*1000)/10+'%</b>',ev);
+      });
+      hit.addEventListener('pointermove',moveTip);
+      hit.addEventListener('pointerleave',()=>{b1.setAttribute('fill','rgba(8,13,24,.26)');b2.setAttribute('fill','#0b57ff');hideTip()});
+      svg.appendChild(hit);
+    });
+    const lg=(x,txt,fill)=>{const e=mk('text',{x,y:H-14,fill,'font-size':17,'font-family':'var(--display)','letter-spacing':'.02em'});e.textContent=txt;svg.appendChild(e)};
+    lg(pad,'■ '+(lang==='en'?'Black box (baseline)':'黑盒（基线）'),'rgba(8,13,24,.45)');
+    lg(pad+330,'■ '+(lang==='en'?'White box (cue)':'白盒（透明化线索）'),'#0b57ff');
+  }
+  box.appendChild(svg);
+}
+
+/* ================= FX LAYER ================= */
+
+/* 1 · neural background field */
+(function(){
+  const c=document.getElementById('bg');if(!c)return;
+  const x=c.getContext('2d');
+  const fine=matchMedia('(hover:hover) and (pointer:fine)').matches;
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let W=0,H=0,dpr=1,nodes=[],pulse=0,mx=-9999,my=-9999;
+  function size(){
+    dpr=Math.min(2,window.devicePixelRatio||1);W=innerWidth;H=innerHeight;
+    c.width=W*dpr;c.height=H*dpr;c.style.width=W+'px';c.style.height=H+'px';
+    x.setTransform(dpr,0,0,dpr,0,0);
+    const n=Math.max(26,Math.min(80,Math.round(W*H/24000)));
+    nodes=[];
+    for(let i=0;i<n;i++)nodes.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.2,vy:(Math.random()-.5)*.2,r:.5+Math.random()*1.1});
+  }
+  addEventListener('resize',size);size();
+  addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY});
+  addEventListener('mouseout',()=>{mx=my=-9999});
+  function frame(){
+    requestAnimationFrame(frame);
+    if(c.style.display==='none')return;
+    x.clearRect(0,0,W,H);
+    if(!reduced){
+      for(const p of nodes){
+        p.x+=p.vx;p.y+=p.vy;
+        if(p.x<-30)p.x=W+30;if(p.x>W+30)p.x=-30;
+        if(p.y<-30)p.y=H+30;if(p.y>H+30)p.y=-30;
+        if(fine){
+          const dx=mx-p.x,dy=my-p.y,d=Math.hypot(dx,dy)||1;
+          if(d<240){const f=(1-d/240)*.6;p.x+=dx/d*f;p.y+=dy/d*f}
+        }
+      }
+      const R=Math.min(165,W*.17);
+      for(let i=0;i<nodes.length;i++){
+        const a=nodes[i];
+        for(let j=i+1;j<nodes.length;j++){
+          const b=nodes[j],dx=a.x-b.x,dy=a.y-b.y,d=Math.hypot(dx,dy);
+          if(d<R){
+            const al=Math.min(.42,.13*(1-d/R)+pulse*.18);
+            x.strokeStyle='rgba(11,87,255,'+al.toFixed(3)+')';x.lineWidth=.55;
+            x.beginPath();x.moveTo(a.x,a.y);x.lineTo(b.x,b.y);x.stroke();
+          }
+        }
+        if(fine){
+          const dx=mx-a.x,dy=my-a.y,d=Math.hypot(dx,dy);
+          if(d<200){
+            x.strokeStyle='rgba(8,13,24,'+(.2*(1-d/200)).toFixed(3)+')';x.lineWidth=.5;
+            x.beginPath();x.moveTo(a.x,a.y);x.lineTo(mx,my);x.stroke();
+          }
+        }
+        x.fillStyle='rgba(8,13,24,'+(.2+pulse*.25).toFixed(3)+')';
+        x.beginPath();x.arc(a.x,a.y,a.r,0,6.2832);x.fill();
+      }
+    }
+    pulse*=.955;
+  }
+  frame();
+  window.__pulse=()=>{pulse=1};
+})();
+
+/* 3 · sound */
+const SND={on:localStorage.getItem('tbv-snd')==='1',ctx:null,
+  ac(){try{if(!this.ctx)this.ctx=new (window.AudioContext||window.webkitAudioContext)();if(this.ctx.state==='suspended')this.ctx.resume();return this.ctx}catch(e){return null}},
+  tone(f,d,g,type){if(!this.on)return;const c=this.ac();if(!c)return;const o=c.createOscillator(),v=c.createGain();
+    o.type=type||'square';o.frequency.value=f;o.connect(v);v.connect(c.destination);
+    const t=c.currentTime;v.gain.setValueAtTime(.0001,t);v.gain.linearRampToValueAtTime(g||.02,t+.008);
+    v.gain.exponentialRampToValueAtTime(.0001,t+(d||.08));o.start(t);o.stop(t+(d||.08)+.02)},
+  sweep(){if(!this.on)return;const c=this.ac();if(!c)return;const o=c.createOscillator(),v=c.createGain();
+    o.type='sine';o.frequency.setValueAtTime(380,c.currentTime);o.frequency.exponentialRampToValueAtTime(820,c.currentTime+.24);
+    o.connect(v);v.connect(c.destination);const t=c.currentTime;
+    v.gain.setValueAtTime(.0001,t);v.gain.linearRampToValueAtTime(.03,t+.03);v.gain.exponentialRampToValueAtTime(.0001,t+.32);
+    o.start(t);o.stop(t+.34)}
+};
+const sndBtn=document.getElementById('sndBtn');
+function paintSnd(){sndBtn.classList.toggle('on',SND.on);sndBtn.textContent=SND.on?'SND ON':'SND OFF'}
+sndBtn.onclick=()=>{SND.on=!SND.on;localStorage.setItem('tbv-snd',SND.on?'1':'0');paintSnd();if(SND.on)SND.tone(760,.09,.03)};
+paintSnd();
+
+/* 4 · telemetry */
+const T0=Date.now();
+function tele(){
+  const s=Math.floor((Date.now()-T0)/1000);
+  const mm=String(Math.floor(s/60)).padStart(2,'0'),ss=String(s%60).padStart(2,'0');
+  const el=document.getElementById('telMain');
+  if(!el)return;
+  if(innerWidth<760){
+    el.textContent='T+'+mm+':'+ss+' · '+(idx+1)+'/'+scenes.length+' · n=34';
+  }else{
+    const ch=(chapNames[+scenes[idx].dataset.ch]||{en:'—'})[lang]||'—';
+    el.textContent='T+'+mm+':'+ss+' · SCENE '+String(idx+1).padStart(2,'0')+'/'+scenes.length+' · '+ch+' · n=34';
+  }
+}
+setInterval(tele,1000);
+addEventListener('resize',tele);
+
+/* 5 · per-scene FX */
+function scramble(el){
+  if(!el||el.dataset.busy==='1')return;
+  const final=el.textContent.trim();if(!final||final.length<4)return;
+  el.dataset.busy='1';
+  const pool='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/#';
+  let i=0;const step=Math.max(1,Math.round(final.length/11));
+  const iv=setInterval(()=>{
+    let out='';
+    for(let k=0;k<final.length;k++){
+      const ch=final[k];
+      out+=(k<i||ch===' '||ch==='·'||ch==='—')?ch:pool[Math.floor(Math.random()*pool.length)];
+    }
+    el.textContent=out;i+=step;
+    if(i>final.length){clearInterval(iv);el.textContent=final;el.dataset.busy='0'}
+  },26);
+}
+function sceneFX(){
+  if(window.__pulse)window.__pulse();
+  document.querySelectorAll('.stamp-tag,.pick-mark').forEach(x=>x.remove());
+  document.querySelectorAll('.choice-btn').forEach(b=>b.classList.remove('picked','ok','bad'));
+  document.querySelectorAll('.truth-line').forEach(t=>t.classList.remove('ok','bad'));
+  const s=scenes[idx];if(!s)return;
+  s.querySelectorAll('.giant,h2.title,.end-big').forEach(el=>{
+    el.classList.remove('wipe');void el.offsetWidth;el.classList.add('wipe');
+  });
+  SND.tone(idx%2?640:780,.05,.015);
+  document.querySelectorAll('.demo-stage').forEach(d=>{d.style.transform=''});
+  tele();
+}
+const _go=go;
+go=function(i){_go(i);sceneFX();};
+
+/* 6 · demo aggregates */
+function addAgg(host,en,zh){
+  if(!host)return;
+  let el=host.querySelector('.agg');
+  if(!el){
+    el=document.createElement('div');el.className='agg';
+    el.style.cssText='margin-top:14px;font-family:var(--mono);font-size:14px;line-height:1.6;letter-spacing:.04em;color:rgba(8,13,24,.55);border-top:1px dashed rgba(8,13,24,.16);padding-top:12px';
+    host.appendChild(el);
+  }
+  el.textContent=(lang==='en'?'▶ GROUP DATA · ':'▶ 群体数据 · ')+(lang==='en'?en:zh);
+  el.style.animation='none';void el.offsetWidth;el.style.animation='stamp .4s cubic-bezier(.34,1.56,.64,1)';
+}
+const _demoPick=demoPick;
+function markPick(btn){
+  const stage=btn.closest('.demo-stage');
+  stage.querySelectorAll('.choice-btn').forEach(b=>{
+    b.classList.remove('picked','ok','bad');
+    const m=b.querySelector('.pick-mark');if(m)m.remove();
+  });
+  const ok=btn.dataset.ok==='1';
+  btn.classList.add('picked',ok?'ok':'bad');
+  const mark=document.createElement('span');
+  mark.className='pick-mark '+(ok?'ok':'bad');
+  mark.textContent=ok?'✓':'✕';
+  btn.appendChild(mark);
+  const t=stage.querySelector('.truth-line');
+  if(t){t.classList.remove('ok','bad');t.classList.add(ok?'ok':'bad')}
+  try{SND.tone(ok?540:400,.07,.014,'sine')}catch(e){}
+}
+demoPick=function(btn,which){
+  _demoPick(btn,which);
+  markPick(btn);
+  const s=btn.closest('.scene');
+  const t=s.querySelector('.truth-line');
+  if(t&&t.id==='truthA')addAgg(t.parentElement,
+    '63.2% of participants also accepted this wrong statement in the black box.',
+    '黑盒条件下，63.2% 的被试也同样接受了这条错误结论。');
+  if(t&&t.id==='truthAW')addAgg(t.parentElement,
+    'With the 58% bar, wrong-answer uptake dropped to 47.1%.',
+    '有了这条 58% 的置信条，错误答案的采纳率降到 47.1%。');
+};
+const _bPick=bPick;
+bPick=function(btn,blocked){
+  _bPick(btn,blocked);
+  markPick(btn);
+  const s=btn.closest('.scene');
+  addAgg(s.querySelector('.demo-stage'),
+    blocked?'Risky items blocked: 48.5% in the white box vs 17.6% in the black box.'
+           :'82.4% of risky items were executed in the black box. You just added one more.',
+    blocked?'危险项被阻止的比例：白盒 48.5%，黑盒 17.6%。'
+           :'黑盒条件下 82.4% 的危险项被执行。你刚刚又添了一个。');
+};
+
+/* 7 · keyboard: 1/2 answer, F fullscreen, G grid */
+addEventListener('keydown',e=>{
+  const k=e.key.toLowerCase();
+  if(k==='f'){
+    if(!document.fullscreenElement){document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen()}
+    else{document.exitFullscreen&&document.exitFullscreen()}
+  }
+  if(k==='g')document.body.classList.toggle('grid-off');
+  if(k==='1'||k==='2'||k==='3'){
+    const s=scenes[idx];
+    const btns=s.querySelectorAll('.choice-btn');
+    const b=btns[+k-1];
+    if(b){b.click()}
+  }
+});
+
+/* 8 · tilt + magnetic buttons */
+if(matchMedia('(hover:hover) and (pointer:fine)').matches){
+  document.querySelectorAll('.demo-stage').forEach(d=>{
+    d.addEventListener('mousemove',e=>{
+      const r=d.getBoundingClientRect();
+      const px=(e.clientX-r.left)/r.width-.5,py=(e.clientY-r.top)/r.height-.5;
+      d.style.transform='perspective(1000px) rotateY('+(px*3)+'deg) rotateX('+(-py*3)+'deg)';
+    });
+    d.addEventListener('mouseleave',()=>{d.style.transform=''});
+  });
+  document.querySelectorAll('.tool-btn,.predict-btn,.nav-btn').forEach(b=>{
+    b.addEventListener('mousemove',e=>{
+      const r=b.getBoundingClientRect();
+      b.style.transform='translate('+((e.clientX-r.left-r.width/2)*.06).toFixed(1)+'px,'+((e.clientY-r.top-r.height/2)*.1).toFixed(1)+'px)';
+    });
+    b.addEventListener('mouseleave',()=>{b.style.transform=''});
+  });
+}
+
+/* 9 · click anywhere to advance (ignores controls, demos, overlays) */
+(function(){
+  let dx=0,dy=0;
+  document.addEventListener('mousedown',e=>{dx=e.clientX;dy=e.clientY});
+  document.addEventListener('click',e=>{
+    if(Math.abs(e.clientX-dx)>10||Math.abs(e.clientY-dy)>10)return;      // drag / selection
+    const sel=window.getSelection&&window.getSelection().toString();
+    if(sel)return;
+    const skip=e.target.closest('button,a,input,select,textarea,.hud,.pager,#progress,#menu,#notes,#tip,.chart-box');
+    if(skip)return;
+    if(document.getElementById('menu').classList.contains('open')){closeMenu();return}
+    if(document.getElementById('notes').classList.contains('open')){document.getElementById('notes').classList.remove('open');return}
+    if(!navGuard(260))return;
+    next();
+  });
+})();
+
+/* 10 · boot sequence */
+(function(){
+  if(sessionStorage.getItem('tbv-boot')==='1')return;
+  const b=document.createElement('div');b.id='boot';
+  b.innerHTML='<div class="bline" style="animation-delay:.05s">PSP404TC · LAB 5R · HUMAN–AI TRANSPARENCY</div>'+
+   '<div class="bline" style="animation-delay:.32s">REPLAY ENGINE <span class="ok">OK</span> · SUBJECTS n=34 <span class="ok">LOADED</span></div>'+
+   '<div class="bline" style="animation-delay:.62s">DECISIONS 816 · CONDITIONS 6 · MODE <span class="ok">WHITE-BOX</span></div>'+
+   '<div class="bmark"><i></i></div><div class="bskip">CLICK TO SKIP</div>';
+  document.body.appendChild(b);
+  let done=false;
+  const kill=()=>{if(done)return;done=true;b.classList.add('out');sessionStorage.setItem('tbv-boot','1');setTimeout(()=>b.remove(),620)};
+  setTimeout(kill,2000);
+  b.addEventListener('click',e=>{e.stopPropagation();kill()});
+  addEventListener('keydown',kill,{once:true});
+})();
+
+
+/* ================= INTERACTION v2 (spotlight / parallax / rail) ================= */
+let __navT=0;
+function navGuard(ms){const n=performance.now();if(n-__navT<(ms||0))return false;__navT=n;return true}
+(function(){
+  const fine=matchMedia('(hover:hover) and (pointer:fine)').matches;
+  const spot=document.getElementById('spot');
+  const grid=document.querySelector('.gridlines');
+  const coords=document.getElementById('coords');
+  let mx=innerWidth*.5,my=innerHeight*.4,sx=mx,sy=my;
+  addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY},{passive:true});
+  (function loop(){
+    sx+=(mx-sx)*.14; sy+=(my-sy)*.14;
+    if(spot){spot.style.setProperty('--sx',sx+'px');spot.style.setProperty('--sy',sy+'px')}
+    if(grid){grid.style.setProperty('--gx',mx+'px');grid.style.setProperty('--gy',my+'px')}
+    if(fine){
+      const s=scenes[idx];
+      if(s){
+        const t=s.querySelector('.giant,h2.title,.end-big');
+        if(t){
+          const dx=(mx/innerWidth-.5),dy=(my/innerHeight-.5);
+          t.style.transform='translate3d('+(-dx*7).toFixed(1)+'px,'+(-dy*5).toFixed(1)+'px,0)';
+        }
+      }
+    }
+    requestAnimationFrame(loop);
+  })();
+  /* progress rail is clickable */
+  segs.forEach((sg,i)=>{
+    sg.addEventListener('click',ev=>{
+      ev.stopPropagation();
+      const first=scenes.findIndex(x=>+x.dataset.ch===chapters[i]);
+      if(first>=0&&navGuard(0)){go(first);SND.tone(720,.05,.02)}
+    });
+  });
+})();
+
+/* wheel navigation — one page per scroll gesture (inertia tail is swallowed) */
+(function(){
+  let acc=0, lastT=0, armed=true;
+  addEventListener('wheel',e=>{
+    if(document.getElementById('menu').classList.contains('open'))return;
+    const sc=scenes[idx];
+    if(sc.scrollHeight>sc.clientHeight+6){
+      const atTop=sc.scrollTop<=1,atBot=sc.scrollTop+sc.clientHeight>=sc.scrollHeight-2;
+      if(!((e.deltaY>0&&atBot)||(e.deltaY<0&&atTop)))return;
+    }
+    const now=performance.now();
+    if(now-lastT>170){acc=0;armed=true}      // 新手势：手指离开超过 170ms
+    lastT=now;
+    if(!armed)return;                        // 同一手势的惯性尾巴：全部吞掉
+    acc+=e.deltaY;
+    if(Math.abs(acc)<45)return;
+    armed=false;acc=0;
+    if(!navGuard(0))return;
+    e.deltaY>0?next():prev();
+  },{passive:true});
+})();
+
+/* drag / swipe navigation */
+(function(){
+  let drag=null;
+  const skip='button,a,input,select,textarea,.hud,.pager,#menu,#notes,.chart-box,.demo-stage,.menu-row';
+  addEventListener('pointerdown',e=>{
+    if(e.pointerType==='mouse'&&e.button!==0)return;
+    if(e.target.closest(skip))return;
+    drag={x:e.clientX,y:e.clientY,t:performance.now(),moved:false};
+  });
+  addEventListener('pointermove',e=>{
+    if(!drag)return;
+    const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
+    if(!drag.moved&&Math.hypot(dx,dy)>12){
+      if(Math.abs(dx)<Math.abs(dy)*1.2){drag=null;return}
+      drag.moved=true;document.body.classList.add('dragging');
+    }
+    if(drag.moved){
+      const s=scenes[idx];
+      s.style.transform='translate3d('+(dx*.32).toFixed(1)+'px,0,0) scale('+(1-Math.min(.035,Math.abs(dx)/5000)).toFixed(3)+')';
+      s.style.opacity=String(Math.max(.3,1-Math.abs(dx)/800));
+    }
+  });
+  function end(e){
+    if(!drag)return;
+    const dx=(e.clientX||0)-drag.x,dt=performance.now()-drag.t,moved=drag.moved;
+    drag=null;document.body.classList.remove('dragging');
+    const s=scenes[idx];s.style.transform='';s.style.opacity='';
+    if(!moved)return;
+    const v=Math.abs(dx)/Math.max(1,dt);
+    if(!navGuard(260))return;
+    if(dx<-70||(v>.45&&dx<-30))next();
+    else if(dx>70||(v>.45&&dx>30))prev();
+  }
+  addEventListener('pointerup',end);
+  addEventListener('pointercancel',end);
+})();
+
+/* extra keys */
+addEventListener('keydown',e=>{
+  if(e.key==='Home'){go(0);e.preventDefault()}
+  if(e.key==='End'){go(scenes.length-1);e.preventDefault()}
+  if(e.key==='PageDown'){next();e.preventDefault()}
+  if(e.key==='PageUp'){prev();e.preventDefault()}
+});
+
+/* ============ BOOT ============ */
+applyLang();
+go(idx);
+</script>
+</body>
+</html>
