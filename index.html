@@ -591,13 +591,15 @@ body.dragging .scene.active{transition:none!important}
 .live-pane.answer.done{border-color:rgba(10,143,91,.55);background:rgba(10,143,91,.035);box-shadow:0 0 0 4px rgba(10,143,91,.08)}
 .live-pane.done{animation:liveDone .5s cubic-bezier(.22,1,.36,1)}
 @keyframes liveDone{0%{transform:scale(1)}45%{transform:scale(1.006)}100%{transform:scale(1)}}
-/* 句子高亮：红=高敏感内容 · 蓝=关键判断 · 橙=它承认不知道的部分 */
+/* 句子高亮：红=敏感 · 橙=警告 · 黄=预警 · 绿=健康；蓝色(正常)不进入文字高亮 */
 .live-pane .hl-risk{background:rgba(221,43,43,.13);box-shadow:inset 0 -2px 0 rgba(221,43,43,.55);
   border-radius:3px;padding:0 3px;color:#8c1616;font-weight:600}
-.live-pane .hl-key{background:rgba(10,132,255,.13);box-shadow:inset 0 -2px 0 rgba(10,132,255,.5);
-  border-radius:3px;padding:0 3px;color:var(--ink);font-weight:600}
-.live-pane .hl-warn{background:rgba(186,117,23,.14);box-shadow:inset 0 -2px 0 rgba(186,117,23,.5);
-  border-radius:3px;padding:0 3px;color:#7a4a06}
+.live-pane .hl-warn{background:rgba(224,124,26,.14);box-shadow:inset 0 -2px 0 rgba(224,124,26,.55);
+  border-radius:3px;padding:0 3px;color:#7a3d05}
+.live-pane .hl-caution{background:rgba(214,164,19,.18);box-shadow:inset 0 -2px 0 rgba(214,164,19,.6);
+  border-radius:3px;padding:0 3px;color:#6e5305}
+.live-pane .hl-safe{background:rgba(16,185,129,.13);box-shadow:inset 0 -2px 0 rgba(16,185,129,.55);
+  border-radius:3px;padding:0 3px;color:#065f46}
 .live-legend{display:none;margin-top:14px;gap:16px;font-family:var(--mono);font-size:9px;
   letter-spacing:.1em;color:var(--faint);text-transform:uppercase}
 .live-legend.on{display:flex;flex-wrap:wrap}
@@ -615,13 +617,17 @@ body.dragging .scene.active{transition:none!important}
 .lt-lab{flex-shrink:0;font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;
   padding:5px 10px;border-radius:999px;font-weight:700}
 .lt-branch.red .lt-lab{background:rgba(221,43,43,.12);color:#8c1616}
+.lt-branch.orange .lt-lab{background:rgba(224,124,26,.14);color:#7a3d05}
+.lt-branch.yellow .lt-lab{background:rgba(214,164,19,.18);color:#6e5305}
+.lt-branch.green .lt-lab{background:rgba(16,185,129,.15);color:#065f46}
 .lt-branch.blue .lt-lab{background:rgba(10,132,255,.12);color:#0b5ce6}
-.lt-branch.amber .lt-lab{background:rgba(186,117,23,.14);color:#7a4a06}
 .lt-leaves{display:flex;flex-wrap:wrap;gap:6px;min-width:0}
 .lt-leaf{font-size:12px;line-height:1.5;color:var(--dim);padding:6px 11px;border-radius:8px;background:#fff;border:1px solid var(--hair2)}
 .lt-branch.red .lt-leaf{background:rgba(221,43,43,.05);border-color:rgba(221,43,43,.28)}
+.lt-branch.orange .lt-leaf{background:rgba(224,124,26,.06);border-color:rgba(224,124,26,.3)}
+.lt-branch.yellow .lt-leaf{background:rgba(214,164,19,.07);border-color:rgba(214,164,19,.32)}
+.lt-branch.green .lt-leaf{background:rgba(16,185,129,.06);border-color:rgba(16,185,129,.3)}
 .lt-branch.blue .lt-leaf{background:rgba(10,132,255,.05);border-color:rgba(10,132,255,.28)}
-.lt-branch.amber .lt-leaf{background:rgba(186,117,23,.06);border-color:rgba(186,117,23,.3)}
 .lt-empty{font-size:11.5px;color:var(--faint);font-family:var(--mono)}
 /* 神经网络图：Q → 隐层节点 → A，虚线流动=信号在算 */
 .lt-net{width:100%;height:auto;display:block;margin:2px 0 12px}
@@ -631,6 +637,10 @@ body.dragging .scene.active{transition:none!important}
 .lt-src{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:6px;vertical-align:1px;flex-shrink:0}
 .lt-src.t{background:rgba(10,132,255,.55)}
 .lt-src.a{background:rgba(10,143,91,.6)}
+/* 五色色卡：红敏感 · 橙警告 · 黄预警 · 绿健康 · 蓝正常 */
+.lt-legend{display:flex;flex-wrap:wrap;gap:5px 14px;margin-bottom:12px;font-family:var(--mono);
+  font-size:9px;letter-spacing:.08em;color:var(--faint);text-transform:uppercase}
+.lt-legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:-1px}
 .live-ledger{margin-top:14px;padding-top:12px;border-top:1px solid var(--hair2);font-family:var(--mono);
   font-size:9.5px;letter-spacing:.1em;color:var(--faint);text-transform:uppercase;line-height:1.7}
 .live-caret{display:inline-block;width:6px;height:12px;background:var(--amber);vertical-align:-1px;margin-left:2px;
@@ -1250,9 +1260,11 @@ body.dragging .scene.active{transition:none!important}
         </div>
       </div>
       <div class="live-legend" id="liveLegend">
-        <span><i style="background:rgba(221,43,43,.55)"></i><span data-en="red · high-sensitivity content" data-zh="红色 · 高敏感内容">red · high-sensitivity content</span></span>
-        <span><i style="background:rgba(10,132,255,.55)"></i><span data-en="blue · risks it names" data-zh="蓝色 · 它指出的风险">blue · risks it names</span></span>
-        <span><i style="background:rgba(186,117,23,.55)"></i><span data-en="amber · what it admits it cannot know" data-zh="橙色 · 它自己承认不知道的">amber · what it admits it cannot know</span></span>
+        <span><i style="background:#dd2b2b"></i><span data-en="red · sensitive" data-zh="红色 · 敏感">red · sensitive</span></span>
+        <span><i style="background:#e07c1a"></i><span data-en="orange · warning" data-zh="橙色 · 警告">orange · warning</span></span>
+        <span><i style="background:#d6a413"></i><span data-en="yellow · caution" data-zh="黄色 · 预警">yellow · caution</span></span>
+        <span><i style="background:#10b981"></i><span data-en="green · healthy" data-zh="绿色 · 健康">green · healthy</span></span>
+        <span><i style="background:#0a84ff"></i><span data-en="blue · normal" data-zh="蓝色 · 正常">blue · normal</span></span>
       </div>
       <div class="live-tree" id="liveTree"></div>
       <div class="live-ledger" id="liveLedger">MODE — · MODEL — · LATENCY — · TOKENS — · REQ —</div>
@@ -2404,11 +2416,19 @@ function liveType(el,text,done,isReason){
     }
   },16);
 }
-/* 高亮：红色=高敏感内容（剂量/终止/急救等硬伤地带）；蓝色=它指出的风险/关键判断；
-   橙色=它自己承认不知道的部分。按「句」着色而不是按词，任何模型的轨迹都能用。 */
+/* 句子五级分类：红=敏感 · 橙=警告 · 黄=预警 · 绿=健康 · 蓝=正常。
+   按「句」着色；正常句不进入文字高亮，只作为蓝色节点进入网络图。 */
 const LIVE_SENS=/(terminate at any time|without notice|overdose|\bmg\b|dosage|\bdose\b|prescrib|diagnos|emergency|suicide|first aid|surgery|liability|lawsuit|penalt|急救|剂量|毫克|过量|处方|诊断|手术|自杀|终止|违约|赔偿|起诉)/i;
-const LIVE_WARN=/(cannot|can’t|can't|don’t know|don't know|unknown|uncertain|not sure|no context|without (?:the )?(?:full )?context|depends|only see|not legal advice|not medical advice|need more|unable to|assume|无法|不能|不确定|不知道|看不到|取决于|不构成)/i;
-const LIVE_RISK=/(risk|risky|unsafe|one-sided|warning|refuse|danger|terminate|风险|危险|单方|拒绝)/i;
+const LIVE_WARN=/(warn|danger|unsafe|serious|severe|refuse|must not|never|do not|stop|urgent|risk|危险|警告|严重|拒绝|切勿|不得|立即|风险|危险)/i;
+const LIVE_CAUT=/(caution|careful|monitor|watch|check with|consult|may cause|possible|consider|depends|cannot|can’t|can't|unknown|uncertain|注意|谨慎|监测|咨询|可能|观察|取决于|不确定|无法|不能|不知道)/i;
+const LIVE_SAFE=/(safe|healthy|benefit|recommend|advisable|appropriate|fine to|okay to|moderate|harmless|proven|安全|健康|建议|适度|无害|合适|推荐|有效)/i;
+function liveClass(p){
+  if(LIVE_SENS.test(p))return 'red';
+  if(LIVE_WARN.test(p))return 'orange';
+  if(LIVE_CAUT.test(p))return 'yellow';
+  if(LIVE_SAFE.test(p))return 'green';
+  return 'blue';                                /* 正常推理 */
+}
 function liveHl(text){
   const esc=String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const parts=esc.split(/(?<=[.!?;:\n。！？；：])\s*/);
@@ -2417,15 +2437,15 @@ function liveHl(text){
     if(!p.trim())return p;
     const complete=i<last||/[.!?;:\n。！？；：]\s*$/.test(p);
     if(!complete)return p;                       /* 半句先不上色，等它写完 */
-    if(LIVE_SENS.test(p))return '<span class="hl-risk">'+p+'</span>';
-    if(LIVE_WARN.test(p))return '<span class="hl-warn">'+p+'</span>';
-    if(LIVE_RISK.test(p))return '<span class="hl-key">'+p+'</span>';
-    return p;
+    const c=liveClass(p);
+    if(c==='blue')return p;                      /* 正常句不上色，保持素净 */
+    return '<span class="hl-'+(c==='red'?'risk':c==='orange'?'warn':c)+'">'+p+'</span>';
   }).join('');
 }
-/* 神经网络式思考图：生成完成后，把这次调用的关键句作为「隐层节点」，
-   画出 提问(Q) → 关键思考节点(按类别着色) → 结论(A) 的网络，连线有信号流动动画；
-   网络下方保留树状明细（完整句子）。 */
+/* 思考树（神经网络风）：Q(提问) → 类别节点(五色：红敏感/橙警告/黄预警/绿健康/蓝正常)
+   → 句子叶子，逐级展开；虚线流动=信号在算。桌面三层全展开，手机折叠到类别层。 */
+const LT_CATS=[['red','敏感','Sensitive'],['orange','警告','Warning'],['yellow','预警','Caution'],['green','健康','Healthy'],['blue','正常','Normal']];
+const LT_COL={red:'#dd2b2b',orange:'#e07c1a',yellow:'#d6a413',green:'#10b981',blue:'#0a84ff'};
 function liveTree(){
   const box=liveEl('liveTree');if(!box)return;
   const en=lang==='en';
@@ -2433,65 +2453,78 @@ function liveTree(){
   const pick=(text,src)=>{
     const out=[];
     String(text||'').split(/(?<=[.!?;:\n。！？；：])\s*/).map(s=>s.trim()).filter(s=>s.length>6).forEach(s=>{
-      if(LIVE_SENS.test(s))out.push([cut(s),'red',src]);
-      else if(LIVE_WARN.test(s))out.push([cut(s),'amber',src]);
-      else if(LIVE_RISK.test(s))out.push([cut(s),'blue',src]);
+      out.push([cut(s),liveClass(s),src]);
     });
     return out;
   };
-  /* 双来源：T=思考轨迹 A=最终结论；最多取 7 个节点避免图过密 */
-  const nodes=pick(LIVE.lastReason,'T').concat(pick(LIVE.lastAnswer,'A')).slice(0,7);
-  const by=c=>nodes.filter(n=>n[1]===c);
+  const nodes=pick(LIVE.lastReason,'T').concat(pick(LIVE.lastAnswer,'A'));
+  const byCat={};LT_CATS.forEach(([c])=>byCat[c]=nodes.filter(n=>n[1]===c));
   const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  /* —— 网络图（SVG）—— */
-  const col={red:'#dd2b2b',blue:'#0a84ff',amber:'#ba7517'};
-  const kw=s=>{const t=s.replace(/[「」"'.,;:!?()\n。！？；：—\-]/g,'').trim();return t.length>15?t.slice(0,14)+'…':t};
-  const wide=window.innerWidth>=760;
+  const kw=s=>{const t=s.replace(/[「」"'.,;:!?()\n。！？；：—\-]/g,'').trim();return t.length>25?t.slice(0,24)+'…':t};
+  const active=LT_CATS.filter(([c])=>byCat[c].length);
+  /* —— 展开式树图（SVG）—— */
   let svg='';
-  if(nodes.length){
-    if(wide){
-      const W=680,gap=52,H=Math.max(160,nodes.length*gap+56),yM=H/2,x0=92,x1=W/2+40,x2=W-92;
-      let e='',v='';
-      nodes.forEach((nd,i)=>{
-        const y=H/2-((nodes.length-1)/2)*gap+i*gap,c=col[nd[1]];
-        e+='<path class="lt-edge" d="M'+(x0+17)+' '+yM+' C '+(x0+120)+' '+yM+', '+(x1-120)+' '+y+', '+x1+' '+y+'" fill="none" stroke="'+c+'" stroke-opacity=".42" stroke-width="1.6"/>';
-        e+='<path class="lt-edge" d="M'+(x1+17)+' '+y+' C '+(x1+120)+' '+y+', '+(x2-120)+' '+yM+', '+(x2-17)+' '+yM+'" fill="none" stroke="'+c+'" stroke-opacity=".42" stroke-width="1.6"/>';
-        v+='<circle cx="'+x1+'" cy="'+y+'" r="9" fill="'+c+'" fill-opacity=".88"/>';
-        v+='<text x="'+(x1+22)+'" y="'+(y+4)+'" font-size="12.5" fill="rgba(8,13,24,.62)" font-family="ui-monospace,Menlo,monospace">'+esc(kw(nd[0]))+'</text>';
+  const ink='#27324a';
+  if(active.length){
+    if(window.innerWidth>=760){
+      /* 三层全展开：Q → 类别 → 叶子 */
+      const W=680,leafR=26,gap=16,xQ=40,xC=218,xL=430;
+      let rows=0;active.forEach(([c])=>rows+=Math.min(2,byCat[c].length));
+      const H=rows*leafR+(active.length-1)*gap+70,yQ=H/2;
+      let e='',v='',off=36;
+      active.forEach(([c,,labEn])=>{
+        const arr=byCat[c],nL=Math.min(2,arr.length),col=LT_COL[c];
+        const yTop=off,yCat=yTop+(nL-1)*leafR/2;
+        e+='<path class="lt-edge lt-e1" d="M'+(xQ+19)+' '+yQ+' C '+(xQ+110)+' '+yQ+', '+(xC-120)+' '+yCat+', '+(xC-14)+' '+yCat+'" fill="none" stroke="'+col+'" stroke-opacity=".5" stroke-width="2"/>';
+        v+='<circle cx="'+xC+'" cy="'+yCat+'" r="21" fill="'+col+'" fill-opacity=".14"/>'
+          +'<circle cx="'+xC+'" cy="'+yCat+'" r="12.5" fill="'+col+'" stroke="#fff" stroke-width="2"/>'
+          +'<text x="'+(xC+28)+'" y="'+(yCat+4.5)+'" font-size="12.5" font-weight="700" fill="'+col+'" font-family="ui-monospace,Menlo,monospace">'+esc(en?labEn:LT_CATS.find(x=>x[0]===c)[1])+' ×'+arr.length+'</text>';
+        for(let k=0;k<nL;k++){
+          const yL=yTop+k*leafR;
+          e+='<path class="lt-edge lt-e2" d="M'+(xC+13)+' '+yCat+' C '+(xC+70)+' '+yCat+', '+(xL-80)+' '+yL+', '+(xL-8)+' '+yL+'" fill="none" stroke="'+col+'" stroke-opacity=".38" stroke-width="1.4"/>';
+          v+='<circle cx="'+xL+'" cy="'+yL+'" r="5" fill="'+col+'"/>'
+            +'<text x="'+(xL+13)+'" y="'+(yL+4)+'" font-size="11.5" fill="rgba(8,13,24,.60)" font-family="ui-monospace,Menlo,monospace">'+esc(kw(arr[k][0]))+'</text>';
+        }
+        off+=nL*leafR+gap;
       });
-      v+='<circle cx="'+x0+'" cy="'+yM+'" r="16" fill="#0b5ce6"/><text x="'+x0+'" y="'+(yM+4.5)+'" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">Q</text>';
-      v+='<circle cx="'+x2+'" cy="'+yM+'" r="16" fill="#0a8f5b"/><text x="'+x2+'" y="'+(yM+4.5)+'" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">A</text>';
+      v+='<circle cx="'+xQ+'" cy="'+yQ+'" r="26" fill="'+ink+'" fill-opacity=".10"/>'
+        +'<circle cx="'+xQ+'" cy="'+yQ+'" r="17" fill="'+ink+'" stroke="#fff" stroke-width="2.5"/>'
+        +'<text x="'+xQ+'" y="'+(yQ+4.5)+'" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">Q</text>';
       svg='<svg class="lt-net" viewBox="0 0 '+W+' '+H+'">'+e+v+'</svg>';
     }else{
-      const W=340,gap=46,x=W/2,y0=26,g=46,H=52+(nodes.length+1)*g,yE=H-26;
+      /* 手机折叠层：Q → 类别(带计数) */
+      const W=340,xQ=34,xC=150,gap=48,H=active.length*gap+40,yQ=H/2;
       let e='',v='';
-      nodes.forEach((nd,i)=>{
-        const y=y0+g*(i+1),c=col[nd[1]];
-        e+='<path class="lt-edge" d="M'+x+' '+(y0+17)+' C '+x+' '+(y0+60)+', '+x+' '+(y-60)+', '+x+' '+(y-11)+'" fill="none" stroke="'+c+'" stroke-opacity=".42" stroke-width="1.6"/>';
-        e+='<path class="lt-edge" d="M'+x+' '+(y+11)+' C '+x+' '+(y+60)+', '+x+' '+(yE-60)+', '+x+' '+(yE-17)+'" fill="none" stroke="'+c+'" stroke-opacity=".42" stroke-width="1.6"/>';
-        v+='<circle cx="'+x+'" cy="'+y+'" r="9" fill="'+c+'" fill-opacity=".88"/>';
-        v+='<text x="'+(x+22)+'" y="'+(y+4)+'" font-size="12.5" fill="rgba(8,13,24,.62)" font-family="ui-monospace,Menlo,monospace">'+esc(kw(nd[0]))+'</text>';
+      active.forEach(([c,,labEn],i)=>{
+        const y=gap/2+18+i*gap,col=LT_COL[c];
+        e+='<path class="lt-edge lt-e1" d="M'+(xQ+19)+' '+yQ+' C '+(xQ+70)+' '+yQ+', '+(xC-70)+' '+y+', '+(xC-15)+' '+y+'" fill="none" stroke="'+col+'" stroke-opacity=".5" stroke-width="2"/>';
+        v+='<circle cx="'+xC+'" cy="'+y+'" r="19" fill="'+col+'" fill-opacity=".14"/>'
+          +'<circle cx="'+xC+'" cy="'+y+'" r="11.5" fill="'+col+'" stroke="#fff" stroke-width="2"/>'
+          +'<text x="'+(xC+26)+'" y="'+(y+4)+'" font-size="12" font-weight="700" fill="'+col+'" font-family="ui-monospace,Menlo,monospace">'+esc(en?labEn:LT_CATS.find(x=>x[0]===c)[1])+' ×'+byCat[c].length+'</text>';
       });
-      v+='<circle cx="'+x+'" cy="'+y0+'" r="16" fill="#0b5ce6"/><text x="'+x+'" y="'+(y0+4.5)+'" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">Q</text>';
-      v+='<circle cx="'+x+'" cy="'+yE+'" r="16" fill="#0a8f5b"/><text x="'+x+'" y="'+(yE+4.5)+'" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">A</text>';
+      v+='<circle cx="'+xQ+'" cy="'+yQ+'" r="24" fill="'+ink+'" fill-opacity=".10"/>'
+        +'<circle cx="'+xQ+'" cy="'+yQ+'" r="16" fill="'+ink+'" stroke="#fff" stroke-width="2.5"/>'
+        +'<text x="'+xQ+'" y="'+(yQ+4.5)+'" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">Q</text>';
       svg='<svg class="lt-net" viewBox="0 0 '+W+' '+H+'">'+e+v+'</svg>';
     }
   }else{
-    svg='<div class="lt-empty">'+(en?'No flagged nodes in this call · straight Q → A path':'本次调用没有标记出关键节点 · 提问直达结论')+'</div>';
+    svg='<div class="lt-empty">'+(en?'No key nodes in this call':'本次调用没有提取到关键节点')+'</div>';
   }
-  /* —— 树状明细 —— */
-  const rows=[['red',by('red'),en?'High-sensitivity':'高敏感'],
-              ['blue',by('blue'),en?'Key calls':'关键判断'],
-              ['amber',by('amber'),en?'Admitted unknowns':'承认不确定']];
-  const html=rows.map(([cls,arr,lab])=>{
-    const leaves=arr.length?arr.map(([s,,src])=>'<div class="lt-leaf"><i class="lt-src '+(src==='A'?'a':'t')+'"></i>'+s+'</div>').join('')
+  /* —— 色卡图例（常驻）—— */
+  const legend='<div class="lt-legend">'+LT_CATS.map(([c,zh,lab])=>
+    '<span><i style="background:'+LT_COL[c]+'"></i>'+(en?lab:zh)+'</span>').join('')+'</div>';
+  /* —— 树状明细（完整句子，双来源圆点）—— */
+  const html=LT_CATS.map(([c,zh,labEn])=>{
+    const arr=byCat[c],show=arr.slice(0,c==='blue'?3:4);
+    const leaves=show.length?show.map(([s,,src])=>'<div class="lt-leaf"><i class="lt-src '+(src==='A'?'a':'t')+'"></i>'+s+'</div>').join('')
       :'<div class="lt-empty">'+(en?'none in this call':'本次调用中未出现')+'</div>';
-    return '<div class="lt-branch '+cls+'"><span class="lt-lab">'+lab+' ×'+arr.length+'</span><div class="lt-leaves">'+leaves+'</div></div>';
+    const more=arr.length>show.length?'<div class="lt-empty">+ '+(arr.length-show.length)+' '+(en?'more':'条同类')+'</div>':'';
+    return '<div class="lt-branch '+c+'"><span class="lt-lab">'+(en?labEn:zh)+' ×'+arr.length+'</span><div class="lt-leaves">'+leaves+more+'</div></div>';
   }).join('');
   const qEl=liveEl('liveQ');
   const q=(qEl&&qEl.value.trim())||(en?'your question':'你的提问');
-  box.innerHTML='<div class="lt-k">'+(en?'How this call computed · Q → hidden nodes → A · dots: blue=trace, green=answer':'这次调用怎么算的 · Q → 隐层节点 → A · 圆点：蓝=轨迹，绿=结论')+'</div>'
-    +svg
+  box.innerHTML='<div class="lt-k">'+(en?'How this call computed · Q unfolds into typed nodes · dots: blue=trace, green=answer':'这次调用怎么算的 · Q 逐级展开成五类节点 · 圆点：蓝=轨迹，绿=结论')+'</div>'
+    +legend+svg
     +'<div class="lt-root">'+(q.length>60?q.slice(0,58)+'…':q)+'</div>'
     +'<div class="lt-trunk">'+html+'</div>';
   box.classList.add('on');
