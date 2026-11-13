@@ -205,7 +205,7 @@ h2.title{font-size:clamp(30px,4.6vw,56px);font-weight:800;letter-spacing:-.02em;
   font-size:13px;font-weight:800;flex-shrink:0;letter-spacing:.02em}
 .ai-bubble{font-size:clamp(22px,2.6vw,29px);font-weight:600;line-height:1.42;letter-spacing:-.01em}
 .ai-meta{margin-top:18px;padding-top:16px;border-top:1px dashed var(--hair);display:flex;flex-direction:column;gap:8px;
-  font-size:18px;color:rgba(8,13,24,.55);letter-spacing:.02em;line-height:1.4}
+  font-size:18px;color:var(--dim);letter-spacing:.02em;line-height:1.4}
 .ai-meta span+span{font-size:22px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:.04em}
 .conf-bar{margin-top:18px}
 .conf-bar .cb-top{display:flex;justify-content:space-between;font-size:18px;color:var(--dim);letter-spacing:.06em;margin-bottom:10px}
@@ -473,7 +473,7 @@ body.quake #deck{animation:quake .26s linear infinite}
 #boot .bmark i{position:absolute;inset:0;background:var(--amber);transform-origin:left;transform:scaleX(0);animation:bootbar 1.15s .3s cubic-bezier(.4,0,.2,1) forwards}
 @keyframes bootin{to{opacity:1}}
 @keyframes bootbar{to{transform:scaleX(1)}}
-#boot .bskip{margin-top:12px;font-size:10px;letter-spacing:.2em;color:rgba(8,13,24,.25)}
+#boot .bskip{margin-top:12px;font-size:10px;letter-spacing:.2em;color:var(--faint)}
 
 /* extra pulse on interactive rows */
 
@@ -569,7 +569,7 @@ body.dragging .scene.active{transition:none!important}
 .live-input input{flex:1;min-width:0;border:1px solid rgba(10,132,255,.20);border-radius:14px;padding:13px 16px;font-size:14.5px;
   font-family:inherit;color:var(--ink);background:#fff;outline:none;
   box-shadow:inset 0 1px 2px rgba(8,13,24,.03);transition:border-color .2s,box-shadow .2s}
-.live-input input::placeholder{color:rgba(8,13,24,.34)}
+.live-input input::placeholder{color:var(--faint)}
 .live-input input:focus{border-color:#0a84ff;box-shadow:0 0 0 4px rgba(10,132,255,.12)}
 .live-input .tool-btn{border-radius:14px;padding:0 26px;min-height:48px;font-weight:600;letter-spacing:.05em;
   background:linear-gradient(135deg,#2e8bff,#0a5ce6);color:#fff;border-color:transparent;
@@ -585,7 +585,7 @@ body.dragging .scene.active{transition:none!important}
   background:#0a84ff;box-shadow:0 0 0 3px rgba(10,132,255,.16)}
 .live-pane.answer .lp-k::before{background:#0acf6e;box-shadow:0 0 0 3px rgba(10,143,91,.14)}
 .live-pane .lp-v{font-size:14px;line-height:1.62;color:var(--dim);white-space:pre-wrap;word-break:break-word}
-.live-pane.reason .lp-v{font-family:var(--mono);font-size:11.5px;color:rgba(8,13,24,.5)}
+.live-pane.reason .lp-v{font-family:var(--mono);font-size:11.5px;color:var(--dim)}
 .live-pane.answer{border-color:rgba(8,13,24,.10);background:#fff;box-shadow:0 1px 2px rgba(8,13,24,.03)}
 .live-pane.answer .lp-v{color:var(--ink);font-size:14.5px}
 .live-pane.answer.done{border-color:rgba(10,143,91,.55);background:rgba(10,143,91,.035);box-shadow:0 0 0 4px rgba(10,143,91,.08)}
@@ -659,6 +659,43 @@ body.dragging .scene.active{transition:none!important}
   .lt-branch::before{display:none}
   .lt-leaf{font-size:11.5px;padding:5px 9px}
 }
+/* ---------- 深色模式 ---------- */
+body.dark{
+  --bg:#0a0e18;--panel:#101726;--ink:#e8ecf7;--dim:rgba(232,238,250,.66);
+  --faint:rgba(232,238,250,.4);--hair:rgba(232,238,250,.16);--hair2:rgba(232,238,250,.08);
+  --shadow:0 22px 55px -30px rgba(0,0,0,.75);--shadow-sm:0 8px 22px -14px rgba(0,0,0,.65);
+}
+body,html{transition:background .35s ease,color .35s ease}
+body.dark .demo-stage{background:#101726;border-color:rgba(232,238,250,.12)}
+body.dark #curtain .panel{background:#0a0e18}
+body.dark #boot{background:#0a0e18}
+body.dark #tip{background:#101726;color:var(--ink)}
+body.dark .live-stage{background:linear-gradient(180deg,rgba(10,132,255,.09),rgba(255,255,255,0) 34%),#101726;border-color:rgba(10,132,255,.22)}
+body.dark .live-input input{background:#0d1422;border-color:rgba(10,132,255,.3)}
+body.dark .live-pane{background:linear-gradient(180deg,rgba(10,132,255,.09),rgba(10,132,255,.03))}
+body.dark .live-pane.answer{background:#0d1422;border-color:rgba(232,238,250,.12)}
+body.dark .live-pane.reason .lp-v{color:rgba(232,238,250,.62)}
+body.dark .lt-root{background:#0d1422;border-color:rgba(10,132,255,.4)}
+body.dark .lt-leaf{background:#0d1422;border-color:rgba(232,238,250,.12);color:var(--dim)}
+body.dark .lt-step{background:#0d1422}
+body.dark #notes .n-body{color:var(--dim)}
+body.dark .divider .chapter-no{-webkit-text-stroke-color:rgba(232,238,250,.3)}
+body.dark .gridlines{background-image:radial-gradient(circle at var(--gx) var(--gy),rgba(46,139,255,.22) 1px,transparent 1.4px)}
+body.dark .hud-btn{background:rgba(16,23,38,.8)}
+body.dark #wb{background:rgba(10,14,24,.975)}
+body.dark #menu{background:rgba(10,14,24,.97)}
+body.dark #notes{background:rgba(10,14,24,.985)}
+/* 深色下树分支标签换浅色文字，保证对比度 */
+body.dark .lt-branch.red .lt-lab{color:#ff9d9d;background:rgba(221,43,43,.24)}
+body.dark .lt-branch.orange .lt-lab{color:#ffc08a;background:rgba(224,124,26,.24)}
+body.dark .lt-branch.yellow .lt-lab{color:#ffe08f;background:rgba(214,164,19,.26)}
+body.dark .lt-branch.green .lt-lab{color:#8ee8c5;background:rgba(16,185,129,.22)}
+body.dark .lt-branch.blue .lt-lab{color:#8ecbff;background:rgba(10,132,255,.24)}
+/* 深色下思考轨迹高亮文字调亮 */
+body.dark .live-pane .hl-risk{color:#ff9d9d}
+body.dark .live-pane .hl-warn{color:#ffc08a}
+body.dark .live-pane .hl-caution{color:#ffe08f}
+body.dark .live-pane .hl-safe{color:#8ee8c5}
 
 /* ---------- rounded geometry ---------- */
 .demo-stage{border-radius:18px;overflow:hidden}
@@ -726,6 +763,7 @@ body.dragging .scene.active{transition:none!important}
     <button class="hud-btn" id="wbBtn" title="White box — show the evidence behind this slide (W)" data-en="White box" data-zh="白盒">White box</button>
     <button class="hud-btn" id="menuBtn" title="Chapters (M)" data-en="Menu" data-zh="目录">Menu</button>
     <button class="hud-btn" id="langBtn">中文</button>
+    <button class="hud-btn" id="themeBtn" title="Light / dark theme">深色</button>
   </div>
 </header>
 
@@ -1486,6 +1524,7 @@ function applyLang(){
   });
   document.documentElement.lang=lang;
   document.getElementById('langBtn').textContent=lang==='en'?'中文':'EN';
+  applyThemeBtn();
   updateProgress();buildMenu();updateNotes();
   const liveMeta=document.getElementById('liveMeta');
   if(liveMeta&&typeof liveBaseMeta==='function')liveMeta.textContent=liveBaseMeta();
@@ -1501,6 +1540,23 @@ function applyLang(){
 document.getElementById('langBtn').onclick=()=>{
   lang=lang==='en'?'zh':'en';localStorage.setItem('tbv-lang',lang);applyLang();
 };
+
+/* theme — light / dark，切换后重绘活动场景的图表（图表颜色在绘制时固化） */
+let theme=localStorage.getItem('tbv-theme')||'light';
+function applyThemeBtn(){
+  const b=document.getElementById('themeBtn');
+  if(b)b.textContent=theme==='dark'?(lang==='en'?'Light':'浅色'):(lang==='en'?'Dark':'深色');
+}
+function setTheme(t,redraw){
+  theme=t;localStorage.setItem('tbv-theme',t);
+  document.body.classList.toggle('dark',t==='dark');
+  applyThemeBtn();
+  if(redraw)applyLang();
+}
+document.getElementById('themeBtn').onclick=()=>setTheme(theme==='dark'?'light':'dark',true);
+setTheme(theme,false);
+/* 主题感知的墨色：图表/SVG 文本用它，深色模式下自动变浅 */
+function inkA(a){return theme==='dark'?'rgba(232,238,250,'+a+')':'rgba(8,13,24,'+a+')'}
 
 /* menu */
 const menuEl=document.getElementById('menu');
@@ -1837,13 +1893,13 @@ function drawChart(id){
       svg.appendChild(lb);
       let tw=0;try{tw=lb.getComputedTextLength()}catch(err){}
       if(!tw){for(const ch of row.l[lang])tw+=ch.charCodeAt(0)>0x2E80?(fsL*1.02):(fsL*.55)}
-      const tag=mk('text',{x:pad+tw+(mobile?10:20),y:cy-(mobile?21:24),fill:row.sig?'#0a8f5b':'rgba(8,13,24,.4)','font-size':fsT,'letter-spacing':'.14em','font-family':'var(--display)'});
+      const tag=mk('text',{x:pad+tw+(mobile?10:20),y:cy-(mobile?21:24),fill:row.sig?'#0a8f5b':inkA(.4),'font-size':fsT,'letter-spacing':'.14em','font-family':'var(--display)'});
       tag.textContent=row.sig?(lang==='en'?'SIGNIFICANT':'显著'):'N.S.';
       svg.appendChild(tag);
-      const b1=mk('rect',{x:pad,y:cy,width:bw*row.a,height:barH,fill:'rgba(8,13,24,.26)'});
+      const b1=mk('rect',{x:pad,y:cy,width:bw*row.a,height:barH,fill:inkA(.26)});
       const b2=mk('rect',{x:pad,y:cy+barH+barGap,width:0.001,height:barH,fill:'#0b57ff'});
       svg.appendChild(b1);svg.appendChild(b2);
-      const v1=mk('text',{x:pad+bw*row.a+(mobile?8:14),y:cy+barH*.78,fill:'rgba(8,13,24,.62)','font-size':fsV,'font-weight':'600','font-family':'var(--display)'});
+      const v1=mk('text',{x:pad+bw*row.a+(mobile?8:14),y:cy+barH*.78,fill:inkA(.62),'font-size':fsV,'font-weight':'600','font-family':'var(--display)'});
       v1.textContent=(row.a*100).toFixed(1)+'%';
       const v2=mk('text',{x:pad+bw*row.b+(mobile?8:14),y:cy+barH+barGap+barH*.78,fill:'#0b57ff','font-size':fsV,'font-weight':'800','font-family':'var(--display)'});
       v2.textContent=(row.b*100).toFixed(1)+'%';
@@ -1854,20 +1910,20 @@ function drawChart(id){
       }));
       const hit=mk('rect',{x:pad-6,y:cy-40,width:W-pad*2+30,height:barH*2+barGap+40,class:'hit'});
       hit.addEventListener('pointerenter',ev=>{
-        b1.setAttribute('fill','rgba(8,13,24,.42)');b2.setAttribute('fill','#2f74ff');
+        b1.setAttribute('fill',inkA(.42));b2.setAttribute('fill','#2f74ff');
         showTip(row.l[lang]+' · '+Math.round(row.a*1000)/10+'% → <b>'+Math.round(row.b*1000)/10+'%</b>',ev);
       });
       hit.addEventListener('pointermove',moveTip);
-      hit.addEventListener('pointerleave',()=>{b1.setAttribute('fill','rgba(8,13,24,.26)');b2.setAttribute('fill','#0b57ff');hideTip()});
+      hit.addEventListener('pointerleave',()=>{b1.setAttribute('fill',inkA(.26));b2.setAttribute('fill','#0b57ff');hideTip()});
       svg.appendChild(hit);
     });
     const lgFs=mobile?12:17;
     const lg=(x,y,txt,fill)=>{const e=mk('text',{x,y,fill,'font-size':lgFs,'font-family':'var(--display)','letter-spacing':'.02em'});e.textContent=txt;svg.appendChild(e)};
     if(mobile){
-      lg(pad,H-30,'■ '+(lang==='en'?'Black box (baseline)':'黑盒（基线）'),'rgba(8,13,24,.45)');
+      lg(pad,H-30,'■ '+(lang==='en'?'Black box (baseline)':'黑盒（基线）'),inkA(.45));
       lg(pad,H-11,'■ '+(lang==='en'?'White box (cue)':'白盒（线索）'),'#0b57ff');
     }else{
-      lg(pad,H-14,'■ '+(lang==='en'?'Black box (baseline)':'黑盒（基线）'),'rgba(8,13,24,.45)');
+      lg(pad,H-14,'■ '+(lang==='en'?'Black box (baseline)':'黑盒（基线）'),inkA(.45));
       lg(pad+330,H-14,'■ '+(lang==='en'?'White box (cue)':'白盒（透明化线索）'),'#0b57ff');
     }
   }
@@ -1934,11 +1990,11 @@ addEventListener('resize',()=>{
         if(fine){
           const dx=mx-a.x,dy=my-a.y,d=Math.hypot(dx,dy);
           if(d<200){
-            x.strokeStyle='rgba(8,13,24,'+(.2*(1-d/200)).toFixed(3)+')';x.lineWidth=.5;
+            x.strokeStyle=inkA(.2*(1-d/200));x.lineWidth=.5;
             x.beginPath();x.moveTo(a.x,a.y);x.lineTo(mx,my);x.stroke();
           }
         }
-        x.fillStyle='rgba(8,13,24,'+(.2+pulse*.25).toFixed(3)+')';
+        x.fillStyle=inkA(.2+pulse*.25);
         x.beginPath();x.arc(a.x,a.y,a.r,0,6.2832);x.fill();
       }
     }
@@ -2094,7 +2150,7 @@ function addAgg(host,en,zh){
   let el=host.querySelector('.agg');
   if(!el){
     el=document.createElement('div');el.className='agg';
-    el.style.cssText='margin-top:14px;font-family:var(--mono);font-size:14px;line-height:1.6;letter-spacing:.04em;color:rgba(8,13,24,.55);border-top:1px dashed rgba(8,13,24,.16);padding-top:12px';
+    el.style.cssText='margin-top:14px;font-family:var(--mono);font-size:14px;line-height:1.6;letter-spacing:.04em;color:'+inkA(.55)+';border-top:1px dashed '+inkA(.16)+';padding-top:12px';
     host.appendChild(el);
   }
   el.dataset.en='▶ GROUP DATA · '+en;
@@ -2483,7 +2539,7 @@ function liveTree(){
           const yL=yTop+k*leafR;
           e+='<path class="lt-edge lt-e2" d="M'+(xC+13)+' '+yCat+' C '+(xC+70)+' '+yCat+', '+(xL-80)+' '+yL+', '+(xL-8)+' '+yL+'" fill="none" stroke="'+col+'" stroke-opacity=".38" stroke-width="1.4"/>';
           v+='<circle cx="'+xL+'" cy="'+yL+'" r="5" fill="'+col+'"/>'
-            +'<text x="'+(xL+13)+'" y="'+(yL+4)+'" font-size="11.5" fill="rgba(8,13,24,.60)" font-family="ui-monospace,Menlo,monospace">'+esc(kw(arr[k][0]))+'</text>';
+            +'<text x="'+(xL+13)+'" y="'+(yL+4)+'" font-size="11.5" fill="'+inkA(.6)+'" font-family="ui-monospace,Menlo,monospace">'+esc(kw(arr[k][0]))+'</text>';
         }
         off+=nL*leafR+gap;
       });
