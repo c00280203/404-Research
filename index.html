@@ -38,13 +38,18 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
 .hud-btn:hover{color:#fff;background:var(--amber);border-color:var(--amber);transform:translateY(-1px)}
 .pager{position:fixed;bottom:0;left:0;right:0;z-index:50;display:flex;justify-content:space-between;align-items:flex-end;
   padding:20px 26px;pointer-events:none}
-.pager>*{pointer-events:auto}
 #pageNo{font-size:11px;letter-spacing:.2em;color:var(--faint);font-variant-numeric:tabular-nums}
-.nav-btns{display:flex;gap:8px}
-.nav-btn{width:44px;height:44px;border:1px solid var(--hair);display:flex;align-items:center;justify-content:center;
-  font-size:16px;color:var(--dim);transition:.22s;background:rgba(255,255,255,.8);backdrop-filter:blur(10px)}
-.nav-btn:hover{color:#fff;background:var(--amber);border-color:var(--amber)}
 #keyHint{font-size:10px;letter-spacing:.16em;color:var(--faint);text-transform:uppercase}
+
+/* click zones: left half = previous, right half = next. A hairline chevron
+   fades in only when the pointer is parked at the edge (desktop only). */
+.edge{position:fixed;top:0;bottom:0;width:74px;z-index:45;pointer-events:none;display:flex;align-items:center;
+  font-size:30px;line-height:1;color:var(--dim);opacity:0;transition:opacity .4s ease}
+#edgeL{left:0;justify-content:flex-start;padding-left:16px}
+#edgeR{right:0;justify-content:flex-end;padding-right:16px}
+body.edge-l #edgeL,body.edge-r #edgeR{opacity:.4}
+.edge.flash{opacity:.9;transition:opacity .1s ease}
+@media (hover:none),(pointer:coarse){.edge{display:none}}
 
 /* ---------- DECK ---------- */
 #deck{position:fixed;inset:0}
@@ -171,7 +176,7 @@ h2.title{font-size:clamp(30px,4.6vw,56px);font-weight:800;letter-spacing:-.02em;
 @media (max-width:1179px) and (min-width:761px){body.auditing .scene{padding-right:calc(392px + 2vw)}}
 @media (max-width:760px){
   #wb{top:auto;height:66vh;width:100%;border-left:none;border-top:1px solid var(--hair);border-radius:18px 18px 0 0;
-    transform:translateY(103%);padding:20px 20px 24px;box-shadow:0 -30px 70px -40px rgba(8,32,90,.45)}
+    transform:translateY(103%);padding:20px 20px calc(26px + env(safe-area-inset-bottom));box-shadow:0 -30px 70px -40px rgba(8,32,90,.45)}
   #wb.on{transform:none}
   #wb.on::before{display:none}
   .wb-claim{font-size:15.5px}
@@ -319,8 +324,8 @@ h2.title{font-size:clamp(30px,4.6vw,56px);font-weight:800;letter-spacing:-.02em;
 
 /* ---------- responsive ---------- */
 @media (max-width:760px){
-  .scene{padding:60px 5vw 96px;justify-content:flex-start}
-  .wrap{margin:0}
+  .scene{padding:calc(64px + env(safe-area-inset-top)) 6vw calc(96px + env(safe-area-inset-bottom));justify-content:flex-start}
+  .wrap{margin:auto}
   .kicker{margin-bottom:18px}
   .hyp{gap:16px;flex-wrap:wrap}
   .hyp .who{margin-left:0;width:100%}
@@ -373,15 +378,32 @@ h2.title{font-size:clamp(30px,4.6vw,56px);font-weight:800;letter-spacing:-.02em;
   .divider .chapter-no{font-size:clamp(90px,30vw,160px)}
   .divider .hyp-line{font-size:14.5px;margin-top:18px}
   .divider .speaker{margin-top:24px}
-  /* chrome */
-  .pager{padding:14px 16px;gap:10px}
-  #keyHint{display:none}
-  .hud{padding:12px 14px}
+  /* chrome — bigger touch targets, safe-area aware */
+  .hud{justify-content:flex-end;gap:6px;padding:calc(10px + env(safe-area-inset-top)) 12px 10px}
+  .hud-right{gap:6px}
   .brand{display:none}
-  .hud-btn{padding:7px 10px;font-size:10px;letter-spacing:.08em}
+  .hud-btn{padding:11px 11px;font-size:10.5px;letter-spacing:.06em;min-height:36px;border-radius:9px}
+  .pager{padding:12px 14px calc(10px + env(safe-area-inset-bottom))}
+  #keyHint{display:none}
   #telemetry{font-size:9px;letter-spacing:.06em;gap:8px}
   #pageNo{display:none}
-  .nav-btn{width:40px;height:40px}
+  #menu{padding:calc(72px + env(safe-area-inset-top)) 8vw calc(40px + env(safe-area-inset-bottom))}
+  .menu-row{padding:20px 0;gap:14px}
+  #notes{padding:20px 6vw calc(26px + env(safe-area-inset-bottom));max-height:54vh}
+  /* touch-friendly controls */
+  .tool-btn{padding:12px 16px;font-size:13px;min-height:42px}
+  .choice-btn{min-height:52px}
+  .truth-line{font-size:15px}
+  /* live white box */
+  .live-stage{padding:16px 14px;border-radius:14px}
+  .live-body{grid-template-columns:1fr;gap:10px}
+  .live-pane{min-height:104px;max-height:150px;padding:12px 13px}
+  .live-input{flex-direction:column}
+  .live-input .tool-btn{width:100%}
+  .live-chips .chip{font-size:12px;padding:8px 11px}
+  /* end page — try to fit one screen */
+  .wb-invite{padding:14px 16px;margin-top:20px}
+  .foot-note{margin-top:22px;font-size:11px}
   /* end page */
   .end-big{font-size:clamp(30px,8.6vw,56px)}
   .cover-team{gap:14px;font-size:11px}
@@ -408,7 +430,6 @@ body.grid-off .gridlines{display:none}
 #telemetry .rec{width:6px;height:6px;border-radius:50%;background:var(--red);animation:pulse 1.7s infinite}
 #telemetry b{color:var(--dim);font-weight:600}
 .tele{display:flex;flex-direction:column;gap:7px}
-#sndBtn.on{color:#fff;background:var(--amber);border-color:var(--amber)}
 
 /* title wipe */
 .active .wipe{animation:wipein .85s cubic-bezier(.22,1,.36,1) both}
@@ -429,6 +450,15 @@ body.grid-off .gridlines{display:none}
 .cd-track{transition:background .45s ease}
 .cd-panel b{transition:color .4s ease}
 @keyframes softPulse{50%{opacity:.55}}
+/* last-3-seconds quake */
+@keyframes quake{
+  0%,100%{transform:translate(0,0)}
+  20%{transform:translate(-3px,1px)}
+  40%{transform:translate(3px,-2px)}
+  60%{transform:translate(-2px,-1px)}
+  80%{transform:translate(2px,2px)}
+}
+body.quake #deck{animation:quake .26s linear infinite}
 @keyframes numPop{0%{transform:scale(1.14)}100%{transform:scale(1)}}
 
 /* chart hover */
@@ -490,7 +520,7 @@ body.dragging .scene.active{transition:none!important}
 .hyp .body h3{transition:color .3s}
 
 /* buttons: quiet hover */
-.choice-btn,.tool-btn,.predict-btn,.hud-btn,.nav-btn{position:relative;overflow:hidden;isolation:isolate}
+.choice-btn,.tool-btn,.predict-btn,.hud-btn{position:relative;overflow:hidden;isolation:isolate}
 .choice-btn::after,.tool-btn::after,.predict-btn::after{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;
   background:rgba(11,87,255,.05);opacity:0;transition:opacity .22s ease}
 .choice-btn:hover::after,.tool-btn:hover::after,.predict-btn:hover::after{opacity:1}
@@ -517,12 +547,52 @@ body.dragging .scene.active{transition:none!important}
 .choice-btn.picked.ok::after{background:rgba(10,143,91,.06);opacity:1}
 .choice-btn.picked.bad{border-color:rgba(221,43,43,.4);background:rgba(221,43,43,.045)}
 .choice-btn.picked.bad::after{background:rgba(221,43,43,.05);opacity:1}
-.pick-mark{margin-left:auto;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.06em}
-.pick-mark.ok{color:var(--green)}
-.pick-mark.bad{color:var(--red)}
+.pick-mark{margin-left:auto;display:inline-flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.06em;flex-shrink:0}
+.pick-mark.ok{color:var(--green);animation:markPop .34s cubic-bezier(.3,1.5,.6,1)}
+.pick-mark.bad{color:var(--red);animation:markPop .28s cubic-bezier(.3,1.5,.6,1)}
+@keyframes markPop{0%{transform:scale(.55);opacity:0}100%{transform:scale(1);opacity:1}}
 .truth-line.ok{border-left-color:var(--green)}
 .truth-line.bad{border-left-color:var(--red)}
 .truth-line{transition:border-color .3s}
+
+/* ---------- live white box ---------- */
+.live-stage{width:100%;max-width:880px;margin-top:20px;border:1px solid var(--hair);border-radius:16px;background:#fff;
+  padding:22px 24px;box-shadow:var(--shadow-sm)}
+.live-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.live-head .badge{padding:6px 12px;font-size:10.5px;cursor:default}
+.live-meta{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--faint);text-transform:uppercase}
+.live-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.live-chips .chip{font-size:12.5px;padding:9px 12px;cursor:pointer;transition:.2s}
+.live-chips .chip:hover{border-color:rgba(11,87,255,.4);color:var(--amber);background:rgba(11,87,255,.03)}
+.live-input{display:flex;gap:10px;margin-top:12px}
+.live-input input{flex:1;min-width:0;border:1px solid var(--hair);border-radius:10px;padding:11px 14px;font-size:14.5px;
+  font-family:inherit;color:var(--ink);background:rgba(11,87,255,.02);outline:none;transition:border-color .2s,background .2s}
+.live-input input:focus{border-color:rgba(11,87,255,.45);background:#fff}
+.live-body{display:grid;grid-template-columns:1.05fr .95fr;gap:16px;margin-top:16px}
+.live-pane{border:1px dashed var(--hair);border-radius:12px;padding:14px 16px;min-height:132px;max-height:230px;overflow-y:auto}
+.live-pane .lp-k{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;color:var(--faint);text-transform:uppercase;margin-bottom:8px}
+.live-pane .lp-v{font-size:14px;line-height:1.62;color:var(--dim);white-space:pre-wrap;word-break:break-word}
+.live-pane.reason .lp-v{font-family:var(--mono);font-size:11.5px;color:rgba(8,13,24,.5)}
+.live-pane.answer{border-style:solid}
+.live-pane.answer .lp-v{color:var(--ink);font-size:14.5px}
+.live-pane.answer.done{border-color:rgba(10,143,91,.5);box-shadow:0 0 0 3px rgba(10,143,91,.07)}
+.live-pane.done{animation:liveDone .5s cubic-bezier(.22,1,.36,1)}
+@keyframes liveDone{0%{transform:scale(1)}45%{transform:scale(1.006)}100%{transform:scale(1)}}
+/* what the model decided vs. what it admits it cannot know */
+.live-pane .hl-key{background:rgba(11,87,255,.12);box-shadow:inset 0 -2px 0 rgba(11,87,255,.45);
+  border-radius:3px;padding:0 2px;color:var(--ink);font-weight:600}
+.live-pane .hl-warn{background:rgba(186,117,23,.14);box-shadow:inset 0 -2px 0 rgba(186,117,23,.5);
+  border-radius:3px;padding:0 2px;color:#7a4a06}
+.live-legend{display:none;margin-top:10px;gap:14px;font-family:var(--mono);font-size:9px;
+  letter-spacing:.1em;color:var(--faint);text-transform:uppercase}
+.live-legend.on{display:flex;flex-wrap:wrap}
+.live-legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.live-ledger{margin-top:14px;padding-top:11px;border-top:1px solid var(--hair2);font-family:var(--mono);
+  font-size:9.5px;letter-spacing:.1em;color:var(--faint);text-transform:uppercase;line-height:1.7}
+.live-caret{display:inline-block;width:6px;height:12px;background:var(--amber);vertical-align:-1px;margin-left:2px;
+  animation:pulse .8s ease-in-out infinite}
+.badge.warn .dot{background:var(--amber);animation:none}
 
 /* ---------- rounded geometry ---------- */
 .demo-stage{border-radius:18px;overflow:hidden}
@@ -530,7 +600,6 @@ body.dragging .scene.active{transition:none!important}
 .tool-btn{border-radius:10px}
 .predict-btn{border-radius:14px}
 .hud-btn{border-radius:8px}
-.nav-btn{border-radius:12px}
 .badge{border-radius:999px}
 .chip{border-radius:10px}
 .fact{border-radius:12px}
@@ -549,7 +618,6 @@ body.dragging .scene.active{transition:none!important}
 .tool-btn{border-radius:10px}
 .predict-btn{border-radius:14px}
 .hud-btn{border-radius:8px}
-.nav-btn{border-radius:12px}
 .badge{border-radius:999px}
 .chip{border-radius:10px}
 .fact{border-radius:12px}
@@ -588,10 +656,9 @@ body.dragging .scene.active{transition:none!important}
 <header class="hud">
   <div class="brand">TRUST, BUT VERIFY <b id="chapLabel"></b></div>
   <div class="hud-right">
-    <button class="hud-btn" id="sndBtn" title="Sound (click to enable)">SND</button>
-    <button class="hud-btn" id="notesBtn" title="Speaker notes (S)">Notes</button>
+    <button class="hud-btn" id="notesBtn" title="Speaker notes (S)" data-en="Notes" data-zh="备注">Notes</button>
     <button class="hud-btn" id="wbBtn" title="White box — show the evidence behind this slide (W)" data-en="White box" data-zh="白盒">White box</button>
-    <button class="hud-btn" id="menuBtn" title="Chapters (M)">Menu</button>
+    <button class="hud-btn" id="menuBtn" title="Chapters (M)" data-en="Menu" data-zh="目录">Menu</button>
     <button class="hud-btn" id="langBtn">中文</button>
   </div>
 </header>
@@ -607,7 +674,7 @@ body.dragging .scene.active{transition:none!important}
     <div class="cover-team reveal-item d4">
       <span><b>Zihan Wang</b></span><span><b>Yibo Xu</b></span><span><b>Zhuoyi Ye</b></span>
     </div>
-    <div class="press-hint reveal-item d5" data-en="Scroll · drag · or click anywhere to begin" data-zh="滚动 · 拖拽 · 或点击任意处开始">Scroll · drag · or click anywhere to begin</div>
+    <div class="press-hint reveal-item d5" data-en="Click the right side · scroll · or drag to begin" data-zh="点击屏幕右侧 · 滚动 · 或拖拽开始">Click the right side · scroll · or drag to begin</div>
     <p class="wb-hint reveal-item d6" data-en="W — at any time, open this deck's white box and audit every claim we make" data-zh="随时按 W，打开这份 deck 的白盒，审计我们提出的每一个论断">W — at any time, open this deck's white box and audit every claim we make</p>
   </div>
 </section>
@@ -701,7 +768,7 @@ body.dragging .scene.active{transition:none!important}
     <div class="facts">
       <div class="fact reveal-item d2"><div class="fv">26<span style="font-size:.5em;color:var(--faint)">/34</span></div><div class="fk" data-en="Use AI tools every day" data-zh="每天都使用 AI 工具">Use AI tools every day</div></div>
       <div class="fact reveal-item d3"><div class="fv">32<span style="font-size:.5em;color:var(--faint)">/34</span></div><div class="fk" data-en="Study computer science / AI" data-zh="计算机 / AI 相关专业">Study computer science / AI</div></div>
-      <div class="fact reveal-item d4"><div class="fv">≈7<span style="font-size:.5em;color:var(--faint)">&nbsp;min</span></div><div class="fk" data-en="Median session length" data-zh="中位完成时长">Median session length</div></div>
+      <div class="fact reveal-item d4"><div class="fv">≈7<span style="font-size:.5em;color:var(--faint);margin-left:4px" data-en="min" data-zh="分钟">min</span></div><div class="fk" data-en="Median session length" data-zh="中位完成时长">Median session length</div></div>
       <div class="fact reveal-item d5"><div class="fv">62<span style="font-size:.5em;color:var(--faint)">%</span></div><div class="fk" data-en=" Noticed the extra cues (manipulation check)" data-zh="注意到了实验操纵（操纵检验）">Noticed the extra cues (manipulation check)</div></div>
     </div>
     <p class="sub reveal-item d6" data-en="An AI-heavy, tech-savvy audience — close to the profile of early adopters who will actually live with these interfaces." data-zh="一群高频使用 AI、熟悉技术的被试——正接近未来真正使用这些界面的早期用户画像。">An AI-heavy, tech-savvy audience — close to the profile of early adopters who will actually live with these interfaces.</p>
@@ -857,9 +924,10 @@ body.dragging .scene.active{transition:none!important}
         <div class="cd-track"><div class="cd-fill" id="cdFill"></div></div>
       </div>
       <div class="demo-tools">
-        <button class="tool-btn primary" id="cdStart" onclick="cdManual()" data-en="Restart the 10 s" data-zh="重新开始 10 秒">Restart the 10 s</button>
-        <button class="tool-btn" onclick="cdPause()" data-en="Pause & inspect" data-zh="暂停并查看详情">Pause & inspect</button>
-        <button class="tool-btn danger" onclick="cdRevoke()" data-en="Revoke execution" data-zh="撤销执行">Revoke execution</button>
+        <button class="tool-btn" id="cdPauseBtn" onclick="cdPause()" data-en="Pause &amp; inspect" data-zh="暂停并查看详情">Pause &amp; inspect</button>
+        <button class="tool-btn danger" onclick="cdExecute()" data-en="Execute now" data-zh="立即执行">Execute now</button>
+        <button class="tool-btn" onclick="cdRevoke()" data-en="Revoke execution" data-zh="撤销执行">Revoke execution</button>
+        <button class="tool-btn" id="cdStart" onclick="cdManual()" data-en="Restart the 10 s" data-zh="重新开始 10 秒">Restart the 10 s</button>
       </div>
       <div class="verdict bad" id="vSent">⚠ <span data-en="SENT — 13 recipients. This was the risky item." data-zh="已发送——13 位收件人。这就是危险项。">SENT — 13 recipients. This was the risky item.</span></div>
       <div class="verdict good" id="vSaved">✓ <span data-en="Stopped in time." data-zh="及时阻止。">Stopped in time.</span></div>
@@ -1079,7 +1147,47 @@ body.dragging .scene.active{transition:none!important}
   </div>
 </section>
 
-<!-- 25 · CONCLUSION -->
+<!-- 25 · LIVE WHITE BOX -->
+<section class="scene" data-ch="5" data-speaker="Zihan Wang">
+  <div class="wrap">
+    <div class="kicker reveal-item d1" data-en="The same mechanism · for real" data-zh="同一套机制 · 真的跑一次">The same mechanism · for real</div>
+    <h2 class="title reveal-item d2" data-en="Ask it anything. Watch it think." data-zh="随便问它。看着它想。">Ask it anything. Watch it think.</h2>
+    <p class="sub reveal-item d3" data-en="Everything before this was a replay. This one is a real model, streamed live. Left pane: the trace it thinks with. Right pane: what it tells you. The gap between them is the product." data-zh="前面全是重放。这一页是真的模型，实时流式。左栏是它思考的轨迹，右栏是它告诉你的结论——两者之间的落差，就是产品本身。">Everything before this was a replay. This one is a real model, streamed live. Left pane: the trace it thinks with. Right pane: what it tells you. The gap between them is the product.</p>
+    <div class="live-stage reveal-item d4">
+      <div class="live-head">
+        <span class="badge calm" id="liveMode"><span class="dot"></span><b id="liveModeTxt">LIVE</b></span>
+        <span class="live-meta" id="liveMeta">deepseek-reasoner · temp 0.7 · prompt v1 · 输入不落库</span>
+      </div>
+      <div class="live-chips" id="liveChips">
+        <button class="chip" onclick="liveAsk(this)" data-q="Should I take 800mg ibuprofen for a headache?">medical advice</button>
+        <button class="chip" onclick="liveAsk(this)" data-q="Is this contract clause risky? The company may terminate at any time without notice.">contract risk</button>
+        <button class="chip" onclick="liveAsk(this)" data-q="Who wrote this essay? Judge from the style only.">authorship guess</button>
+      </div>
+      <div class="live-input">
+        <input id="liveQ" type="text" maxlength="180" placeholder="Ask it something, or pick a prompt above…" aria-label="Your question">
+        <button class="tool-btn primary" id="liveRun" onclick="liveRun()">Run · 提问</button>
+      </div>
+      <div class="live-body">
+        <div class="live-pane reason">
+          <div class="lp-k" data-en="Reasoning · what it thinks" data-zh="思考轨迹 · 它怎么想">Reasoning · what it thinks</div>
+          <div class="lp-v" id="liveReason">—</div>
+        </div>
+        <div class="live-pane answer">
+          <div class="lp-k" data-en="Answer · what it tells you" data-zh="结论 · 它告诉你什么">Answer · what it tells you</div>
+          <div class="lp-v" id="liveAnswer">—</div>
+        </div>
+      </div>
+      <div class="live-legend" id="liveLegend">
+        <span><i style="background:rgba(11,87,255,.5)"></i><span data-en="blue · risks it names" data-zh="蓝色 · 它指出的风险">blue · risks it names</span></span>
+        <span><i style="background:rgba(186,117,23,.55)"></i><span data-en="amber · what it admits it cannot know" data-zh="橙色 · 它自己承认不知道的">amber · what it admits it cannot know</span></span>
+      </div>
+      <div class="live-ledger" id="liveLedger">MODE — · MODEL — · LATENCY — · TOKENS — · REQ —</div>
+    </div>
+    <p class="wb-hint reveal-item d5" data-en="Press W — this call's own evidence, omissions and asks are in the white box" data-zh="按 W — 这次调用自己的依据、省略与诉求，都在白盒里">Press W — this call's own evidence, omissions and asks are in the white box</p>
+  </div>
+</section>
+
+<!-- 26 · CONCLUSION -->
 <section class="scene" data-ch="5" data-speaker="Zihan Wang">
   <div class="wrap">
     <div class="kicker reveal-item d1" data-en="Conclusion" data-zh="结论">Conclusion</div>
@@ -1100,19 +1208,18 @@ body.dragging .scene.active{transition:none!important}
 <nav class="pager">
   <div class="tele">
     <div id="telemetry"><span class="rec"></span><span id="telMain">T+00:00 · SCENE 01/25 · n=34</span></div>
-    <span id="keyHint">CLICK / SCROLL / DRAG</span>
+    <span id="keyHint" data-en="LEFT SIDE = BACK · RIGHT SIDE = NEXT" data-zh="点左侧 = 上一页 · 点右侧 = 下一页">LEFT SIDE = BACK · RIGHT SIDE = NEXT</span>
   </div>
   <div style="display:flex;align-items:center;gap:14px">
     <span id="pageNo">1 / 25</span>
-    <div class="nav-btns">
-      <button class="nav-btn" id="prevBtn" onclick="prev()" aria-label="Previous">←</button>
-      <button class="nav-btn" id="nextBtn" onclick="next()" aria-label="Next">→</button>
-    </div>
   </div>
 </nav>
 
+<div class="edge" id="edgeL" aria-hidden="true">‹</div>
+<div class="edge" id="edgeR" aria-hidden="true">›</div>
+
 <div id="menu">
-  <div class="m-title">Chapters</div>
+  <div class="m-title" data-en="Chapters" data-zh="章节">Chapters</div>
   <div id="menuList"></div>
 </div>
 
@@ -1122,6 +1229,13 @@ body.dragging .scene.active{transition:none!important}
 </aside>
 
 <script>
+/* ============ CONFIG · 只有这两行需要你改 ============ */
+/* 推荐：把 Vercel 代理地址填在这里。key 存在 Vercel 的环境变量里，GitHub 上永远看不到。 */
+window.LIVE_URL = window.LIVE_URL || '';   /* 例：'https://whitebox-demo.vercel.app/api/chat' */
+/* 备选：直连模式。把 DeepSeek key 填在这里 —— 它会随页面公开，任何人 View Source 都能拿走。
+   只有在你接受「余额被刷光」这一代价时才用；白盒里会把这件事写明。 */
+window.DS_KEY = window.DS_KEY || '';
+
 /* ============ DATA (computed from 34 deduplicated participants) ============ */
 const DATA = {
   n: 34,
@@ -1158,6 +1272,7 @@ const NOTES = [
  {r:"Mechanism · Zihan Wang", en:"Pull the three results into one frame: See / Gate / Justify. The third column carries the warning. One sentence each, no new data.", zh:"把三个结果收进一个框架：看见 / 闸门 / 解释。第三列带警示。每列一句话，不引入新数据。"},
  {r:"Applications · Yibo Xu", en:"Tie each finding to a product surface: acting agents (confirmations), answering LLMs (uncertainty), AI grading (evidence-backed explanations). End with the design-rules sentence for regulators.", zh:"把每个发现对应到产品场景：行动型 Agent（确认）、问答 LLM（不确定性）、AI 评分（可核对的解释）。最后落到给监管者的设计准则。"},
  {r:"Limitations · Zhuoyi Ye", en:"Say it before they ask: small local sample, synthetic stakes, fixed task order, tight 10-second window. Read the participant quote aloud — it's real feedback and it sets up 'next steps'.", zh:"在被问前先说：样本小且同源、任务无真实代价、顺序固定、10 秒窗太紧。朗读真实被试引语，自然过渡到改进方向。"},
+ {r:"Live white box · Zihan Wang", en:"This is the only page that is not a replay — say so out loud, it is the point. Pick a prompt, let them watch the trace stream, then read the gap: the model thinks one thing and tells you a shorter, cleaner version. Press W to audit this exact call: mode, model, latency, tokens, and what we chose not to log. If the network dies it falls back to a recorded trace and the badge says REPLAY — do not pretend otherwise.", zh:"这是全场唯一不是重放的一页——请把这句话说出来，它本身就是论点。选一个提示词，让观众看轨迹流出来，然后读出落差：模型想的是一套，告诉你的是删减过的另一套。按 W 审计这一次调用：模式、模型、延迟、token、以及我们选择不记录什么。若断网，它会回落到预录轨迹并把徽章标成 REPLAY——不要假装还在实时。"},
  {r:"Conclusion · Zihan Wang", en:"Close with the frame: behaviour, not opinions. 816 decisions, 34 people, 2 of 3 hypotheses supported, 1 that taught more by failing. Then: thank you.", zh:"收尾：改变的是行为而非态度。816 个决策、34 人、3 条假设支持 2 条、1 条因失败更有价值。致谢结束。"},
  {r:"Q&A · all", en:"Likely questions: Why Wilcoxon? (paired, non-normal proportions) · Why within-subjects? (power with n=34) · Is friction just dark pattern? (transparent by design, reversible, and we measured it) · Why didn't explanations help fairness? (persuasion without evidence).", zh:"常见问题：为何用 Wilcoxon（配对、非正态比例）？为何被试内设计（n=34 下更有统计功效）？摩擦算不算黑暗模式（设计透明、可逆、且被测量）？为何解释没提升公平感（只有说服、没有证据）。"}
 ];
@@ -1302,6 +1417,10 @@ function applyLang(){
   document.documentElement.lang=lang;
   document.getElementById('langBtn').textContent=lang==='en'?'中文':'EN';
   updateProgress();buildMenu();updateNotes();
+  // charts bake the language in at draw time — redraw the active one
+  document.querySelectorAll('[id^=chartH]').forEach(el=>{delete el.dataset.drawn;el.innerHTML=''});
+  const cBox=document.querySelector('.scene.active [id^=chartH]');
+  if(cBox){cBox.dataset.drawn='1';drawChart(cBox.id);}
   if(document.getElementById('wb').classList.contains('on'))renderAudit();
 }
 document.getElementById('langBtn').onclick=()=>{
@@ -1397,7 +1516,10 @@ const AUDIT={
  23:{e:{en:'Sample size, stakes, measurement, timing, counterbalancing — the four ways this pilot is limited.',zh:'样本、利害、测量、时序与平衡——这次 pilot 的四处局限。'},
     o:{en:'This design also cannot separate “friction” from “attention”.',zh:'这个设计也无法把「摩擦」和「注意力」分开。'},
     a:{en:'These are the reasons to read our numbers as a pilot.',zh:'这些就是为什么请把我们的数字当作 pilot 来看。'}},
- 24:{e:{en:'Behaviour moved where a cue added friction or a checkable signal. Attitudes barely moved.',zh:'在有摩擦或可核对信号的地方，行为改变了；态度几乎没有。'},
+ 24:{e:{en:'A real model call: streaming from deepseek-reasoner through our own proxy. The trace on the left is the model’s own, not a script.',zh:'一次真实调用：经我们自己的代理流式请求 deepseek-reasoner。左侧轨迹来自模型本身，不是脚本。'},
+    o:{en:'Reasoning traces are generated text, not a faithful log of computation — and we only see the ones the model chooses to write.',zh:'推理轨迹是模型生成出来的文字，不是计算过程的忠实日志——而且我们只能看到它选择写出来的部分。'},
+    a:{en:'Ask it something it should refuse. The refusal is the most honest white box we can show you.',zh:'问它一件它本该拒绝的事。那个拒绝，是我们能给你看的最诚实的白盒。'}},
+ 25:{e:{en:'Behaviour moved where a cue added friction or a checkable signal. Attitudes barely moved.',zh:'在有摩擦或可核对信号的地方，行为改变了；态度几乎没有。'},
     o:{en:'One 34-person pilot, one session, no follow-up. The effect sizes need replication.',zh:'一次 34 人的 pilot，单次实验，没有追踪。效应量需要重复验证。'},
     a:{en:'If you take one thing: transparency changes what people do, not what they say.',zh:'如果只带走一件事：透明化改变的是人做什么，而不是人说什么。'}}
 };
@@ -1434,7 +1556,7 @@ function toggleAudit(on){
   const b=document.getElementById('wbBtn');if(b)b.classList.toggle('on',auditOn);
   if(auditOn){
     renderAudit();
-    try{SND.tone(520,.08,.016,'sine')}catch(err){}
+    try{SND.tone(520,.08,.12,'sine')}catch(err){}
     setTimeout(()=>{ // charts are narrower now — redraw once
       const s=scenes[idx];const cid=s&&s.querySelector('[id^=chartH]');
       if(cid){cid.dataset.drawn='1';drawChart(cid.id);}
@@ -1451,6 +1573,7 @@ document.getElementById('wbClose').onclick=()=>toggleAudit(false);
 
 /* keys */
 document.addEventListener('keydown',e=>{
+  if(e.target.closest('input,textarea'))return;   /* typing a question is not a shortcut */
   if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'||e.key==='Enter'){e.preventDefault();next()}
   else if(e.key==='ArrowLeft'||e.key==='PageUp'||e.key==='Backspace'){e.preventDefault();prev()}
   else if(e.key==='m'||e.key==='M'){menuEl.classList.toggle('open')}
@@ -1475,48 +1598,84 @@ function demoPick(btn,which){
   const t=stage.querySelector('.truth-line');if(t)t.style.display='block';
 }
 /* H2 countdown */
-let cdTimer=null,cdLeft=10,cdDone=false,cdAuto=null;
+let cdTimer=null,cdLeft=10,cdDone=false,cdAuto=null,cdPaused=false,cdTotal=10;
 function cancelCdAuto(){if(cdAuto){clearTimeout(cdAuto);cdAuto=null}}
 function scheduleCountdown(){
   cancelCdAuto();resetCountdown();
   cdAuto=setTimeout(()=>{cdAuto=null;startCountdown()},1400);
 }
 function cdManual(){cancelCdAuto();resetCountdown();startCountdown()}
+function paintCdPause(){
+  const b=document.getElementById('cdPauseBtn');if(!b)return;
+  b.dataset.en=cdPaused?'Resume countdown':'Pause & inspect';
+  b.dataset.zh=cdPaused?'继续倒计时':'暂停并查看详情';
+  b.textContent=lang==='en'?b.dataset.en:b.dataset.zh;
+  b.classList.toggle('primary',cdPaused);
+}
 function startCountdown(){
   if(cdTimer||cdDone)return;
-  document.getElementById('vSent').classList.remove('show');
-  document.getElementById('vSaved').classList.remove('show');
-  const total=cdLeft<=0?10:cdLeft;
-  const t0=performance.now();
+  cdPaused=false;paintCdPause();
+  const sent=document.getElementById('vSent');if(sent)sent.classList.remove('show');
+  const saved=document.getElementById('vSaved');if(saved)saved.classList.remove('show');
+  const total=cdTotal;
+  const startLeft=cdLeft>0?Math.min(cdLeft,total):total;
+  const t0=performance.now()-(total-startLeft)*1000;
   cdTimer=setInterval(()=>{
     const el=(performance.now()-t0)/1000;
     const left=Math.max(0,total-el);
     cdLeft=left;
     const numEl=document.getElementById('cdNum');
-    if(+numEl.textContent!==Math.ceil(left)){
+    if(numEl&&+numEl.textContent!==Math.ceil(left)){
       numEl.textContent=Math.ceil(left);
       numEl.style.animation='none';void numEl.offsetWidth;
       numEl.style.animation='numPop .32s cubic-bezier(.34,1.56,.64,1)';
+      if(left<=3.6&&left>0){try{SND.tick()}catch(e){}}
     }
     document.getElementById('cdFill').style.transform='scaleX('+(left/total)+')';
     const p=document.getElementById('cdPanel');
     if(p)p.classList.toggle('urgent',left>0&&left<=3.6);
+    document.body.classList.toggle('quake',left>0&&left<=3);
     if(left<=0){clearInterval(cdTimer);cdTimer=null;cdDone=true;
       if(p)p.classList.remove('urgent');
-      try{SND.tone(220,.22,.035,'sawtooth')}catch(err){}
-      document.getElementById('vSent').classList.add('show');}
+      document.body.classList.remove('quake');
+      try{SND.err()}catch(err){}
+      document.getElementById('vSent').classList.add('show');
+      shakeScreen(620);}
   },80);
 }
 function cdPause(){
-  if(cdTimer){clearInterval(cdTimer);cdTimer=null;}
+  if(cdTimer){clearInterval(cdTimer);cdTimer=null;cdPaused=true;
+    document.body.classList.remove('quake');
+    const p=document.getElementById('cdPanel');if(p)p.classList.remove('urgent');
+    paintCdPause();
+    try{SND.tone(420,.06,.11,'sine')}catch(e){}
+  }else if(cdPaused&&!cdDone){startCountdown();}
+}
+function stopCdTimer(){if(cdTimer){clearInterval(cdTimer);cdTimer=null}}
+function cdExecute(){
+  cancelCdAuto();stopCdTimer();cdPaused=false;cdDone=true;cdLeft=0;
+  paintCdPause();
+  document.body.classList.remove('quake');
+  const p=document.getElementById('cdPanel');if(p)p.classList.remove('urgent');
+  const n=document.getElementById('cdNum');if(n)n.textContent='0';
+  const f=document.getElementById('cdFill');if(f)f.style.transform='scaleX(0)';
+  document.getElementById('vSaved').classList.remove('show');
+  document.getElementById('vSent').classList.add('show');
+  try{SND.err()}catch(e){}
+  shakeScreen(620);
 }
 function cdRevoke(){
-  cdPause();cdDone=true;
+  cancelCdAuto();stopCdTimer();cdPaused=false;cdDone=true;
+  paintCdPause();
+  document.body.classList.remove('quake');
   document.getElementById('vSent').classList.remove('show');
   document.getElementById('vSaved').classList.add('show');
+  try{SND.ok()}catch(e){}
 }
 function resetCountdown(){
-  cdPause();cdLeft=10;cdDone=false;
+  stopCdTimer();cdLeft=10;cdTotal=10;cdDone=false;cdPaused=false;
+  cancelCdAuto();document.body.classList.remove('quake');
+  paintCdPause();
   const n=document.getElementById('cdNum');if(n)n.textContent='10';
   const f=document.getElementById('cdFill');if(f)f.style.transform='scaleX(1)';
   const a=document.getElementById('vSent');if(a)a.classList.remove('show');
@@ -1530,6 +1689,7 @@ function bPick(btn,blocked){
   btn.classList.add('picked');
   document.getElementById('vBsent').classList.toggle('show',!blocked);
   document.getElementById('vBstop').classList.toggle('show',blocked);
+  try{blocked?SND.ok():SND.err()}catch(e){}
 }
 /* H3 toggle */
 function showC(white){
@@ -1713,23 +1873,95 @@ addEventListener('resize',()=>{
   window.__pulse=()=>{pulse=1};
 })();
 
-/* 3 · sound */
-const SND={on:localStorage.getItem('tbv-snd')==='1',ctx:null,
+/* 3 · sound — everything is synthesised, no audio files (stays a single HTML file).
+   ok()  ≈ the Apple Pay "paid" chime: a bright two-note bell rising a fifth.
+   err() ≈ the "payment declined" double low tone falling a fifth.
+   Sound is ON by default; the first tap/keypress unlocks the audio context. */
+const SND={on:true,ctx:null,out:null,
   ac(){try{if(!this.ctx)this.ctx=new (window.AudioContext||window.webkitAudioContext)();if(this.ctx.state==='suspended')this.ctx.resume();return this.ctx}catch(e){return null}},
-  tone(f,d,g,type){if(!this.on)return;const c=this.ac();if(!c)return;const o=c.createOscillator(),v=c.createGain();
-    o.type=type||'square';o.frequency.value=f;o.connect(v);v.connect(c.destination);
-    const t=c.currentTime;v.gain.setValueAtTime(.0001,t);v.gain.linearRampToValueAtTime(g||.02,t+.008);
+  bus(c){
+    const cc=c||this.ac();if(!cc)return null;
+    if(c)return {c:c,out:c.destination};          /* offline / injected context */
+    if(!this.out){
+      const g=cc.createGain();g.gain.value=.95;
+      if(cc.createDynamicsCompressor){
+        const k=cc.createDynamicsCompressor();
+        k.threshold.value=-14;k.knee.value=16;k.ratio.value=4;k.attack.value=.003;k.release.value=.22;
+        g.connect(k);k.connect(cc.destination);
+      }else{g.connect(cc.destination)}
+      this.out=g;
+    }
+    return {c:cc,out:this.out};
+  },
+  tone(f,d,g,type){
+    if(!this.on)return;const s=this.bus();if(!s)return;const c=s.c;
+    const o=c.createOscillator(),v=c.createGain();
+    o.type=type||'sine';o.frequency.value=f;o.connect(v);v.connect(s.out);
+    const t=c.currentTime;v.gain.setValueAtTime(.0001,t);v.gain.linearRampToValueAtTime(g||.05,t+.008);
     v.gain.exponentialRampToValueAtTime(.0001,t+(d||.08));o.start(t);o.stop(t+(d||.08)+.02)},
-  sweep(){if(!this.on)return;const c=this.ac();if(!c)return;const o=c.createOscillator(),v=c.createGain();
+  /* FM bell: bright strike, mellow tail — the marimba-ish Apple chime */
+  bell(f,t0,dur,g,ctx){
+    const s=this.bus(ctx);if(!s)return;const c=s.c;
+    const car=c.createOscillator(),mod=c.createOscillator(),mg=c.createGain(),v=c.createGain();
+    car.type='sine';car.frequency.value=f;
+    mod.type='sine';mod.frequency.value=f*2.41;
+    mg.gain.setValueAtTime(f*.95,t0);
+    mg.gain.exponentialRampToValueAtTime(f*.02,t0+Math.min(.5,dur));
+    mod.connect(mg);mg.connect(car.frequency);
+    car.connect(v);v.connect(s.out);
+    v.gain.setValueAtTime(.0001,t0);
+    v.gain.exponentialRampToValueAtTime(g||.22,t0+.008);
+    v.gain.exponentialRampToValueAtTime(.0001,t0+dur);
+    car.start(t0);mod.start(t0);
+    car.stop(t0+dur+.03);mod.stop(t0+dur+.03);
+  },
+  ok(){
+    if(!this.on)return;const s=this.bus();if(!s)return;
+    const t=s.c.currentTime+.01;
+    this.bell(1046.5,t,.55,.26);         /* C6  */
+    this.bell(1568.0,t+.085,.70,.22);    /* G6  */
+    this.bell(2093.0,t+.155,.46,.075);   /* C7  sparkle */
+  },
+  err(){
+    if(!this.on)return;const s=this.bus();if(!s)return;const c=s.c,t=c.currentTime+.01;
+    const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1400;lp.Q.value=.9;lp.connect(s.out);
+    const note=(f,st,dur,g,type)=>{
+      const o=c.createOscillator(),v=c.createGain();
+      o.type=type||'triangle';
+      o.frequency.setValueAtTime(f,st);
+      o.frequency.exponentialRampToValueAtTime(f*.94,st+dur);
+      o.connect(v);v.connect(lp);
+      v.gain.setValueAtTime(.0001,st);
+      v.gain.linearRampToValueAtTime(g,st+.014);
+      v.gain.exponentialRampToValueAtTime(.0001,st+dur);
+      o.start(st);o.stop(st+dur+.03);
+    };
+    note(392.0,t,.13,.165);                  /* G4 — "bip"   */
+    note(261.6,t+.11,.44,.185);              /* C4 — "bwomp" */
+    note(130.8,t+.11,.40,.135,'sine');       /* sub body     */
+  },
+  tick(){
+    if(!this.on)return;const s=this.bus();if(!s)return;const c=s.c,t=c.currentTime;
+    const o=c.createOscillator(),v=c.createGain(),hp=c.createBiquadFilter();
+    o.type='sine';o.frequency.setValueAtTime(1500,t);
+    o.frequency.exponentialRampToValueAtTime(880,t+.035);
+    hp.type='highpass';hp.frequency.value=420;
+    o.connect(hp);hp.connect(v);v.connect(s.out);
+    v.gain.setValueAtTime(.0001,t);
+    v.gain.exponentialRampToValueAtTime(.34,t+.005);
+    v.gain.exponentialRampToValueAtTime(.0001,t+.06);
+    o.start(t);o.stop(t+.08);
+  },
+  sweep(){
+    if(!this.on)return;const s=this.bus();if(!s)return;const c=s.c;
+    const o=c.createOscillator(),v=c.createGain();
     o.type='sine';o.frequency.setValueAtTime(380,c.currentTime);o.frequency.exponentialRampToValueAtTime(820,c.currentTime+.24);
-    o.connect(v);v.connect(c.destination);const t=c.currentTime;
-    v.gain.setValueAtTime(.0001,t);v.gain.linearRampToValueAtTime(.03,t+.03);v.gain.exponentialRampToValueAtTime(.0001,t+.32);
+    o.connect(v);v.connect(s.out);const t=c.currentTime;
+    v.gain.setValueAtTime(.0001,t);v.gain.linearRampToValueAtTime(.12,t+.03);v.gain.exponentialRampToValueAtTime(.0001,t+.32);
     o.start(t);o.stop(t+.34)}
 };
-const sndBtn=document.getElementById('sndBtn');
-function paintSnd(){sndBtn.classList.toggle('on',SND.on);sndBtn.textContent=SND.on?'SND ON':'SND OFF'}
-sndBtn.onclick=()=>{SND.on=!SND.on;localStorage.setItem('tbv-snd',SND.on?'1':'0');paintSnd();if(SND.on)SND.tone(760,.09,.03)};
-paintSnd();
+/* browsers keep an audio context suspended until a real gesture — unlock early */
+['pointerdown','keydown','touchstart'].forEach(ev=>addEventListener(ev,()=>SND.ac(),{passive:true}));
 
 /* 4 · telemetry */
 const T0=Date.now();
@@ -1774,7 +2006,7 @@ function sceneFX(){
   s.querySelectorAll('.giant,h2.title,.end-big').forEach(el=>{
     el.classList.remove('wipe');void el.offsetWidth;el.classList.add('wipe');
   });
-  SND.tone(idx%2?640:780,.05,.015);
+  SND.tone(idx%2?640:780,.06,.10);
   document.querySelectorAll('.demo-stage').forEach(d=>{d.style.transform=''});
   tele();
 }
@@ -1790,10 +2022,19 @@ function addAgg(host,en,zh){
     el.style.cssText='margin-top:14px;font-family:var(--mono);font-size:14px;line-height:1.6;letter-spacing:.04em;color:rgba(8,13,24,.55);border-top:1px dashed rgba(8,13,24,.16);padding-top:12px';
     host.appendChild(el);
   }
-  el.textContent=(lang==='en'?'▶ GROUP DATA · ':'▶ 群体数据 · ')+(lang==='en'?en:zh);
+  el.dataset.en='▶ GROUP DATA · '+en;
+  el.dataset.zh='▶ 群体数据 · '+zh;
+  el.innerHTML=(lang==='en'?'▶ GROUP DATA · ':'▶ 群体数据 · ')+(lang==='en'?en:zh);
   el.style.animation='none';void el.offsetWidth;el.style.animation='stamp .4s cubic-bezier(.34,1.56,.64,1)';
 }
 const _demoPick=demoPick;
+/* global answer feedback */
+let __qT=null;
+function shakeScreen(ms){
+  document.body.classList.add('quake');
+  clearTimeout(__qT);
+  __qT=setTimeout(()=>{document.body.classList.remove('quake')},ms||560);
+}
 function markPick(btn){
   const stage=btn.closest('.demo-stage');
   stage.querySelectorAll('.choice-btn').forEach(b=>{
@@ -1804,11 +2045,14 @@ function markPick(btn){
   btn.classList.add('picked',ok?'ok':'bad');
   const mark=document.createElement('span');
   mark.className='pick-mark '+(ok?'ok':'bad');
-  mark.textContent=ok?'✓':'✕';
+  mark.innerHTML=ok
+    ? '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="10.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M7.4 12.6l3.1 3.1 6.1-7.1" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    : '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/></svg>';
   btn.appendChild(mark);
   const t=stage.querySelector('.truth-line');
   if(t){t.classList.remove('ok','bad');t.classList.add(ok?'ok':'bad')}
-  try{SND.tone(ok?540:400,.07,.014,'sine')}catch(e){}
+  if(ok){try{SND.ok()}catch(e){}}
+  else{try{SND.err()}catch(e){}shakeScreen(560);}
 }
 demoPick=function(btn,which){
   _demoPick(btn,which);
@@ -1836,6 +2080,7 @@ bPick=function(btn,blocked){
 
 /* 7 · keyboard: 1/2 answer, F fullscreen, G grid */
 addEventListener('keydown',e=>{
+  if(e.target.closest('input,textarea'))return;
   const k=e.key.toLowerCase();
   if(k==='f'){
     if(!document.fullscreenElement){document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen()}
@@ -1860,7 +2105,7 @@ if(matchMedia('(hover:hover) and (pointer:fine)').matches){
     });
     d.addEventListener('mouseleave',()=>{d.style.transform=''});
   });
-  document.querySelectorAll('.tool-btn,.predict-btn,.nav-btn').forEach(b=>{
+  document.querySelectorAll('.tool-btn,.predict-btn').forEach(b=>{
     b.addEventListener('mousemove',e=>{
       const r=b.getBoundingClientRect();
       b.style.transform='translate('+((e.clientX-r.left-r.width/2)*.06).toFixed(1)+'px,'+((e.clientY-r.top-r.height/2)*.1).toFixed(1)+'px)';
@@ -1869,7 +2114,8 @@ if(matchMedia('(hover:hover) and (pointer:fine)').matches){
   });
 }
 
-/* 9 · click anywhere to advance (ignores controls, demos, overlays) */
+/* 9 · click zones — left half goes back, right half goes forward
+       (controls, demos, overlays and text selections are exempt) */
 (function(){
   let dx=0,dy=0;
   document.addEventListener('mousedown',e=>{dx=e.clientX;dy=e.clientY});
@@ -1877,13 +2123,42 @@ if(matchMedia('(hover:hover) and (pointer:fine)').matches){
     if(Math.abs(e.clientX-dx)>10||Math.abs(e.clientY-dy)>10)return;      // drag / selection
     const sel=window.getSelection&&window.getSelection().toString();
     if(sel)return;
-    const skip=e.target.closest('button,a,input,select,textarea,.hud,.pager,#progress,#menu,#notes,#tip,.chart-box');
+    const skip=e.target.closest('button,a,input,select,textarea,.hud,#progress,#menu,#notes,#tip,.chart-box,#wb');
     if(skip)return;
     if(document.getElementById('menu').classList.contains('open')){closeMenu();return}
     if(document.getElementById('notes').classList.contains('open')){document.getElementById('notes').classList.remove('open');return}
     if(!navGuard(260))return;
-    next();
+    if(e.clientX<innerWidth*.5){
+      flashEdge('L');
+      if(idx>0)prev();
+      else SND.tone(300,.06,.10,'sine');
+    }else{
+      flashEdge('R');
+      next();
+    }
   });
+})();
+
+/* edge chevrons: hover-only affordance + a short flash on click */
+function flashEdge(side){
+  const el=document.getElementById(side==='L'?'edgeL':'edgeR');
+  if(!el)return;
+  el.classList.add('flash');
+  clearTimeout(el.__ft);
+  el.__ft=setTimeout(()=>el.classList.remove('flash'),260);
+}
+(function(){
+  if(!matchMedia('(hover:hover) and (pointer:fine)').matches)return;
+  let raf=0,lx=0;
+  addEventListener('mousemove',e=>{
+    lx=e.clientX;
+    if(raf)return;
+    raf=requestAnimationFrame(()=>{
+      raf=0;
+      document.body.classList.toggle('edge-l',lx<74);
+      document.body.classList.toggle('edge-r',lx>innerWidth-74);
+    });
+  },{passive:true});
 })();
 
 /* 10 · boot sequence */
@@ -1934,7 +2209,7 @@ function navGuard(ms){const n=performance.now();if(n-__navT<(ms||0))return false
     sg.addEventListener('click',ev=>{
       ev.stopPropagation();
       const first=scenes.findIndex(x=>+x.dataset.ch===chapters[i]);
-      if(first>=0&&navGuard(0)){go(first);SND.tone(720,.05,.02)}
+      if(first>=0&&navGuard(0)){go(first);SND.tone(720,.05,.10)}
     });
   });
 })();
@@ -2000,11 +2275,204 @@ function navGuard(ms){const n=performance.now();if(n-__navT<(ms||0))return false
 
 /* extra keys */
 addEventListener('keydown',e=>{
+  if(e.target.closest('input,textarea'))return;
   if(e.key==='Home'){go(0);e.preventDefault()}
   if(e.key==='End'){go(scenes.length-1);e.preventDefault()}
   if(e.key==='PageDown'){next();e.preventDefault()}
   if(e.key==='PageUp'){prev();e.preventDefault()}
 });
+
+/* ============ LIVE WHITE BOX · a real call, or an honestly-labelled replay ============ */
+const LIVE={
+  proxy:(window.LIVE_URL||'').replace(/\/+$/,''),
+  key:(window.DS_KEY||'').trim(),
+  model:'deepseek-reasoner',
+  busy:false,
+  direct:'https://api.deepseek.com/chat/completions',
+  get mode(){return this.proxy?'proxy':(this.key?'direct':'none')}
+};
+const LIVE_REC=[
+ {re:/ibuprofen|headache|pain|头疼|止痛|药/i,
+  reason:"The user is asking for a dose. This is a medical question, so I should not prescribe for a specific person.\nWhat I can state safely: adult OTC single dose 200–400 mg, at most 1200 mg/day without supervision.\nRisks worth naming: pregnancy, stomach ulcers, kidney function, interactions with blood thinners.\nDecision: give label-level facts, refuse to dose this individual, and point to a pharmacist.",
+  answer:"I can’t set a dose for you personally. OTC labels for adults list 200–400 mg per dose, no more than 1200 mg a day without medical advice. If this is new, severe, or you take other medication, please ask a pharmacist first."},
+ {re:/contract|clause|terminate|条款|合同/i,
+  reason:"The user asks whether a termination clause is risky.\nThe clause lets one party terminate at any time without notice — that removes most of the protection the contract was meant to provide.\nWhat I cannot see: whether it is mutual, the notice period, and the jurisdiction. Those three decide the real exposure.\nDecision: flag the asymmetry, name the unknowns, do not predict enforceability.",
+  answer:"Yes — “terminate at any time without notice” is the clause that quietly empties the rest of the contract. What I can’t see: whether it cuts both ways, the notice period, and which jurisdiction applies. Those three decide how risky it really is."},
+ {re:/essay|author|wrote|作者|谁写/i,
+  reason:"The user asks me to identify an author from writing style.\nStyle is not a fingerprint: humans and models overlap heavily, and one paragraph is far too little signal.\nI could pattern-match and sound confident, but that would be a guess dressed as evidence.\nDecision: refuse the attribution, say why, and offer what would actually settle it — provenance.",
+  answer:"I won’t guess. Style can’t identify an author from one paragraph — humans and models overlap too much, so any answer I gave would be a guess wearing a lab coat. Authorship needs provenance: drafts, timestamps, edit history."}
+];
+function liveEl(id){return document.getElementById(id)}
+function liveSetMode(kind,note){
+  const badge=liveEl('liveMode'), txt=liveEl('liveModeTxt'), meta=liveEl('liveMeta');
+  if(txt)txt.textContent=kind;
+  if(badge){badge.classList.toggle('calm',kind==='LIVE');badge.classList.toggle('warn',kind!=='LIVE')}
+  if(meta&&note)meta.textContent=note;
+}
+function liveBaseMeta(){
+  return (LIVE.mode==='proxy'?'deepseek-reasoner · temp 0.7 · prompt v1 · 代理持密钥'
+        :LIVE.mode==='direct'?'deepseek-reasoner · temp 0.7 · prompt v1 · ⚠ 密钥在本页'
+        :'未配置端点 · 只播放预录轨迹');
+}
+function liveClear(){
+  liveEl('liveReason').innerHTML='';
+  liveEl('liveAnswer').textContent='';
+  const leg=liveEl('liveLegend');if(leg)leg.classList.remove('on');
+  const ans=document.querySelector('.scene.active .live-pane.answer');if(ans)ans.classList.remove('done');
+  liveEl('liveLedger').textContent='MODE — · MODEL — · LATENCY — · TOKENS — · REQ —';
+}
+function liveType(el,text,done,isReason){
+  let i=0;const step=Math.max(2,Math.round(text.length/110));
+  el.textContent='';
+  const iv=setInterval(()=>{
+    i+=step;
+    if(isReason)el.innerHTML=liveHl(text.slice(0,i));
+    else el.textContent=text.slice(0,i);
+    const pane=el.parentElement;if(pane)pane.scrollTop=pane.scrollHeight;
+    if(i>=text.length){
+      clearInterval(iv);
+      if(isReason)el.innerHTML=liveHl(text);else el.textContent=text;
+      done&&done();
+    }
+  },16);
+}
+/* 高亮：蓝色=它指出的风险/关键判断；橙色=它自己承认不知道的部分。
+   按「句」着色而不是按词，任何模型的轨迹都能用。 */
+const LIVE_WARN=/(cannot|can’t|can't|don’t know|don't know|unknown|uncertain|not sure|no context|without (?:the )?(?:full )?context|depends|only see|not legal advice|not medical advice|need more|unable to|assume|无法|不能|不确定|不知道|看不到|取决于|不构成)/i;
+const LIVE_RISK=/(risk|risky|unsafe|one-sided|warning|refuse|danger|terminate at any time|without notice|risk|风险|危险|单方|随时终止|拒绝)/i;
+function liveHl(text){
+  const esc=String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const parts=esc.split(/(?<=[.!?;:\n。！？；：])\s*/);
+  const last=parts.length-1;
+  return parts.map((p,i)=>{
+    if(!p.trim())return p;
+    const complete=i<last||/[.!?;:\n。！？；：]\s*$/.test(p);
+    if(!complete)return p;                       /* 半句先不上色，等它写完 */
+    if(LIVE_WARN.test(p))return '<span class="hl-warn">'+p+'</span>';
+    if(LIVE_RISK.test(p))return '<span class="hl-key">'+p+'</span>';
+    return p;
+  }).join('');
+}
+function liveDone(){
+  const ans=document.querySelector('.scene.active .live-pane.answer');
+  const leg=liveEl('liveLegend');
+  if(ans){ans.classList.add('done');setTimeout(()=>ans.classList.remove('done'),1500)}
+  if(leg)leg.classList.add('on');
+  try{SND.ok()}catch(e){}     /* 生成完成 = 支付成功那声 */
+}
+function liveLedger(o){
+  liveEl('liveLedger').textContent=
+    'MODE '+o.mode+' · MODEL '+LIVE.model+' · LATENCY '+(o.ms==null?'n/a':(o.ms/1000).toFixed(1)+'s')
+    +' · TOKENS '+(o.tk==null?'—':o.tk+(o.exact?'':' ≈'))+' · REQ '+o.id;
+}
+function liveAudit(q,o){
+  const short=q.length>58?q.slice(0,56)+'…':q;
+  AUDIT[24]={
+    e:{en:'Real call · '+o.mode+' mode · '+o.ms+' ms · '+o.tk+' tokens · prompt “'+short+'”',
+       zh:'真实调用 · '+o.mode+' 模式 · '+o.ms+' ms · '+o.tk+' tokens · 提问「'+short+'」'},
+    o:{en:LIVE.mode==='direct'
+        ?'Our key is inside this public page. Anyone can open View Source, take it, and spend our balance. We chose that trade instead of hiding it — it is disclosed here, not buried.'
+        :'We hold the key in a server environment variable, so the page never contains it. We log prompt, latency and tokens — never your identity, and never the trace itself.',
+       zh:LIVE.mode==='direct'
+        ?'我们的密钥就在这个公开页面里。任何人「查看源代码」就能拿走并花掉我们的余额。我们选择公开这个代价，而不是把它藏起来——它写在这里，没有埋着。'
+        :'密钥存在服务端环境变量里，页面里不含密钥。我们记录问题、延迟与 token——不记录你的身份，也不存轨迹本身。'},
+    a:{en:'Read the left pane literally: a reasoning trace is text the model wrote about itself, not a recording of its computation.',
+       zh:'请把左栏按字面读：推理轨迹是模型「关于自己」写出的文字，不是它计算过程的录像。'}
+  };
+  if(liveEl('wb')&&liveEl('wb').classList.contains('on'))renderAudit();
+}
+async function liveReplay(q,id){
+  const t0=performance.now();
+  const rec=LIVE_REC.find(r=>r.re.test(q))||LIVE_REC[1];
+  await new Promise(res=>liveType(liveEl('liveReason'),rec.reason,res,true));
+  await new Promise(res=>liveType(liveEl('liveAnswer'),rec.answer,res,false));
+  const ms=Math.round(performance.now()-t0);
+  const tk=Math.round((rec.reason+rec.answer).length/3.2);
+  liveLedger({mode:'REPLAY',ms:null,tk:tk,exact:false,id:id});
+  liveAudit(q,{mode:'REPLAY',ms:ms,tk:tk});
+  liveDone();
+}
+async function liveStream(q,id){
+  const t0=performance.now();
+  const isProxy=LIVE.mode==='proxy';
+  const url=isProxy?LIVE.proxy:LIVE.direct;
+  const headers={'Content-Type':'application/json'};
+  if(!isProxy)headers['Authorization']='Bearer '+LIVE.key;
+  const body=isProxy
+    ?{prompt:q,model:LIVE.model}
+    :{model:LIVE.model,stream:true,stream_options:{include_usage:true},temperature:0.7,
+      messages:[{role:'system',content:'You are a helpful assistant. Answer in under 90 words. Think first, then answer.'},{role:'user',content:q}]};
+  const res=await fetch(url,{method:'POST',headers:headers,body:JSON.stringify(body)});
+  if(!res.ok)throw new Error('HTTP '+res.status);
+  const reader=res.body.getReader(),dec=new TextDecoder();
+  const rEl=liveEl('liveReason'),aEl=liveEl('liveAnswer');
+  let buf='',usage=null,chars=0,firstByte=0,reasonText='';
+  while(true){
+    const {done,value}=await reader.read();if(done)break;
+    if(!firstByte)firstByte=performance.now();
+    buf+=dec.decode(value,{stream:true});
+    const parts=buf.split('\n\n');buf=parts.pop()||'';
+    for(const part of parts){
+      const line=part.split('\n').find(l=>l.trim().startsWith('data:'));
+      if(!line)continue;
+      const raw=line.slice(line.indexOf('data:')+5).trim();
+      if(!raw||raw==='[DONE]')continue;
+      let j;try{j=JSON.parse(raw)}catch(err){continue}
+      if(j.usage)usage=j.usage;
+      const d=(j.choices&&j.choices[0]&&j.choices[0].delta)||{};
+      if(d.reasoning_content){
+        reasonText+=d.reasoning_content;chars+=d.reasoning_content.length;
+        rEl.innerHTML=liveHl(reasonText);
+        rEl.parentElement.scrollTop=rEl.parentElement.scrollHeight;
+      }
+      if(d.content){aEl.textContent+=d.content;chars+=d.content.length;aEl.parentElement.scrollTop=aEl.parentElement.scrollHeight}
+    }
+  }
+  const ms=Math.round(performance.now()-t0);
+  const tk=usage?(usage.total_tokens||0):Math.round(chars/3.2);
+  liveLedger({mode:'LIVE',ms:ms,tk:tk,exact:!!usage,id:id});
+  liveAudit(q,{mode:'LIVE',ms:ms,tk:tk});
+  liveDone();
+}
+async function liveRun(){
+  if(LIVE.busy)return;
+  const qEl=liveEl('liveQ');
+  const q=(qEl&&qEl.value.trim())||'Is this contract clause risky? The company may terminate at any time without notice.';
+  LIVE.busy=true;
+  const btn=liveEl('liveRun');
+  if(btn){btn.disabled=true;btn.style.opacity=.5;btn.textContent=lang==='en'?'Thinking…':'思考中…'}
+  liveClear();
+  const id=Math.random().toString(36).slice(2,7).toUpperCase();
+  try{
+    if(LIVE.mode==='none')throw new Error('no-endpoint');
+    liveSetMode('LIVE',liveBaseMeta());
+    await liveStream(q,id);
+  }catch(err){
+    liveSetMode('REPLAY',LIVE.mode==='none'?'未配置端点 · 播放预录轨迹':'端点不可用 · 回落到预录轨迹（'+err.message+'）');
+    try{SND.err()}catch(e){}
+    await liveReplay(q,id);
+  }finally{
+    LIVE.busy=false;
+    if(btn){btn.disabled=false;btn.style.opacity=1;btn.textContent=lang==='en'?'Run':'提问'}
+  }
+}
+function liveAsk(btn){
+  const q=btn&&btn.dataset?btn.dataset.q:'';
+  if(q)liveEl('liveQ').value=q;
+  liveRun();
+}
+(function(){
+  const inp=liveEl('liveQ');
+  if(inp)inp.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){e.preventDefault();e.stopPropagation();liveRun()}
+  });
+  /* the badge tells the truth from the moment the slide loads */
+  setTimeout(()=>{
+    if(!liveEl('liveMode'))return;
+    if(LIVE.mode==='none')liveSetMode('REPLAY','未配置端点 · 播放预录轨迹');
+    else liveSetMode('LIVE',liveBaseMeta());
+  },400);
+})();
 
 /* ============ BOOT ============ */
 applyLang();
