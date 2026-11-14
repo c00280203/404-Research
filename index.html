@@ -2200,13 +2200,16 @@ const SND={on:true,ctx:null,out:null,
     }catch(e){}
   }
 },{passive:true,capture:true}));
-/* keep-alive：0 增益常驻振荡器，防止 WebKit 空闲挂起（听不见，CPU 可忽略） */
+/* keep-alive：常驻次声波振荡器（45Hz + 极小增益）——必须"非静音"才能骗过
+   WebKit 的静音检测（gain 0 会被判定为无声而挂起上下文）；45Hz 低于多数
+   扬声器的可闻下限，0.0006 增益约 -64dBFS，人耳听不见但管线保持活动 */
 SND.keep=function(){
   const c=this.ac();if(!c||this.__keep)return;
   const arm=()=>{if(this.__keep)return;
     try{
       const o=c.createOscillator(),g=c.createGain();
-      g.gain.value=0;o.connect(g);g.connect(this.out||c.destination);
+      o.type='sine';o.frequency.value=45;g.gain.value=.0006;
+      o.connect(g);g.connect(this.out||c.destination);
       o.start();this.__keep=o;
     }catch(e){}
   };
@@ -2215,6 +2218,8 @@ SND.keep=function(){
 };
 addEventListener('pointerover',()=>SND.keep(),{passive:true,once:true});
 addEventListener('pointerdown',()=>SND.keep(),{passive:true,once:true});
+addEventListener('keydown',()=>SND.keep(),{passive:true,once:true});
+addEventListener('touchstart',()=>SND.keep(),{passive:true,once:true});
 /* 回前台自动恢复，防止切页回来后第一声掉队 */
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&SND.ctx)SND.ac()});
 /* 所有按钮按压都有轻提示音（pointerdown 触发=零延迟）；
