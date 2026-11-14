@@ -253,6 +253,8 @@ h2.title{font-size:clamp(30px,4.6vw,56px);font-weight:800;letter-spacing:-.02em;
   transition:background .45s ease,box-shadow .45s ease}
 /* verdict 弹入：盖章式砸落 + 一次回弹 */
 @keyframes stamp{0%{transform:scale(1.45) translateY(-10px);opacity:0}55%{transform:scale(.96);opacity:1}100%{transform:scale(1)}}
+/* verdict 里的图标靠左（pick-mark 默认 margin-left:auto 是给选项按钮推右用的） */
+.verdict .pick-mark{margin-left:0;flex-shrink:0}
 .demo-tools{display:flex;gap:12px;margin-top:26px;flex-wrap:wrap}
 .tool-btn{border:1px solid var(--hair);padding:13px 20px;font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);transition:.2s}
 .tool-btn:hover{color:var(--ink);border-color:var(--faint)}
@@ -701,6 +703,9 @@ body.dark .lt-bar-track{background:rgba(232,238,250,.1)}
 #flyLayer{position:fixed;inset:0;pointer-events:none;z-index:96}
 .fly-dot{position:fixed;width:10px;height:10px;border-radius:50%;pointer-events:none;
   background:currentColor;box-shadow:0 0 14px -1px currentColor,0 1px 3px rgba(8,13,24,.25)}
+.fly-ripple{position:fixed;width:26px;height:26px;border:2px solid #d6a413;border-radius:50%;
+  pointer-events:none;animation:flyRipple .55s ease-out forwards}
+@keyframes flyRipple{from{transform:scale(.35);opacity:.95}to{transform:scale(2.8);opacity:0}}
 /* resize 等重建场景直接呈现，不再走飞入编排 */
 .lt-instant .lt-wait{opacity:1!important}
 .lt-instant .lt-pop{animation:none!important;opacity:1!important}
@@ -1343,7 +1348,7 @@ body.dark .live-pane .hl-safe{color:#8ee8c5}
     <p class="sub reveal-item d4" data-en="Show the uncertainty. Gate the action. Explain the score — and make the explanation checkable. That is how an interface earns verified trust instead of borrowed trust." data-zh="展示不确定性。给行动设闸。解释评分——并让解释可被核对。这便是界面赢得「已验证的信任」而非「借来的信任」的方式。">Show the uncertainty. Gate the action. Explain the score — and make the explanation checkable. That is how an interface earns verified trust instead of borrowed trust.</p>
     <div class="wb-invite reveal-item d5">
       <p data-en="Everything you just saw was selected, framed and simplified by three people. <b>That is a black box too.</b> Every slide in this deck can show its evidence, what it leaves out, and what it wants from you." data-zh="你刚刚看到的一切，是被三个人挑选、组织、简化过的。<b>这本身也是一个黑盒。</b>这份 deck 的每一页，都能显示它的依据、它省略了什么，以及它想从你这里得到什么。">Everything you just saw was selected, framed and simplified by three people. <b>That is a black box too.</b> Every slide in this deck can show its evidence, what it leaves out, and what it wants from you.</p>
-      <button class="tool-btn primary" onclick="toggleAudit(true)" data-en="Open our white box (W)" data-zh="打开我们的白盒（W）">Open our white box (W)</button>
+      <button class="tool-btn primary" id="wbOpenBtn" onclick="toggleAudit()" data-en="Open our white box (W)" data-zh="打开我们的白盒（W）">Open our white box (W)</button>
     </div>
     <div class="press-hint reveal-item d6" data-en="Thank you — questions welcome" data-zh="谢谢——欢迎提问">Thank you — questions welcome</div>
     <p class="foot-note reveal-item d7" data-en="Lab 5R · Zihan Wang · Yibo Xu · Zhuoyi Ye · PSP404TC Applied Research Techniques and Methodologies · XJTLU Entrepreneur College (Taicang)" data-zh="Lab 5R · 王子涵 · 叶卓易 · 徐一博 · PSP404TC 应用研究技术与方法 · 西交利物浦大学创业家学院（太仓）">Lab 5R · Zihan Wang · Yibo Xu · Zhuoyi Ye · PSP404TC Applied Research Techniques and Methodologies · XJTLU Entrepreneur College (Taicang)</p>
@@ -1772,6 +1777,11 @@ function toggleAudit(on){
   wb.setAttribute('aria-hidden',auditOn?'false':'true');
   document.body.classList.toggle('auditing',auditOn);
   const b=document.getElementById('wbBtn');if(b)b.classList.toggle('on',auditOn);
+  /* 「打开白盒」按钮随开关状态切换文案（toggleAudit() 现在是真正的开/关切换） */
+  const ob=document.getElementById('wbOpenBtn');
+  if(ob){ob.dataset.en=auditOn?'Close our white box (W)':'Open our white box (W)';
+    ob.dataset.zh=auditOn?'关闭白盒（W）':'打开我们的白盒（W）';
+    ob.textContent=lang==='en'?ob.dataset.en:ob.dataset.zh;}
   if(auditOn){
     renderAudit();
     try{SND.tone(520,.08,.12,'sine')}catch(err){}
@@ -2266,9 +2276,10 @@ function scramble(el){
 }
 function sceneFX(){
   if(window.__pulse)window.__pulse();
-  document.querySelectorAll('.stamp-tag,.pick-mark').forEach(x=>x.remove());
-  document.querySelectorAll('.choice-btn').forEach(b=>b.classList.remove('picked','ok','bad'));
-  document.querySelectorAll('.truth-line').forEach(t=>t.classList.remove('ok','bad'));
+  /* 只清理活动场景里选项按钮上的标记——verdict 结果条的图标是常驻的，不能误杀 */
+  document.querySelectorAll('.scene.active .stamp-tag,.scene.active .choice-btn .pick-mark').forEach(x=>x.remove());
+  document.querySelectorAll('.scene.active .choice-btn').forEach(b=>b.classList.remove('picked','ok','bad'));
+  document.querySelectorAll('.scene.active .truth-line').forEach(t=>t.classList.remove('ok','bad'));
   const s=scenes[idx];if(!s)return;
   s.querySelectorAll('.giant,h2.title,.end-big').forEach(el=>{
     el.classList.remove('wipe');void el.offsetWidth;el.classList.add('wipe');
@@ -2325,6 +2336,27 @@ function markPick(btn){
   if(ok){try{SND.ok()}catch(e){}}
   else{try{SND.err()}catch(e){}shakeScreen(560);}
 }
+/* 结果条的 ✓/⚠ 升级为与选项一致的描边动画（勾/平嘴摇头脸）；
+   verdict 平时 display:none，展开瞬间动画才开始播放，时序天然正确 */
+function verdictIcons(){
+  const OK='<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="10.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M7.4 12.6l3.1 3.1 6.1-7.1" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const FACE='<svg class="pm-face" viewBox="0 0 24 24" width="23" height="23" aria-hidden="true">'
+    +'<circle cx="12" cy="12" r="10.2" fill="none" stroke="currentColor" stroke-width="1.8"/>'
+    +'<g class="pm-eyes"><circle cx="8.7" cy="9.9" r="1.15" fill="currentColor"/><circle cx="15.3" cy="9.9" r="1.15" fill="currentColor"/></g>'
+    +'<path class="pm-mouth" d="M8.4 15.9h7.2" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>';
+  document.querySelectorAll('.verdict').forEach(v=>{
+    /* ✓/⚠ 可能不是第一个文本节点（前面可能是空白节点），遍历查找 */
+    const tn=[...v.childNodes].find(n=>n.nodeType===3&&/[✓⚠]/.test(n.textContent));
+    if(!tn)return;
+    const ok=/✓/.test(tn.textContent),bad=/⚠/.test(tn.textContent);
+    tn.textContent=tn.textContent.replace(/[✓⚠]/g,'');
+    const m=document.createElement('span');
+    m.className='pick-mark '+(ok?'ok':'bad');
+    m.innerHTML=ok?OK:FACE;
+    v.insertBefore(m,v.firstChild);
+  });
+}
+verdictIcons();
 demoPick=function(btn,which){
   _demoPick(btn,which);
   markPick(btn);
@@ -2398,6 +2430,7 @@ if(matchMedia('(hover:hover) and (pointer:fine)').matches){
     if(skip)return;
     if(document.getElementById('menu').classList.contains('open')){closeMenu();return}
     if(document.getElementById('notes').classList.contains('open')){document.getElementById('notes').classList.remove('open');return}
+    if(auditOn){toggleAudit(false);return}    /* 白盒展开时，点空白处 = 关闭面板（不翻页） */
     if(!navGuard(260))return;
     if(e.clientX<innerWidth*.5){
       flashEdge('L');
@@ -2687,9 +2720,9 @@ function liveTree(){
         }
         off+=nL*leafR+gap;
       });
-      v+='<circle cx="'+xQ+'" cy="'+yQ+'" r="26" fill="'+ink+'" fill-opacity=".10"/>'
-        +'<circle cx="'+xQ+'" cy="'+yQ+'" r="17" fill="'+ink+'" stroke="#fff" stroke-width="2.5"/>'
-        +'<text x="'+xQ+'" y="'+(yQ+4.5)+'" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">Q</text>';
+      v+='<circle class="lt-q lt-wait" data-n="q" cx="'+xQ+'" cy="'+yQ+'" r="26" fill="'+ink+'" fill-opacity=".10"/>'
+        +'<circle class="lt-q lt-wait" data-n="q" cx="'+xQ+'" cy="'+yQ+'" r="17" fill="'+ink+'" stroke="#fff" stroke-width="2.5"/>'
+        +'<text class="lt-q lt-wait" data-n="q" x="'+xQ+'" y="'+(yQ+4.5)+'" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">Q</text>';
       svg='<svg class="lt-net" viewBox="0 0 '+W+' '+H+'">'+e+v+'</svg>';
     }else{
       /* 手机折叠层：Q → 类别(带计数) */
@@ -2702,9 +2735,9 @@ function liveTree(){
           +'<circle class="lt-node lt-wait" data-n="'+ci+'" data-c="'+c+'" cx="'+xC+'" cy="'+y+'" r="11.5" fill="'+col+'" stroke="#fff" stroke-width="2"/>'
           +'<text class="lt-wait" data-n="'+ci+'" x="'+(xC+26)+'" y="'+(y+4)+'" font-size="12" font-weight="700" fill="'+col+'" font-family="ui-monospace,Menlo,monospace">'+esc(en?labEn:LT_CATS.find(x=>x[0]===c)[1])+' ×'+byCat[c].length+'</text>';
       });
-      v+='<circle cx="'+xQ+'" cy="'+yQ+'" r="24" fill="'+ink+'" fill-opacity=".10"/>'
-        +'<circle cx="'+xQ+'" cy="'+yQ+'" r="16" fill="'+ink+'" stroke="#fff" stroke-width="2.5"/>'
-        +'<text x="'+xQ+'" y="'+(yQ+4.5)+'" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">Q</text>';
+      v+='<circle class="lt-q lt-wait" data-n="q" cx="'+xQ+'" cy="'+yQ+'" r="24" fill="'+ink+'" fill-opacity=".10"/>'
+        +'<circle class="lt-q lt-wait" data-n="q" cx="'+xQ+'" cy="'+yQ+'" r="16" fill="'+ink+'" stroke="#fff" stroke-width="2.5"/>'
+        +'<text class="lt-q lt-wait" data-n="q" x="'+xQ+'" y="'+(yQ+4.5)+'" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">Q</text>';
       svg='<svg class="lt-net" viewBox="0 0 '+W+' '+H+'">'+e+v+'</svg>';
     }
   }else{
@@ -2737,60 +2770,65 @@ function ltRevealAll(instant){
     el.classList.add('lt-pop');
   });
 }
-/* 飞行编排：跳跃点起飞 → 逐个落入 neuron 节点位置 → 节点弹出、边线淡入 */
+/* 编排：三颗跳跃点合一成一颗大点 → 坠落到 Q 节点 → 涟漪扩散 →
+   Q 弹出，随后各类 neuron 节点与连线自 Q 依次级联点亮 */
 function ltFly(){
   const box=liveEl('liveTree');if(!box){return}
   const net=box.querySelector('.lt-net');
-  const targets=net?[...net.querySelectorAll('.lt-node')]:[];
+  const qEl=net?net.querySelector('.lt-q'):[];
   const dots=document.getElementById('liveDots');
   const dotEls=dots?[...dots.querySelectorAll('i')]:[];
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(!targets.length||reduced){ltRevealAll(true);if(dots)dots.classList.remove('on');return}
-  /* 把网络图滚进视口中央，让"起飞→落点"全程可见 */
+  if(!net||reduced){ltRevealAll(true);if(dots)dots.classList.remove('on');return}
+  /* 网络图滚进视口中央，坠落全程可见 */
   try{net.scrollIntoView({behavior:'smooth',block:'center'})}catch(e){}
   setTimeout(()=>{
     const sr=net.getBoundingClientRect();
-    const srcs=dotEls.map(d=>d.getBoundingClientRect()).filter(r=>r.width>0);
-    /* 若跳跃点不可见（已滚出视口），用网络图上方作为起飞点 */
-    const fallback={left:sr.left+sr.width*0.12,top:sr.top-40,width:10,height:10};
+    /* 起点合成：取三颗点包围盒中心（点不可见时用网络图上方） */
+    let sx=sr.left+sr.width*.12,sy=sr.top-46;
+    if(dotEls.length){
+      const rs=dotEls.map(d=>d.getBoundingClientRect()).filter(r=>r.width>0);
+      if(rs.length){sx=rs.reduce((a,r)=>a+r.left+r.width/2,0)/rs.length;
+                    sy=rs.reduce((a,r)=>a+r.top+r.height/2,0)/rs.length}
+    }
+    const qc=qEl.getBoundingClientRect();
+    const qx=qc.left+qc.width/2,qy=qc.top+qc.height/2;
     const layer=document.createElement('div');layer.id='flyLayer';document.body.appendChild(layer);
-    const n=Math.min(3,targets.length);
-    for(let i=0;i<n;i++){
-      const tg=targets[i].getBoundingClientRect();
-      const so=srcs[i%Math.max(1,srcs.length)]||fallback;
-      const sx=so.left+so.width/2,sy=so.top+so.height/2;
-      const tx=tg.left+tg.width/2,ty=tg.top+tg.height/2;
-      const col=LT_COL[targets[i].dataset.c]||'#0a84ff';
-      const d=document.createElement('span');
-      d.className='fly-dot';d.style.left=(sx-5)+'px';d.style.top=(sy-5)+'px';d.style.color=col;
-      layer.appendChild(d);
-      const anim=d.animate(
-        [{transform:'translate(0,0) scale(1)',opacity:.95},
-         {transform:'translate('+(tx-sx)*.5+'px,'+(ty-sy)*.55+'px) scale(2.1)',opacity:.9,offset:.55},
-         {transform:'translate('+(tx-sx)+'px,'+(ty-sy)+'px) scale(2.6)',opacity:.85}],
-        {duration:640,delay:i*150,easing:'cubic-bezier(.5,0,.82,.42)',fill:'both'});
-      anim.onfinish=()=>{
-        d.remove();
-        /* 点抵达 = neuron 诞生：弹出节点+标签，随后叶子和边线跟进 */
-        box.querySelectorAll('[data-n="'+i+'"]').forEach(el=>{
-          el.classList.remove('lt-wait');
-          if(el.tagName==='path')return;
-          el.classList.add('lt-pop');
-        });
-        try{SND.tone(660+i*160,.055,.09,'sine')}catch(e){}
-      };
-    }
-    /* 3 颗点之外的剩余节点，在最后一次落点后依次点亮 */
-    for(let i=n;i<targets.length;i++){
-      setTimeout(()=>{
-        box.querySelectorAll('[data-n="'+i+'"]').forEach(el=>{
-          el.classList.remove('lt-wait');
-          if(el.tagName==='path')return;
-          el.classList.add('lt-pop');
-        });
-      },(n?((n-1)*150+640):0)+220+(i-n)*180);
-    }
-    setTimeout(()=>{layer.remove();if(dots)dots.classList.remove('on')},(n?((n-1)*150+640):0)+300);
+    /* 大点在跳跃点处"合体"弹出 */
+    const d=document.createElement('span');
+    d.className='fly-dot';d.style.left=(sx-8)+'px';d.style.top=(sy-8)+'px';
+    d.style.width='16px';d.style.height='16px';d.style.color='#d6a413';
+    d.style.boxShadow='0 0 18px -1px currentColor,0 0 4px rgba(214,164,19,.6)';
+    layer.appendChild(d);
+    const drop=d.animate(
+      [{transform:'translate(0,0) scale(.3)',opacity:0,offset:0},
+       {transform:'translate(0,0) scale(1)',opacity:1,offset:.18},       /* 合体 */
+       {transform:'translate(0,0) scale(1)',opacity:1,offset:.30},       /* 短暂停顿 */
+       {transform:'translate('+(qx-sx)+'px,'+(qy-sy)+'px) scale(2.05)',opacity:.9}],
+      {duration:920,easing:'cubic-bezier(.55,.02,.8,.42)',fill:'both'});
+    drop.onfinish=()=>{
+      d.remove();
+      /* 落点涟漪 */
+      const rp=document.createElement('span');rp.className='fly-ripple';
+      rp.style.left=(qx-13)+'px';rp.style.top=(qy-13)+'px';layer.appendChild(rp);
+      setTimeout(()=>rp.remove(),550);
+      /* Q 诞生 */
+      box.querySelectorAll('[data-n="q"]').forEach(el=>{el.classList.remove('lt-wait');if(el.tagName!=='path')el.classList.add('lt-pop')});
+      try{SND.tone(520,.07,.10,'sine')}catch(e){}
+      /* 各类 neuron 自 Q 级联点亮 */
+      const cats=box.querySelectorAll('.lt-node');
+      cats.forEach((nd,i)=>{
+        setTimeout(()=>{
+          box.querySelectorAll('[data-n="'+i+'"]').forEach(el=>{
+            el.classList.remove('lt-wait');
+            if(el.tagName==='path')return;
+            el.classList.add('lt-pop');
+          });
+          try{SND.tone(640+i*150,.05,.08,'sine')}catch(e){}
+        },240+i*200);
+      });
+      setTimeout(()=>{layer.remove();if(dots)dots.classList.remove('on')},240+cats.length*200+420);
+    };
   },420);
   if(dots)dots.classList.remove('drop');
 }
