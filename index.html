@@ -2279,6 +2279,8 @@ function sceneFX(){
   /* 只清理活动场景里选项按钮上的标记——verdict 结果条的图标是常驻的，不能误杀 */
   document.querySelectorAll('.scene.active .stamp-tag,.scene.active .choice-btn .pick-mark').forEach(x=>x.remove());
   document.querySelectorAll('.scene.active .choice-btn').forEach(b=>b.classList.remove('picked','ok','bad'));
+  /* 恢复结果条常驻图标（上次作答时可能因选项已画脸而隐藏） */
+  document.querySelectorAll('.scene.active .verdict .pick-mark').forEach(m=>{m.style.display=''});
   document.querySelectorAll('.scene.active .truth-line').forEach(t=>t.classList.remove('ok','bad'));
   const s=scenes[idx];if(!s)return;
   s.querySelectorAll('.giant,h2.title,.end-big').forEach(el=>{
@@ -2331,6 +2333,8 @@ function markPick(btn){
     +'<g class="pm-eyes"><circle cx="8.7" cy="9.9" r="1.15" fill="currentColor"/><circle cx="15.3" cy="9.9" r="1.15" fill="currentColor"/></g>'
     +'<path class="pm-mouth" d="M8.4 15.9h7.2" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>';
   btn.appendChild(mark);
+  /* 选项上已经画了勾/摇头脸，同一舞台内结果条的图标就不再重复显示（文字保留） */
+  stage.querySelectorAll('.verdict .pick-mark').forEach(m=>{m.style.display='none'});
   const t=stage.querySelector('.truth-line');
   if(t){t.classList.remove('ok','bad');t.classList.add(ok?'ok':'bad')}
   if(ok){try{SND.ok()}catch(e){}}
