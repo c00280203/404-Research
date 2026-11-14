@@ -229,12 +229,30 @@ h2.title{font-size:clamp(30px,4.6vw,56px);font-weight:800;letter-spacing:-.02em;
 .verdict.bad{border:1px solid var(--red);color:var(--red)}
 .verdict.good{border:1px solid var(--green);color:var(--green)}
 @keyframes stamp{0%{transform:scale(1.25);opacity:0}100%{transform:scale(1);opacity:1}}
-.cd-panel{margin-top:24px;border:1px solid rgba(11,87,255,.35);background:rgba(11,87,255,.05);padding:22px 24px;border-radius:16px}
+.cd-panel{margin-top:24px;border:1px solid rgba(11,87,255,.35);background:rgba(11,87,255,.05);padding:22px 24px;border-radius:16px;transition:border-color .3s,box-shadow .3s}
 .cd-top{display:flex;justify-content:space-between;align-items:baseline;font-size:18px;gap:10px;flex-wrap:wrap}
-.cd-top b{display:inline-block;font-size:36px;color:var(--amber);font-variant-numeric:tabular-nums}
+.cd-top b{display:inline-block;font-variant-numeric:tabular-nums}
+/* 倒计时环：数字嵌在环中心，环随时间耗尽；urgent 变红发光，paused 变蓝 */
+.cd-live{position:relative;width:64px;height:64px;flex-shrink:0}
+.cd-ring{position:absolute;inset:0;transform:rotate(-90deg)}
+.cd-ring-bg{fill:none;stroke:var(--hair2);stroke-width:6}
+.cd-ring-fg{fill:none;stroke:var(--amber);stroke-width:6;stroke-linecap:round;stroke-dasharray:194.8;stroke-dashoffset:0;transition:stroke .3s,filter .3s}
+#cdNum{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:var(--amber);transition:color .3s}
+.cd-panel.urgent{border-color:rgba(221,43,43,.55);animation:cdBreath 1s ease-in-out infinite}
+.cd-panel.urgent .cd-ring-fg{stroke:var(--red);filter:drop-shadow(0 0 7px rgba(221,43,43,.55))}
+.cd-panel.urgent #cdNum{color:var(--red)}
+@keyframes cdBreath{0%,100%{box-shadow:0 0 0 0 rgba(221,43,43,0)}50%{box-shadow:0 0 22px -4px rgba(221,43,43,.45)}}
+.cd-panel.paused{border-color:rgba(10,132,255,.55);animation:none}
+.cd-panel.paused .cd-ring-fg{stroke:#0a84ff}
+.cd-panel.paused #cdNum{color:#0a84ff}
+.cd-paused-tag{display:none;margin-top:14px;font-family:var(--mono);font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;color:#0a84ff;border:1px dashed rgba(10,132,255,.45);border-radius:8px;padding:8px 12px}
+.cd-panel.paused .cd-paused-tag{display:block;animation:pmEyes .25s ease-out}
 .cd-track{height:4px;background:var(--hair2);margin-top:14px;position:relative;overflow:hidden}
 .cd-fill{position:absolute;inset:0;background:var(--amber);transform-origin:left;transform:scaleX(1);
   transition:background .45s ease,box-shadow .45s ease}
+/* verdict 弹入：盖章式砸落 + 一次回弹 */
+@keyframes stamp{0%{transform:scale(1.45) translateY(-10px);opacity:0}55%{transform:scale(.96);opacity:1}100%{transform:scale(1)}}
 .demo-tools{display:flex;gap:12px;margin-top:26px;flex-wrap:wrap}
 .tool-btn{border:1px solid var(--hair);padding:13px 20px;font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);transition:.2s}
 .tool-btn:hover{color:var(--ink);border-color:var(--faint)}
@@ -554,9 +572,17 @@ body.dragging .scene.active{transition:none!important}
 .pick-mark.bad svg .pm-mouth{stroke-dasharray:8;stroke-dashoffset:8;
   animation:pmStroke .16s .38s ease-out forwards}
 .pick-mark.bad svg.pm-face{transform-origin:12px 12px;
-  animation:pmShake .55s .58s cubic-bezier(.36,.07,.19,.97) both}
+  animation:pmShake .8s .56s cubic-bezier(.36,.07,.19,.97) both}
 @keyframes pmEyes{to{opacity:1}}
-@keyframes pmShake{0%,100%{transform:rotate(0)}16%{transform:rotate(-11deg)}32%{transform:rotate(9deg)}48%{transform:rotate(-7deg)}64%{transform:rotate(5deg)}80%{transform:rotate(-2deg)}}
+@keyframes pmShake{
+  0%,100%{transform:rotate(0) translateX(0)}
+  10%{transform:rotate(-16deg) translateX(-2.5px)}
+  24%{transform:rotate(14deg) translateX(2.5px)}
+  38%{transform:rotate(-12deg) translateX(-2px)}
+  52%{transform:rotate(10deg) translateX(2px)}
+  66%{transform:rotate(-7deg) translateX(-1.5px)}
+  80%{transform:rotate(4deg) translateX(1px)}
+  90%{transform:rotate(-2deg)}}
 @keyframes pmStroke{to{stroke-dashoffset:0}}
 @media (prefers-reduced-motion:reduce){
   .pick-mark svg circle,.pick-mark.ok svg path{animation:none;stroke-dashoffset:0}
@@ -669,10 +695,18 @@ body.dark .lt-bar-track{background:rgba(232,238,250,.1)}
 .lt-empty{font-size:11.5px;color:var(--faint);font-family:var(--mono)}
 /* 神经网络图：Q → 隐层节点 → A，虚线流动=信号在算 */
 .lt-net{width:100%;height:auto;display:block;margin:2px 0 12px}
-.lt-edge{stroke-dasharray:5 5;animation:ltFlow 1.1s linear infinite,edgeIn .6s .35s both}
+.lt-edge{stroke-dasharray:5 5;animation:ltFlow 1.1s linear infinite;transition:opacity .4s ease}
+.lt-wait{opacity:0}
+/* 飞行点：从思考轨迹的跳跃点位置起飞，落入 neuron 节点位置 */
+#flyLayer{position:fixed;inset:0;pointer-events:none;z-index:96}
+.fly-dot{position:fixed;width:10px;height:10px;border-radius:50%;pointer-events:none;
+  background:currentColor;box-shadow:0 0 14px -1px currentColor,0 1px 3px rgba(8,13,24,.25)}
+/* resize 等重建场景直接呈现，不再走飞入编排 */
+.lt-instant .lt-wait{opacity:1!important}
+.lt-instant .lt-pop{animation:none!important;opacity:1!important}
 @keyframes ltFlow{to{stroke-dashoffset:-20}}
 @keyframes edgeIn{from{opacity:0}to{opacity:1}}
-@media (prefers-reduced-motion:reduce){.lt-edge{animation:none}.lt-pop{animation:none;opacity:1}.lt-bar-fill{animation:none}}
+@media (prefers-reduced-motion:reduce){.lt-edge{animation:none}.lt-pop{animation:none;opacity:1}.lt-bar-fill{animation:none}.lt-wait{opacity:1}.fly-dot{display:none}}
 /* 五色色卡：红敏感 · 橙警告 · 黄预警 · 绿健康 · 蓝正常 */
 .live-ledger{margin-top:14px;padding-top:12px;border-top:1px solid var(--hair2);font-family:var(--mono);
   font-size:9.5px;letter-spacing:.1em;color:var(--faint);text-transform:uppercase;line-height:1.7}
@@ -1060,9 +1094,18 @@ body.dark .live-pane .hl-safe{color:#8ee8c5}
         </div>
       </div>
       <div class="cd-panel" id="cdPanel">
-        <div class="cd-top"><span style="display:flex;align-items:baseline;gap:8px"><b id="cdNum">10</b><span data-en="seconds to auto-execution" data-zh="秒后自动执行">seconds to auto-execution</span></span>
-          <span style="color:var(--faint);font-size:14px" data-en="You can interrupt — or do nothing" data-zh="你可以干预——也可以什么都不做">You can interrupt — or do nothing</span></div>
+        <div class="cd-top">
+          <span style="display:flex;align-items:center;gap:14px">
+            <span class="cd-live">
+              <svg class="cd-ring" viewBox="0 0 72 72" aria-hidden="true"><circle class="cd-ring-bg" cx="36" cy="36" r="31"/><circle class="cd-ring-fg" id="cdRing" cx="36" cy="36" r="31"/></svg>
+              <b id="cdNum">10</b>
+            </span>
+            <span data-en="seconds to auto-execution" data-zh="秒后自动执行">seconds to auto-execution</span>
+          </span>
+          <span style="color:var(--faint);font-size:14px" data-en="You can interrupt — or do nothing" data-zh="你可以干预——也可以什么都不做">You can interrupt — or do nothing</span>
+        </div>
         <div class="cd-track"><div class="cd-fill" id="cdFill"></div></div>
+        <div class="cd-paused-tag" id="cdPausedTag" data-en="PAUSED — timer frozen, nothing has been sent" data-zh="已暂停——计时冻结，什么都还没发送">PAUSED — timer frozen, nothing has been sent</div>
       </div>
       <div class="demo-tools">
         <button class="tool-btn" id="cdPauseBtn" onclick="cdPause()" data-en="Pause &amp; inspect" data-zh="暂停并查看详情">Pause &amp; inspect</button>
@@ -1574,7 +1617,7 @@ function applyLang(){
   if(liveMeta&&typeof liveBaseMeta==='function')liveMeta.textContent=liveBaseMeta();
   /* 决策树是按当时语言生成的静态 HTML——换语言后重建 */
   const liveTreeBox=document.getElementById('liveTree');
-  if(liveTreeBox&&liveTreeBox.classList.contains('on')&&typeof liveTree==='function')liveTree();
+  if(liveTreeBox&&liveTreeBox.classList.contains('on')&&typeof liveTree==='function'){liveTree();if(typeof ltRevealAll==='function')ltRevealAll(true);}
   // charts bake the language in at draw time — redraw the active one
   document.querySelectorAll('[id^=chartH]').forEach(el=>{delete el.dataset.drawn;el.innerHTML=''});
   const cBox=document.querySelector('.scene.active [id^=chartH]');
@@ -1807,6 +1850,8 @@ function startCountdown(){
       if(left<=3.6&&left>0){try{SND.tick()}catch(e){}}
     }
     document.getElementById('cdFill').style.transform='scaleX('+(left/total)+')';
+    const ring=document.getElementById('cdRing');
+    if(ring)ring.style.strokeDashoffset=(194.8*(1-left/total)).toFixed(1);
     const p=document.getElementById('cdPanel');
     if(p)p.classList.toggle('urgent',left>0&&left<=3.6);
     document.body.classList.toggle('quake',left>0&&left<=3);
@@ -1821,19 +1866,23 @@ function startCountdown(){
 function cdPause(){
   if(cdTimer){clearInterval(cdTimer);cdTimer=null;cdPaused=true;
     document.body.classList.remove('quake');
-    const p=document.getElementById('cdPanel');if(p)p.classList.remove('urgent');
+    const p=document.getElementById('cdPanel');if(p){p.classList.remove('urgent');p.classList.add('paused')}
     paintCdPause();
     try{SND.tone(420,.06,.11,'sine')}catch(e){}
-  }else if(cdPaused&&!cdDone){startCountdown();}
+  }else if(cdPaused&&!cdDone){
+    const p=document.getElementById('cdPanel');if(p)p.classList.remove('paused');
+    startCountdown();
+  }
 }
 function stopCdTimer(){if(cdTimer){clearInterval(cdTimer);cdTimer=null}}
 function cdExecute(){
   cancelCdAuto();stopCdTimer();cdPaused=false;cdDone=true;cdLeft=0;
   paintCdPause();
   document.body.classList.remove('quake');
-  const p=document.getElementById('cdPanel');if(p)p.classList.remove('urgent');
+  const p=document.getElementById('cdPanel');if(p){p.classList.remove('urgent','paused')}
   const n=document.getElementById('cdNum');if(n)n.textContent='0';
   const f=document.getElementById('cdFill');if(f)f.style.transform='scaleX(0)';
+  const r=document.getElementById('cdRing');if(r)r.style.strokeDashoffset='194.8';
   document.getElementById('vSaved').classList.remove('show');
   document.getElementById('vSent').classList.add('show');
   try{SND.err()}catch(e){}
@@ -1853,9 +1902,10 @@ function resetCountdown(){
   paintCdPause();
   const n=document.getElementById('cdNum');if(n)n.textContent='10';
   const f=document.getElementById('cdFill');if(f)f.style.transform='scaleX(1)';
+  const r=document.getElementById('cdRing');if(r)r.style.strokeDashoffset='0';
   const a=document.getElementById('vSent');if(a)a.classList.remove('show');
   const b=document.getElementById('vSaved');if(b)b.classList.remove('show');
-  const p=document.getElementById('cdPanel');if(p)p.classList.remove('urgent');
+  const p=document.getElementById('cdPanel');if(p)p.classList.remove('urgent','paused');
 }
 /* H2 white box */
 function bPick(btn,blocked){
@@ -2135,10 +2185,10 @@ const SND={on:true,ctx:null,out:null,
     v.gain.setValueAtTime(.0001,t);v.gain.linearRampToValueAtTime(.12,t+.03);v.gain.exponentialRampToValueAtTime(.0001,t+.32);
     o.start(t);o.stop(t+.34)}
 };
-/* browsers keep an audio context suspended until a real gesture — unlock early */
-/* 全局手势预热：第一下交互就把音频管线完全推起来（建总线 + 静音试鸣），
-   否则首声要等 resume + 建图，会拖出可感知的延迟 */
-['pointerdown','keydown','touchstart'].forEach(ev=>addEventListener(ev,()=>{
+/* WebKit/Safari 会把空闲的 AudioContext 自动挂起——挂起后每次点击都要等 resume，
+   表现为"越闲置延迟越大"。对策：① hover 就提前 resume（鼠标移到按钮上到点击之间
+   有 100~500ms 富余）② keep-alive 静音振荡器让渲染时钟永远不闲下来 */
+['pointerover','pointerdown','keydown','touchstart'].forEach(ev=>addEventListener(ev,()=>{
   const c=SND.ac();if(!c)return;
   if(!SND.out)SND.bus();
   if(c.state==='running'&&!SND.__warmed){
@@ -2150,6 +2200,21 @@ const SND={on:true,ctx:null,out:null,
     }catch(e){}
   }
 },{passive:true,capture:true}));
+/* keep-alive：0 增益常驻振荡器，防止 WebKit 空闲挂起（听不见，CPU 可忽略） */
+SND.keep=function(){
+  const c=this.ac();if(!c||this.__keep)return;
+  const arm=()=>{if(this.__keep)return;
+    try{
+      const o=c.createOscillator(),g=c.createGain();
+      g.gain.value=0;o.connect(g);g.connect(this.out||c.destination);
+      o.start();this.__keep=o;
+    }catch(e){}
+  };
+  if(c.state==='running')arm();
+  else c.addEventListener&&c.addEventListener('statechange',()=>{if(c.state==='running')arm()},{once:true});
+};
+addEventListener('pointerover',()=>SND.keep(),{passive:true,once:true});
+addEventListener('pointerdown',()=>SND.keep(),{passive:true,once:true});
 /* 回前台自动恢复，防止切页回来后第一声掉队 */
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&SND.ctx)SND.ac()});
 /* 所有按钮按压都有轻提示音（pointerdown 触发=零延迟）；
@@ -2245,7 +2310,7 @@ function markPick(btn){
   mark.innerHTML=ok
     ? '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="10.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M7.4 12.6l3.1 3.1 6.1-7.1" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>'
     /* 答错：平嘴表情——圈画出来 → 眨出双眼 → 划出平嘴 → 整个脸摇头 */
-    : '<svg class="pm-face" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">'
+    : '<svg class="pm-face" viewBox="0 0 24 24" width="23" height="23" aria-hidden="true">'
     +'<circle cx="12" cy="12" r="10.2" fill="none" stroke="currentColor" stroke-width="1.8"/>'
     +'<g class="pm-eyes"><circle cx="8.7" cy="9.9" r="1.15" fill="currentColor"/><circle cx="15.3" cy="9.9" r="1.15" fill="currentColor"/></g>'
     +'<path class="pm-mouth" d="M8.4 15.9h7.2" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>';
@@ -2603,17 +2668,17 @@ function liveTree(){
       let e='',v='',off=36;
       active.forEach(([c,,labEn],ci)=>{
         const arr=byCat[c],nL=Math.min(2,arr.length),col=LT_COL[c];
-        const d0=(.45+ci*.18).toFixed(2);          /* 跳跃点掉落后依次弹入 */
+        /* 节点默认隐藏(lt-wait)，由飞行点抵达时逐个点亮(liveFly 编排) */
         const yTop=off,yCat=yTop+(nL-1)*leafR/2;
-        e+='<path class="lt-edge lt-e1" d="M'+(xQ+19)+' '+yQ+' C '+(xQ+110)+' '+yQ+', '+(xC-120)+' '+yCat+', '+(xC-14)+' '+yCat+'" fill="none" stroke="'+col+'" stroke-opacity=".5" stroke-width="2"/>';
-        v+='<circle class="lt-pop" style="animation-delay:'+d0+'s" cx="'+xC+'" cy="'+yCat+'" r="21" fill="'+col+'" fill-opacity=".14"/>'
-          +'<circle class="lt-pop" style="animation-delay:'+d0+'s" cx="'+xC+'" cy="'+yCat+'" r="12.5" fill="'+col+'" stroke="#fff" stroke-width="2"/>'
-          +'<text class="lt-pop" style="animation-delay:'+d0+'s" x="'+(xC+28)+'" y="'+(yCat+4.5)+'" font-size="12.5" font-weight="700" fill="'+col+'" font-family="ui-monospace,Menlo,monospace">'+esc(en?labEn:LT_CATS.find(x=>x[0]===c)[1])+' ×'+arr.length+'</text>';
+        e+='<path class="lt-edge lt-wait" data-n="'+ci+'" d="M'+(xQ+19)+' '+yQ+' C '+(xQ+110)+' '+yQ+', '+(xC-120)+' '+yCat+', '+(xC-14)+' '+yCat+'" fill="none" stroke="'+col+'" stroke-opacity=".5" stroke-width="2"/>';
+        v+='<circle class="lt-wait" data-n="'+ci+'" cx="'+xC+'" cy="'+yCat+'" r="21" fill="'+col+'" fill-opacity=".14"/>'
+          +'<circle class="lt-node lt-wait" data-n="'+ci+'" data-c="'+c+'" cx="'+xC+'" cy="'+yCat+'" r="12.5" fill="'+col+'" stroke="#fff" stroke-width="2"/>'
+          +'<text class="lt-wait" data-n="'+ci+'" x="'+(xC+28)+'" y="'+(yCat+4.5)+'" font-size="12.5" font-weight="700" fill="'+col+'" font-family="ui-monospace,Menlo,monospace">'+esc(en?labEn:LT_CATS.find(x=>x[0]===c)[1])+' ×'+arr.length+'</text>';
         for(let k=0;k<nL;k++){
           const yL=yTop+k*leafR;
-          e+='<path class="lt-edge lt-e2" d="M'+(xC+13)+' '+yCat+' C '+(xC+70)+' '+yCat+', '+(xL-80)+' '+yL+', '+(xL-8)+' '+yL+'" fill="none" stroke="'+col+'" stroke-opacity=".38" stroke-width="1.4"/>';
-          v+='<circle class="lt-pop" style="animation-delay:'+(d0+.14)+'s" cx="'+xL+'" cy="'+yL+'" r="5" fill="'+col+'"/>'
-            +'<text class="lt-pop" style="animation-delay:'+(d0+.14)+'s" x="'+(xL+13)+'" y="'+(yL+4)+'" font-size="11.5" fill="'+inkA(.6)+'" font-family="ui-monospace,Menlo,monospace">'+esc(kw(arr[k][0]))+'</text>';
+          e+='<path class="lt-edge lt-wait" data-n="'+ci+'" d="M'+(xC+13)+' '+yCat+' C '+(xC+70)+' '+yCat+', '+(xL-80)+' '+yL+', '+(xL-8)+' '+yL+'" fill="none" stroke="'+col+'" stroke-opacity=".38" stroke-width="1.4"/>';
+          v+='<circle class="lt-wait lt-leafdot" data-n="'+ci+'" style="animation-delay:'+(.12+k*.13).toFixed(2)+'s" cx="'+xL+'" cy="'+yL+'" r="5" fill="'+col+'"/>'
+            +'<text class="lt-wait lt-leaftx" data-n="'+ci+'" style="animation-delay:'+(.12+k*.13).toFixed(2)+'s" x="'+(xL+13)+'" y="'+(yL+4)+'" font-size="11.5" fill="'+inkA(.6)+'" font-family="ui-monospace,Menlo,monospace">'+esc(kw(arr[k][0]))+'</text>';
         }
         off+=nL*leafR+gap;
       });
@@ -2626,11 +2691,11 @@ function liveTree(){
       const W=340,xQ=34,xC=150,gap=48,H=active.length*gap+40,yQ=H/2;
       let e='',v='';
       active.forEach(([c,,labEn],ci)=>{
-        const y=gap/2+18+ci*gap,col=LT_COL[c],d0=(.45+ci*.18).toFixed(2);
-        e+='<path class="lt-edge lt-e1" d="M'+(xQ+19)+' '+yQ+' C '+(xQ+70)+' '+yQ+', '+(xC-70)+' '+y+', '+(xC-15)+' '+y+'" fill="none" stroke="'+col+'" stroke-opacity=".5" stroke-width="2"/>';
-        v+='<circle class="lt-pop" style="animation-delay:'+d0+'s" cx="'+xC+'" cy="'+y+'" r="19" fill="'+col+'" fill-opacity=".14"/>'
-          +'<circle class="lt-pop" style="animation-delay:'+d0+'s" cx="'+xC+'" cy="'+y+'" r="11.5" fill="'+col+'" stroke="#fff" stroke-width="2"/>'
-          +'<text class="lt-pop" style="animation-delay:'+d0+'s" x="'+(xC+26)+'" y="'+(y+4)+'" font-size="12" font-weight="700" fill="'+col+'" font-family="ui-monospace,Menlo,monospace">'+esc(en?labEn:LT_CATS.find(x=>x[0]===c)[1])+' ×'+byCat[c].length+'</text>';
+        const y=gap/2+18+ci*gap,col=LT_COL[c];
+        e+='<path class="lt-edge lt-wait" data-n="'+ci+'" d="M'+(xQ+19)+' '+yQ+' C '+(xQ+70)+' '+yQ+', '+(xC-70)+' '+y+', '+(xC-15)+' '+y+'" fill="none" stroke="'+col+'" stroke-opacity=".5" stroke-width="2"/>';
+        v+='<circle class="lt-wait" data-n="'+ci+'" cx="'+xC+'" cy="'+y+'" r="19" fill="'+col+'" fill-opacity=".14"/>'
+          +'<circle class="lt-node lt-wait" data-n="'+ci+'" data-c="'+c+'" cx="'+xC+'" cy="'+y+'" r="11.5" fill="'+col+'" stroke="#fff" stroke-width="2"/>'
+          +'<text class="lt-wait" data-n="'+ci+'" x="'+(xC+26)+'" y="'+(y+4)+'" font-size="12" font-weight="700" fill="'+col+'" font-family="ui-monospace,Menlo,monospace">'+esc(en?labEn:LT_CATS.find(x=>x[0]===c)[1])+' ×'+byCat[c].length+'</text>';
       });
       v+='<circle cx="'+xQ+'" cy="'+yQ+'" r="24" fill="'+ink+'" fill-opacity=".10"/>'
         +'<circle cx="'+xQ+'" cy="'+yQ+'" r="16" fill="'+ink+'" stroke="#fff" stroke-width="2.5"/>'
@@ -2651,16 +2716,83 @@ function liveTree(){
   box.innerHTML=svg+'<div class="lt-bars">'+bars+'</div>';
   box.classList.add('on');
 }
-window.addEventListener('resize',()=>{clearTimeout(window.__ltRz);window.__ltRz=setTimeout(()=>{if(liveEl('liveTree')&&liveEl('liveTree').classList.contains('on'))try{liveTree()}catch(e){}},300)});
+window.addEventListener('resize',()=>{clearTimeout(window.__ltRz);window.__ltRz=setTimeout(()=>{
+  if(liveEl('liveTree')&&liveEl('liveTree').classList.contains('on')){
+    liveEl('liveTree').classList.add('lt-instant');
+    try{liveTree()}catch(e){}
+  }
+},300)});
+/* 重建后无需编排时：全部直接点亮 */
+function ltRevealAll(instant){
+  const box=liveEl('liveTree');if(!box)return;
+  if(instant)box.classList.add('lt-instant');
+  box.querySelectorAll('.lt-wait').forEach(el=>{
+    el.classList.remove('lt-wait');
+    if(el.tagName==='path')return;                    /* 边线：transition 自动淡入 */
+    el.classList.add('lt-pop');
+  });
+}
+/* 飞行编排：跳跃点起飞 → 逐个落入 neuron 节点位置 → 节点弹出、边线淡入 */
+function ltFly(){
+  const box=liveEl('liveTree');if(!box){return}
+  const net=box.querySelector('.lt-net');
+  const targets=net?[...net.querySelectorAll('.lt-node')]:[];
+  const dots=document.getElementById('liveDots');
+  const dotEls=dots?[...dots.querySelectorAll('i')]:[];
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!targets.length||reduced){ltRevealAll(true);if(dots)dots.classList.remove('on');return}
+  /* 把网络图滚进视口中央，让"起飞→落点"全程可见 */
+  try{net.scrollIntoView({behavior:'smooth',block:'center'})}catch(e){}
+  setTimeout(()=>{
+    const sr=net.getBoundingClientRect();
+    const srcs=dotEls.map(d=>d.getBoundingClientRect()).filter(r=>r.width>0);
+    /* 若跳跃点不可见（已滚出视口），用网络图上方作为起飞点 */
+    const fallback={left:sr.left+sr.width*0.12,top:sr.top-40,width:10,height:10};
+    const layer=document.createElement('div');layer.id='flyLayer';document.body.appendChild(layer);
+    const n=Math.min(3,targets.length);
+    for(let i=0;i<n;i++){
+      const tg=targets[i].getBoundingClientRect();
+      const so=srcs[i%Math.max(1,srcs.length)]||fallback;
+      const sx=so.left+so.width/2,sy=so.top+so.height/2;
+      const tx=tg.left+tg.width/2,ty=tg.top+tg.height/2;
+      const col=LT_COL[targets[i].dataset.c]||'#0a84ff';
+      const d=document.createElement('span');
+      d.className='fly-dot';d.style.left=(sx-5)+'px';d.style.top=(sy-5)+'px';d.style.color=col;
+      layer.appendChild(d);
+      const anim=d.animate(
+        [{transform:'translate(0,0) scale(1)',opacity:.95},
+         {transform:'translate('+(tx-sx)*.5+'px,'+(ty-sy)*.55+'px) scale(2.1)',opacity:.9,offset:.55},
+         {transform:'translate('+(tx-sx)+'px,'+(ty-sy)+'px) scale(2.6)',opacity:.85}],
+        {duration:640,delay:i*150,easing:'cubic-bezier(.5,0,.82,.42)',fill:'both'});
+      anim.onfinish=()=>{
+        d.remove();
+        /* 点抵达 = neuron 诞生：弹出节点+标签，随后叶子和边线跟进 */
+        box.querySelectorAll('[data-n="'+i+'"]').forEach(el=>{
+          el.classList.remove('lt-wait');
+          if(el.tagName==='path')return;
+          el.classList.add('lt-pop');
+        });
+        try{SND.tone(660+i*160,.055,.09,'sine')}catch(e){}
+      };
+    }
+    /* 3 颗点之外的剩余节点，在最后一次落点后依次点亮 */
+    for(let i=n;i<targets.length;i++){
+      setTimeout(()=>{
+        box.querySelectorAll('[data-n="'+i+'"]').forEach(el=>{
+          el.classList.remove('lt-wait');
+          if(el.tagName==='path')return;
+          el.classList.add('lt-pop');
+        });
+      },(n?((n-1)*150+640):0)+220+(i-n)*180);
+    }
+    setTimeout(()=>{layer.remove();if(dots)dots.classList.remove('on')},(n?((n-1)*150+640):0)+300);
+  },420);
+  if(dots)dots.classList.remove('drop');
+}
 function liveDone(){
   const ans=document.querySelector('.scene.active .live-pane.answer');
   const leg=liveEl('liveLegend');
   const dots=liveEl('liveDots');
-  if(dots&&dots.classList.contains('on')){
-    /* 思考点掉落 → 变成下方网络图的 neuron 节点（节点弹入已带时序） */
-    dots.classList.add('drop');
-    setTimeout(()=>dots.classList.remove('on','drop'),950);
-  }
   const chk=liveEl('liveCheck');
   if(chk){/* 重启描边动画：先摘掉 on 再下一帧加回 */
     chk.classList.remove('on');chk.style.animation='none';
@@ -2672,6 +2804,7 @@ function liveDone(){
   if(leg)leg.classList.add('on');
   /* 结论面板保持素净不上色——高亮只用于思考轨迹；关键句仍会进入下方网络图 */
   try{liveTree()}catch(e){}
+  try{ltFly()}catch(e){}
   try{SND.ok()}catch(e){}     /* 生成完成 = 支付成功那声 */
 }
 function liveLedger(o){
