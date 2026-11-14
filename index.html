@@ -2219,14 +2219,16 @@ const SND={on:true,ctx:null,out:null,
   }
 },{passive:true,capture:true}));
 /* keep-alive：常驻次声波振荡器（45Hz + 极小增益）——必须"非静音"才能骗过
-   WebKit 的静音检测（gain 0 会被判定为无声而挂起上下文）；45Hz 低于多数
-   扬声器的可闻下限，0.0006 增益约 -64dBFS，人耳听不见但管线保持活动 */
+   WebKit 的静音检测（gain 0 会被判定为无声而挂起上下文）。
+   增益必须压到约 -94dBFS：再高（如 -64dB）Safari 会给标签页挂"正在播放"
+   小喇叭图标，用户一点就是整页静音（浏览器级，页面无法解除）——
+   这是线上"突然没声音"的最常见元凶。非零但低于指示阈值 = 两全 */
 SND.keep=function(){
   const c=this.ac();if(!c||this.__keep)return;
   const arm=()=>{if(this.__keep)return;
     try{
       const o=c.createOscillator(),g=c.createGain();
-      o.type='sine';o.frequency.value=45;g.gain.value=.0006;
+      o.type='sine';o.frequency.value=45;g.gain.value=.00002;
       o.connect(g);g.connect(this.out||c.destination);
       o.start();this.__keep=o;
     }catch(e){}
