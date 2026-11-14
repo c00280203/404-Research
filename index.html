@@ -544,6 +544,17 @@ body.dragging .scene.active{transition:none!important}
 .pick-mark.ok{color:var(--green);animation:markPop .34s cubic-bezier(.3,1.5,.6,1)}
 .pick-mark.bad{color:var(--red);animation:markPop .28s cubic-bezier(.3,1.5,.6,1)}
 @keyframes markPop{0%{transform:scale(.55);opacity:0}100%{transform:scale(1);opacity:1}}
+/* Apple Pay 风格描边动画：圆圈先画出来（0.36s），再划出勾/叉 */
+.pick-mark svg circle{stroke-dasharray:64.5;stroke-dashoffset:64.5;
+  animation:pmStroke .36s cubic-bezier(.55,.06,.35,1) forwards}
+.pick-mark.ok svg path{stroke-dasharray:15;stroke-dashoffset:15;
+  animation:pmStroke .28s .28s cubic-bezier(.5,.05,.4,1.15) forwards}
+.pick-mark.bad svg path{stroke-dasharray:33;stroke-dashoffset:33;
+  animation:pmStroke .24s .2s ease-out forwards}
+@keyframes pmStroke{to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){
+  .pick-mark svg circle,.pick-mark.ok svg path,.pick-mark.bad svg path{animation:none;stroke-dashoffset:0}
+}
 .truth-line.ok{border-left-color:var(--green)}
 .truth-line.bad{border-left-color:var(--red)}
 .truth-line{transition:border-color .3s}
@@ -2032,7 +2043,8 @@ addEventListener('resize',()=>{
    Sound is ON by default; the first tap/keypress unlocks the audio context. */
 const SND={on:true,ctx:null,out:null,
   ac(){try{
-    if(!this.ctx)this.ctx=new (window.AudioContext||window.webkitAudioContext)({latencyHint:'interactive'});
+    /* latencyHint 0.002s = 比 'interactive' 更激进的低延迟请求（实测 baseLatency 5.3→2.7ms） */
+    if(!this.ctx)this.ctx=new (window.AudioContext||window.webkitAudioContext)({latencyHint:.002});
     if(this.ctx.state==='suspended')this.ctx.resume();   /* async，但配合全局预热基本无感 */
     return this.ctx
   }catch(e){return null}},
@@ -2040,12 +2052,10 @@ const SND={on:true,ctx:null,out:null,
     const cc=c||this.ac();if(!cc)return null;
     if(c)return {c:c,out:c.destination};          /* offline / injected context */
     if(!this.out){
-      const g=cc.createGain();g.gain.value=.95;
-      if(cc.createDynamicsCompressor){
-        const k=cc.createDynamicsCompressor();
-        k.threshold.value=-14;k.knee.value=16;k.ratio.value=4;k.attack.value=.003;k.release.value=.22;
-        g.connect(k);k.connect(cc.destination);
-      }else{g.connect(cc.destination)}
+      /* 直连 destination——DynamicsCompressor 自带 ~6ms lookahead，会拖慢每次起音；
+         各音效峰值均 <0.9，不会削波，无需压缩器 */
+      const g=cc.createGain();g.gain.value=.9;
+      g.connect(cc.destination);
       this.out=g;
     }
     return {c:cc,out:this.out};
