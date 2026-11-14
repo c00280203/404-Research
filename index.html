@@ -838,6 +838,7 @@ body.dark .live-pane .hl-safe{color:#8ee8c5}
     <button class="hud-btn" id="notesBtn" title="Speaker notes (S)" data-en="Notes" data-zh="备注">Notes</button>
     <button class="hud-btn" id="wbBtn" title="White box — show the evidence behind this slide (W)" data-en="White box" data-zh="白盒">White box</button>
     <button class="hud-btn" id="menuBtn" title="Chapters (M)" data-en="Menu" data-zh="目录">Menu</button>
+    <button class="hud-btn" id="sndBtn" title="Sound effects on/off — click also unlocks audio if the browser blocked it">🔊</button>
     <button class="hud-btn" id="langBtn">中文</button>
     <button class="hud-btn" id="themeBtn" title="Light / dark theme">深色</button>
   </div>
@@ -1646,6 +1647,20 @@ function setTheme(t,redraw){
   if(redraw)applyLang();
 }
 document.getElementById('themeBtn').onclick=()=>setTheme(theme==='dark'?'light':'dark',true);
+/* HUD 声音开关：状态可见、可手动解锁——浏览器若拦截音频，点它一次即可恢复，
+   并用图标明确告知当前是"页面静音"还是"被浏览器拦截" */
+document.getElementById('sndBtn').onclick=function(){
+  SND.on=!SND.on;
+  const ic=this;
+  if(SND.on){
+    const c=SND.ac();
+    if(c)SND.bus();
+    ic.textContent='🔊';
+    ic.title='Sound on — click to mute';
+    if(!c||c.state!=='running'){ic.textContent='🔇';ic.title='Sound is blocked by the browser — click again to unlock'}
+    else setTimeout(()=>{try{SND.tick()}catch(e){}},60);
+  }else{ic.textContent='🔇';ic.title='Sound muted — click to enable'}
+};
 setTheme(theme,false);
 /* 主题感知的墨色：图表/SVG 文本用它，深色模式下自动变浅 */
 function inkA(a){return theme==='dark'?'rgba(232,238,250,'+a+')':'rgba(8,13,24,'+a+')'}
@@ -2218,28 +2233,10 @@ const SND={on:true,ctx:null,out:null,
     }catch(e){}
   }
 },{passive:true,capture:true}));
-/* keep-alive：常驻次声波振荡器（45Hz + 极小增益）——必须"非静音"才能骗过
-   WebKit 的静音检测（gain 0 会被判定为无声而挂起上下文）。
-   增益必须压到约 -94dBFS：再高（如 -64dB）Safari 会给标签页挂"正在播放"
-   小喇叭图标，用户一点就是整页静音（浏览器级，页面无法解除）——
-   这是线上"突然没声音"的最常见元凶。非零但低于指示阈值 = 两全 */
-SND.keep=function(){
-  const c=this.ac();if(!c||this.__keep)return;
-  const arm=()=>{if(this.__keep)return;
-    try{
-      const o=c.createOscillator(),g=c.createGain();
-      o.type='sine';o.frequency.value=45;g.gain.value=.00002;
-      o.connect(g);g.connect(this.out||c.destination);
-      o.start();this.__keep=o;
-    }catch(e){}
-  };
-  if(c.state==='running')arm();
-  else c.addEventListener&&c.addEventListener('statechange',()=>{if(c.state==='running')arm()},{once:true});
-};
-addEventListener('pointerover',()=>SND.keep(),{passive:true,once:true});
-addEventListener('pointerdown',()=>SND.keep(),{passive:true,once:true});
-addEventListener('keydown',()=>SND.keep(),{passive:true,once:true});
-addEventListener('touchstart',()=>SND.keep(),{passive:true,once:true});
+/* keep-alive 常驻振荡器已移除：任何"隐形常驻音"都会让 Safari 给标签页挂
+   小喇叭图标（用户误点=整页静音），且增益无论调多低都可能被 WebKit 判为
+   静音而挂起上下文——两头不讨好。改为正规方案：hover 预热 + 手势内
+   捕获阶段同步解锁（上方两个监听器），resume 在手势内执行，实测 <10ms */
 /* 回前台自动恢复，防止切页回来后第一声掉队 */
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&SND.ctx)SND.ac()});
 /* 捕获阶段最早解锁：任何用户手势内第一时刻创建/恢复音频上下文——
