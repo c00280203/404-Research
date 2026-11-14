@@ -2113,7 +2113,8 @@ const SND={on:true,ctx:null,out:null,
   ac(){try{
     /* latencyHint 0.002s = 比 'interactive' 更激进的低延迟请求（实测 baseLatency 5.3→2.7ms） */
     if(!this.ctx)this.ctx=new (window.AudioContext||window.webkitAudioContext)({latencyHint:.002});
-    if(this.ctx.state==='suspended')this.ctx.resume();   /* async，但配合全局预热基本无感 */
+    /* 非 running 一律触发 resume（覆盖 suspended 与 iOS Safari 的 interrupted） */
+    if(this.ctx.state!=='running')this.ctx.resume();
     return this.ctx
   }catch(e){return null}},
   bus(c){
@@ -2232,6 +2233,30 @@ addEventListener('keydown',()=>SND.keep(),{passive:true,once:true});
 addEventListener('touchstart',()=>SND.keep(),{passive:true,once:true});
 /* 回前台自动恢复，防止切页回来后第一声掉队 */
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&SND.ctx)SND.ac()});
+/* 捕获阶段最早解锁：任何用户手势内第一时刻创建/恢复音频上下文——
+   Safari 只认手势内同步 resume，这里保证线上（https）与本地（file://）行为一致 */
+['pointerdown','touchstart','keydown'].forEach(ev=>addEventListener(ev,()=>SND.ac(),{capture:true,passive:true}));
+/* 手势后音频仍被浏览器拦住（自动播放策略/ interrupted）→ 给一次性提示条，点击即解锁 */
+let __sndTries=0,__sndToast=null;
+addEventListener('pointerdown',()=>{
+  const c=SND.ctx;if(!c||c.state==='running')return;
+  setTimeout(()=>{
+    if(!SND.ctx||SND.ctx.state==='running')return;
+    __sndTries++;
+    if(__sndTries>=2&&!__sndToast&&typeof lang!=='undefined'){
+      __sndToast=document.createElement('button');
+      __sndToast.textContent=lang==='en'?'Sound is muted by the browser — click here once to enable'
+                                        :'声音被浏览器拦截了——点这里一次即可开启';
+      __sndToast.style.cssText='position:fixed;left:50%;bottom:76px;transform:translateX(-50%);z-index:99;'
+        +'padding:10px 18px;border-radius:999px;border:1px solid '+inkA(.25)+';background:'+inkA(.92)+';'
+        +'color:var(--ink);font:600 13px/1.2 var(--sans,system-ui);cursor:pointer;'
+        +'box-shadow:0 6px 24px rgba(8,13,24,.18);max-width:82vw;text-align:center';
+      __sndToast.onclick=()=>{try{SND.ac();SND.tick()}catch(e){}if(__sndToast){__sndToast.remove();__sndToast=null}};
+      document.body.appendChild(__sndToast);
+      setTimeout(()=>{if(__sndToast){__sndToast.remove();__sndToast=null}},9000);
+    }
+  },400);
+},{passive:true});
 /* 所有按钮按压都有轻提示音（pointerdown 触发=零延迟）；
    choice-btn 除外——它有自己的对/错音效，避免叠声 */
 addEventListener('pointerdown',e=>{
@@ -2792,8 +2817,8 @@ function ltFly(){
     let sx=sr.left+sr.width*.18,sy=sr.top-42;
     let dotsVisible=false;
     if(dotEls.length){
-      dotEls.forEach(el=>{el.style.animation='none'});
-      void dots.offsetWidth;
+      /* 不动思考点自身的 CSS 跳跃动画（cancel/inline style 都会让下一轮跳跃消失），
+         直接读 rect（含 ±6px 跳跃偏移，可忽略），吸聚编排用 WAAPI 覆盖显示层 */
       const rs=dotEls.map(el=>el.getBoundingClientRect()).filter(r=>r.width>0);
       if(rs.length){
         const cx=rs.reduce((a,r)=>a+r.left+r.width/2,0)/rs.length;
@@ -2824,23 +2849,29 @@ function ltFly(){
     d.style.width='16px';d.style.height='16px';d.style.color='#d6a413';
     d.style.boxShadow='0 0 18px -1px currentColor,0 0 4px rgba(214,164,19,.6)';
     layer.appendChild(d);
-    /* 合体三步：三颗点被吸向中心缩小淡出 → 大点同步长大并回弹 → 接触瞬间一圈吸收涟漪 */
-    const MERGE=360;
-    srcEls.forEach(el=>{
+    /* 合体：错峰到达、逐颗吸收——三颗点保持可见直到接触中心，依次被吞掉；
+       大点每吸收一颗就跳一档并挤压回弹，最后一颗到达时涟漪扩散 */
+    const FLIGHT=280,STAG=70,MERGE=FLIGHT+STAG*2;   /* 最后 arrival ≈ 420ms */
+    srcEls.forEach((el,i)=>{
       const r=el.getBoundingClientRect();if(!r.width)return;
       const dx=sx-(r.left+r.width/2),dy=sy-(r.top+r.height/2);
       el.animate([
-        {transform:'translate(0,0) scale(1)',opacity:.95},
-        {transform:'translate('+(dx*.55).toFixed(1)+'px,'+(dy*.55).toFixed(1)+'px) scale(.72)',opacity:.9,offset:.55},
-        {transform:'translate('+dx.toFixed(1)+'px,'+dy.toFixed(1)+'px) scale(.28)',opacity:.3}
-      ],{duration:MERGE,easing:'cubic-bezier(.45,0,.75,.35)',fill:'forwards'});
+        {transform:'translate(0,0) scale(1)',opacity:1},
+        {transform:'translate('+(dx*.6).toFixed(1)+'px,'+(dy*.6).toFixed(1)+'px) scale(.82)',opacity:.95,offset:.55},
+        {transform:'translate('+dx.toFixed(1)+'px,'+dy.toFixed(1)+'px) scale(.45)',opacity:.55}
+      ],{duration:FLIGHT,delay:i*STAG,easing:'cubic-bezier(.5,0,.85,.4)',fill:'both'});
     });
+    /* 大点成长曲线：offset 对齐每颗点的到达时刻（280/460≈.6，350/460≈.76，420/460≈.91），
+       每次吸收带一点过冲再回落，最后一颗到达时过冲最明显 */
     d.animate([
-      {transform:'scale(.45)',opacity:0,offset:0},
-      {transform:'scale(.72)',opacity:.75,offset:.4},
-      {transform:'scale(1.22)',opacity:1,offset:.8},
+      {transform:'scale(.4)',opacity:.4,offset:0},
+      {transform:'scale(.6)',opacity:.85,offset:.6},
+      {transform:'scale(.68)',opacity:.9,offset:.66},
+      {transform:'scale(.82)',opacity:1,offset:.76},
+      {transform:'scale(.9)',opacity:1,offset:.84},
+      {transform:'scale(1.2)',opacity:1,offset:.92},
       {transform:'scale(1)',opacity:1}
-    ],{duration:MERGE+80,easing:'cubic-bezier(.3,.7,.4,1)',fill:'both'});
+    ],{duration:460,easing:'linear',fill:'both'});
     setTimeout(()=>{
       /* 吸收涟漪 + 思考点退场 */
       const rp=document.createElement('span');rp.className='fly-ripple';
@@ -2850,7 +2881,7 @@ function ltFly(){
       /* 视觉小点（锚点重生成的）完成吸聚后移除；真实思考点由 'on' 摘除隐藏 */
       srcEls.forEach(el=>{if(el.parentElement===layer)el.remove()});
       try{SND.tone(880,.05,.06,'sine')}catch(e){}
-    },MERGE-40);
+    },MERGE);
     /* 合体后短暂停顿，再坠向 Q */
     setTimeout(()=>{
     const drop=d.animate(
