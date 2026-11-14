@@ -2788,26 +2788,73 @@ function ltFly(){
   try{net.scrollIntoView({behavior:'smooth',block:'center'})}catch(e){}
   setTimeout(()=>{
     const sr=net.getBoundingClientRect();
-    /* 起点合成：取三颗点包围盒中心（点不可见时用网络图上方） */
-    let sx=sr.left+sr.width*.12,sy=sr.top-46;
+    /* 合成中心：思考点在视口内就用真实位置；已滚出视口则锚定在网络图上方，保证合体全程可见 */
+    let sx=sr.left+sr.width*.18,sy=sr.top-42;
+    let dotsVisible=false;
     if(dotEls.length){
-      const rs=dotEls.map(d=>d.getBoundingClientRect()).filter(r=>r.width>0);
-      if(rs.length){sx=rs.reduce((a,r)=>a+r.left+r.width/2,0)/rs.length;
-                    sy=rs.reduce((a,r)=>a+r.top+r.height/2,0)/rs.length}
+      dotEls.forEach(el=>{el.style.animation='none'});
+      void dots.offsetWidth;
+      const rs=dotEls.map(el=>el.getBoundingClientRect()).filter(r=>r.width>0);
+      if(rs.length){
+        const cx=rs.reduce((a,r)=>a+r.left+r.width/2,0)/rs.length;
+        const cy=rs.reduce((a,r)=>a+r.top+r.height/2,0)/rs.length;
+        if(cy>60&&cy<innerHeight-60){sx=cx;sy=cy;dotsVisible=true}
+      }
     }
     const qc=qEl.getBoundingClientRect();
     const qx=qc.left+qc.width/2,qy=qc.top+qc.height/2;
     const layer=document.createElement('div');layer.id='flyLayer';document.body.appendChild(layer);
-    /* 大点在跳跃点处"合体"弹出 */
+    /* 真实思考点不在视口内时，在锚点附近生成三颗视觉小点，"三点吸聚"始终可见 */
+    let srcEls=dotEls;
+    if(!dotsVisible){
+      srcEls=[];
+      [[-26,-16],[26,-12],[0,-30]].forEach(o=>{
+        const s=document.createElement('span');
+        s.className='fly-dot';
+        s.style.left=(sx+o[0]-5)+'px';s.style.top=(sy+o[1]-5)+'px';
+        s.style.width='10px';s.style.height='10px';s.style.color='#d6a413';
+        layer.appendChild(s);
+        srcEls.push(s);
+      });
+      if(dots)dots.classList.remove('on');
+    }
+    /* 大点先以小尺寸出现在合成中心，等三颗点被吸过来 */
     const d=document.createElement('span');
     d.className='fly-dot';d.style.left=(sx-8)+'px';d.style.top=(sy-8)+'px';
     d.style.width='16px';d.style.height='16px';d.style.color='#d6a413';
     d.style.boxShadow='0 0 18px -1px currentColor,0 0 4px rgba(214,164,19,.6)';
     layer.appendChild(d);
+    /* 合体三步：三颗点被吸向中心缩小淡出 → 大点同步长大并回弹 → 接触瞬间一圈吸收涟漪 */
+    const MERGE=360;
+    srcEls.forEach(el=>{
+      const r=el.getBoundingClientRect();if(!r.width)return;
+      const dx=sx-(r.left+r.width/2),dy=sy-(r.top+r.height/2);
+      el.animate([
+        {transform:'translate(0,0) scale(1)',opacity:.95},
+        {transform:'translate('+(dx*.55).toFixed(1)+'px,'+(dy*.55).toFixed(1)+'px) scale(.72)',opacity:.9,offset:.55},
+        {transform:'translate('+dx.toFixed(1)+'px,'+dy.toFixed(1)+'px) scale(.28)',opacity:.3}
+      ],{duration:MERGE,easing:'cubic-bezier(.45,0,.75,.35)',fill:'forwards'});
+    });
+    d.animate([
+      {transform:'scale(.45)',opacity:0,offset:0},
+      {transform:'scale(.72)',opacity:.75,offset:.4},
+      {transform:'scale(1.22)',opacity:1,offset:.8},
+      {transform:'scale(1)',opacity:1}
+    ],{duration:MERGE+80,easing:'cubic-bezier(.3,.7,.4,1)',fill:'both'});
+    setTimeout(()=>{
+      /* 吸收涟漪 + 思考点退场 */
+      const rp=document.createElement('span');rp.className='fly-ripple';
+      rp.style.left=(sx-13)+'px';rp.style.top=(sy-13)+'px';layer.appendChild(rp);
+      setTimeout(()=>rp.remove(),550);
+      if(dots)dots.classList.remove('on');
+      /* 视觉小点（锚点重生成的）完成吸聚后移除；真实思考点由 'on' 摘除隐藏 */
+      srcEls.forEach(el=>{if(el.parentElement===layer)el.remove()});
+      try{SND.tone(880,.05,.06,'sine')}catch(e){}
+    },MERGE-40);
+    /* 合体后短暂停顿，再坠向 Q */
+    setTimeout(()=>{
     const drop=d.animate(
-      [{transform:'translate(0,0) scale(.3)',opacity:0,offset:0},
-       {transform:'translate(0,0) scale(1)',opacity:1,offset:.18},       /* 合体 */
-       {transform:'translate(0,0) scale(1)',opacity:1,offset:.30},       /* 短暂停顿 */
+      [{transform:'translate(0,0) scale(1)',opacity:1},
        {transform:'translate('+(qx-sx)+'px,'+(qy-sy)+'px) scale(2.05)',opacity:.9}],
       {duration:920,easing:'cubic-bezier(.55,.02,.8,.42)',fill:'both'});
     drop.onfinish=()=>{
@@ -2833,6 +2880,7 @@ function ltFly(){
       });
       setTimeout(()=>{layer.remove();if(dots)dots.classList.remove('on')},240+cats.length*200+420);
     };
+    },MERGE+260);
   },420);
   if(dots)dots.classList.remove('drop');
 }
