@@ -2111,8 +2111,15 @@ addEventListener('resize',()=>{
    Sound is ON by default; the first tap/keypress unlocks the audio context. */
 const SND={on:true,ctx:null,out:null,
   ac(){try{
-    /* latencyHint 0.002s = 比 'interactive' 更激进的低延迟请求（实测 baseLatency 5.3→2.7ms） */
-    if(!this.ctx)this.ctx=new (window.AudioContext||window.webkitAudioContext)({latencyHint:.002});
+    /* latencyHint 0.002s = 比 'interactive' 更激进的低延迟请求（实测 baseLatency 5.3→2.7ms）。
+       构造降级链：部分 Safari / iOS 对数值 latencyHint 会抛 NotSupportedError，
+       逐级回退，保证线上与移动端也一定有声音（否则整页静音）。 */
+    if(!this.ctx){
+      const AC=window.AudioContext||window.webkitAudioContext;
+      if(!AC)return null;
+      try{this.ctx=new AC({latencyHint:.002})}
+      catch(e1){try{this.ctx=new AC({latencyHint:'interactive'})}catch(e2){this.ctx=new AC()}}
+    }
     /* 非 running 一律触发 resume（覆盖 suspended 与 iOS Safari 的 interrupted） */
     if(this.ctx.state!=='running')this.ctx.resume();
     return this.ctx
@@ -2809,25 +2816,20 @@ function ltFly(){
   const dotEls=dots?[...dots.querySelectorAll('i')]:[];
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(!net||reduced){ltRevealAll(true);if(dots)dots.classList.remove('on');return}
-  /* 网络图滚进视口中央，坠落全程可见 */
-  try{net.scrollIntoView({behavior:'smooth',block:'center'})}catch(e){}
+  /* 立即抢拍思考点屏幕位置——此刻它们还可见；liveRun 的 finally 马上会摘掉 'on'，
+     等编排延时开始时再读就全是 0 宽 rect 了 */
+  const snap=dotEls.map(el=>el.getBoundingClientRect()).filter(r=>r.width>0);
   setTimeout(()=>{
     const sr=net.getBoundingClientRect();
-    /* 合成中心：思考点在视口内就用真实位置；已滚出视口则锚定在网络图上方，保证合体全程可见 */
+    /* 合成中心：优先用刚抢拍到的思考点真实位置（用户亲眼看到"那三个点"合一）；
+       抢拍失败（点不可见/被 HUD 遮挡）才退到网络图上方锚点 */
     let sx=sr.left+sr.width*.18,sy=sr.top-42;
     let dotsVisible=false;
-    if(dotEls.length){
-      /* 不动思考点自身的 CSS 跳跃动画（cancel/inline style 都会让下一轮跳跃消失），
-         直接读 rect（含 ±6px 跳跃偏移，可忽略），吸聚编排用 WAAPI 覆盖显示层 */
-      const rs=dotEls.map(el=>el.getBoundingClientRect()).filter(r=>r.width>0);
-      if(rs.length){
-        const cx=rs.reduce((a,r)=>a+r.left+r.width/2,0)/rs.length;
-        const cy=rs.reduce((a,r)=>a+r.top+r.height/2,0)/rs.length;
-        if(cy>60&&cy<innerHeight-60){sx=cx;sy=cy;dotsVisible=true}
-      }
+    if(snap.length){
+      const cx=snap.reduce((a,r)=>a+r.left+r.width/2,0)/snap.length;
+      const cy=snap.reduce((a,r)=>a+r.top+r.height/2,0)/snap.length;
+      if(cy>24&&cy<innerHeight-60){sx=cx;sy=cy;dotsVisible=true}
     }
-    const qc=qEl.getBoundingClientRect();
-    const qx=qc.left+qc.width/2,qy=qc.top+qc.height/2;
     const layer=document.createElement('div');layer.id='flyLayer';document.body.appendChild(layer);
     /* 真实思考点不在视口内时，在锚点附近生成三颗视觉小点，"三点吸聚"始终可见 */
     let srcEls=dotEls;
@@ -2882,36 +2884,50 @@ function ltFly(){
       srcEls.forEach(el=>{if(el.parentElement===layer)el.remove()});
       try{SND.tone(880,.05,.06,'sine')}catch(e){}
     },MERGE);
-    /* 合体后短暂停顿，再坠向 Q */
+    /* 合体完成：现在才滚动到网络图——段落切换发生在"已经是一个点"之后 */
     setTimeout(()=>{
-    const drop=d.animate(
-      [{transform:'translate(0,0) scale(1)',opacity:1},
-       {transform:'translate('+(qx-sx)+'px,'+(qy-sy)+'px) scale(2.05)',opacity:.9}],
-      {duration:920,easing:'cubic-bezier(.55,.02,.8,.42)',fill:'both'});
-    drop.onfinish=()=>{
-      d.remove();
-      /* 落点涟漪 */
-      const rp=document.createElement('span');rp.className='fly-ripple';
-      rp.style.left=(qx-13)+'px';rp.style.top=(qy-13)+'px';layer.appendChild(rp);
-      setTimeout(()=>rp.remove(),550);
-      /* Q 诞生 */
-      box.querySelectorAll('[data-n="q"]').forEach(el=>{el.classList.remove('lt-wait');if(el.tagName!=='path')el.classList.add('lt-pop')});
-      try{SND.tone(520,.07,.10,'sine')}catch(e){}
-      /* 各类 neuron 自 Q 级联点亮 */
-      const cats=box.querySelectorAll('.lt-node');
-      cats.forEach((nd,i)=>{
-        setTimeout(()=>{
-          box.querySelectorAll('[data-n="'+i+'"]').forEach(el=>{
-            el.classList.remove('lt-wait');
-            if(el.tagName==='path')return;
-            el.classList.add('lt-pop');
-          });
-          try{SND.tone(640+i*150,.05,.08,'sine')}catch(e){}
-        },240+i*200);
-      });
-      setTimeout(()=>{layer.remove();if(dots)dots.classList.remove('on')},240+cats.length*200+420);
-    };
-    },MERGE+260);
+      try{net.scrollIntoView({behavior:'smooth',block:'center'})}catch(e){}
+      /* 等滚动真正停稳（rect 连续两帧不动）再量 Q 的位置并坠落，
+         避免平滑滚动未结束时量到漂移中的坐标 */
+      let prev=-1,stable=0,tries=0;
+      const wait=setInterval(()=>{
+        const top=net.getBoundingClientRect().top;
+        tries++;
+        stable=(prev>=0&&Math.abs(top-prev)<1)?stable+1:0;
+        prev=top;
+        if(!(stable>=2||tries>16))return;
+        clearInterval(wait);
+      const qc=qEl.getBoundingClientRect();
+      const qx=qc.left+qc.width/2,qy=qc.top+qc.height/2;
+      const drop=d.animate(
+        [{transform:'translate(0,0) scale(1)',opacity:1},
+         {transform:'translate('+(qx-sx)+'px,'+(qy-sy)+'px) scale(2.05)',opacity:.9}],
+        {duration:920,easing:'cubic-bezier(.55,.02,.8,.42)',fill:'both'});
+      drop.onfinish=()=>{
+        d.remove();
+        /* 落点涟漪 */
+        const rp=document.createElement('span');rp.className='fly-ripple';
+        rp.style.left=(qx-13)+'px';rp.style.top=(qy-13)+'px';layer.appendChild(rp);
+        setTimeout(()=>rp.remove(),550);
+        /* Q 诞生 */
+        box.querySelectorAll('[data-n="q"]').forEach(el=>{el.classList.remove('lt-wait');if(el.tagName!=='path')el.classList.add('lt-pop')});
+        try{SND.tone(520,.07,.10,'sine')}catch(e){}
+        /* 各类 neuron 自 Q 级联点亮 */
+        const cats=box.querySelectorAll('.lt-node');
+        cats.forEach((nd,i)=>{
+          setTimeout(()=>{
+            box.querySelectorAll('[data-n="'+i+'"]').forEach(el=>{
+              el.classList.remove('lt-wait');
+              if(el.tagName==='path')return;
+              el.classList.add('lt-pop');
+            });
+            try{SND.tone(640+i*150,.05,.08,'sine')}catch(e){}
+          },240+i*200);
+        });
+        setTimeout(()=>{layer.remove();if(dots)dots.classList.remove('on')},240+cats.length*200+420);
+      };
+      },80);
+    },MERGE+160);
   },420);
   if(dots)dots.classList.remove('drop');
 }
@@ -3049,7 +3065,9 @@ async function liveRun(){
     }
   }finally{
     LIVE.busy=false;
-    const d2=liveEl('liveDots');if(d2)d2.classList.remove('on');
+    /* 思考点不在 finally 里立刻摘掉——合体编排 420ms 后才开始，需要它们还在原位。
+       合体吸收时 ltFly 自己会摘；这里只做 1.6s 后的兜底清理（防止编排异常残留） */
+    setTimeout(()=>{const d2=liveEl('liveDots');if(d2)d2.classList.remove('on')},1600);
     if(btn){btn.disabled=false;btn.style.opacity=1;btn.textContent=lang==='en'?'Run':'提问'}
   }
 }
