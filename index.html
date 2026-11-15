@@ -2109,12 +2109,15 @@ addEventListener('resize',()=>{
    ok()  ≈ the Apple Pay "paid" chime: a bright two-note bell rising a fifth.
    err() ≈ the "payment declined" double low tone falling a fifth.
    Sound is ON by default; the first tap/keypress unlocks the audio context. */
-const SND={on:true,ctx:null,out:null,
+const SND={on:true,ctx:null,out:null,__act:false,
   ac(){try{
-    /* latencyHint 0.002s = 比 'interactive' 更激进的低延迟请求（实测 baseLatency 5.3→2.7ms）。
-       构造降级链：部分 Safari / iOS 对数值 latencyHint 会抛 NotSupportedError，
-       逐级回退，保证线上与移动端也一定有声音（否则整页静音）。 */
+    /* 没有用户手势之前绝不创建 AudioContext：否则会拿到一个停在 interrupted
+       的上下文，之后"有时候有声音、有时候没有" */
     if(!this.ctx){
+      if(!this.__act)return null;
+      /* latencyHint 0.002s = 比 'interactive' 更激进的低延迟请求（实测 baseLatency 5.3→2.7ms）。
+         构造降级链：部分 Safari / iOS 对数值 latencyHint 会抛 NotSupportedError，
+         逐级回退，保证线上与移动端也一定有声音（否则整页静音）。 */
       const AC=window.AudioContext||window.webkitAudioContext;
       if(!AC)return null;
       try{this.ctx=new AC({latencyHint:.002})}
@@ -2136,12 +2139,21 @@ const SND={on:true,ctx:null,out:null,
     }
     return {c:cc,out:this.out};
   },
+  /* 上下文没跑起来时不要"空排队"：Safari 在加载期创建的 ctx 常停在 interrupted。
+     此时若直接 start() 排进冻结的时间轴，声音会永久丢失——这正是"时好时坏"的机制。
+     改为等 resume() 落地后再在新时间轴上开播。 */
+  _go(fn){
+    const c=this.ac();if(!c)return;
+    if(c.state==='running'){fn(c);return}
+    try{c.resume().then(()=>{if(c.state==='running')fn(c)}).catch(()=>{})}catch(e){}
+  },
   tone(f,d,g,type){
-    if(!this.on)return;const s=this.bus();if(!s)return;const c=s.c;
+    if(!this.on)return;this._go(()=>{
+    const s=this.bus();if(!s)return;const c=s.c;
     const o=c.createOscillator(),v=c.createGain();
     o.type=type||'sine';o.frequency.value=f;o.connect(v);v.connect(s.out);
     const t=c.currentTime;v.gain.setValueAtTime(.0001,t);v.gain.linearRampToValueAtTime(g||.05,t+.008);
-    v.gain.exponentialRampToValueAtTime(.0001,t+(d||.08));o.start(t);o.stop(t+(d||.08)+.02)},
+    v.gain.exponentialRampToValueAtTime(.0001,t+(d||.08));o.start(t);o.stop(t+(d||.08)+.02)})},
   /* FM bell: bright strike, mellow tail — the marimba-ish Apple chime */
   bell(f,t0,dur,g,ctx){
     const s=this.bus(ctx);if(!s)return;const c=s.c;
@@ -2159,14 +2171,16 @@ const SND={on:true,ctx:null,out:null,
     car.stop(t0+dur+.03);mod.stop(t0+dur+.03);
   },
   ok(){
-    if(!this.on)return;const s=this.bus();if(!s)return;
+    if(!this.on)return;this._go(()=>{
+    const s=this.bus();if(!s)return;
     const t=s.c.currentTime+.01;
     this.bell(1046.5,t,.55,.26);         /* C6  */
     this.bell(1568.0,t+.085,.70,.22);    /* G6  */
     this.bell(2093.0,t+.155,.46,.075);   /* C7  sparkle */
-  },
+    })},
   err(){
-    if(!this.on)return;const s=this.bus();if(!s)return;const c=s.c,t=c.currentTime+.01;
+    if(!this.on)return;this._go(()=>{
+    const s=this.bus();if(!s)return;const c=s.c,t=c.currentTime+.01;
     const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1400;lp.Q.value=.9;lp.connect(s.out);
     const note=(f,st,dur,g,type)=>{
       const o=c.createOscillator(),v=c.createGain();
@@ -2182,9 +2196,10 @@ const SND={on:true,ctx:null,out:null,
     note(392.0,t,.13,.165);                  /* G4 — "bip"   */
     note(261.6,t+.11,.44,.185);              /* C4 — "bwomp" */
     note(130.8,t+.11,.40,.135,'sine');       /* sub body     */
-  },
+    })},
   tick(){
-    if(!this.on)return;const s=this.bus();if(!s)return;const c=s.c,t=c.currentTime;
+    if(!this.on)return;this._go(()=>{
+    const s=this.bus();if(!s)return;const c=s.c,t=c.currentTime;
     const o=c.createOscillator(),v=c.createGain(),hp=c.createBiquadFilter();
     o.type='sine';o.frequency.setValueAtTime(1500,t);
     o.frequency.exponentialRampToValueAtTime(880,t+.035);
@@ -2194,19 +2209,26 @@ const SND={on:true,ctx:null,out:null,
     v.gain.exponentialRampToValueAtTime(.34,t+.005);
     v.gain.exponentialRampToValueAtTime(.0001,t+.06);
     o.start(t);o.stop(t+.08);
-  },
+    })},
   sweep(){
-    if(!this.on)return;const s=this.bus();if(!s)return;const c=s.c;
+    if(!this.on)return;this._go(()=>{
+    const s=this.bus();if(!s)return;const c=s.c;
     const o=c.createOscillator(),v=c.createGain();
     o.type='sine';o.frequency.setValueAtTime(380,c.currentTime);o.frequency.exponentialRampToValueAtTime(820,c.currentTime+.24);
     o.connect(v);v.connect(s.out);const t=c.currentTime;
     v.gain.setValueAtTime(.0001,t);v.gain.linearRampToValueAtTime(.12,t+.03);v.gain.exponentialRampToValueAtTime(.0001,t+.32);
-    o.start(t);o.stop(t+.34)}
+    o.start(t);o.stop(t+.34)})}
 };
 /* WebKit/Safari 会把空闲的 AudioContext 自动挂起——挂起后每次点击都要等 resume，
-   表现为"越闲置延迟越大"。对策：① hover 就提前 resume（鼠标移到按钮上到点击之间
-   有 100~500ms 富余）② keep-alive 静音振荡器让渲染时钟永远不闲下来 */
-['pointerover','pointerdown','keydown','touchstart'].forEach(ev=>addEventListener(ev,()=>{
+   表现为"越闲置延迟越大"。对策分两级：
+   ① hover 只"唤醒已存在的上下文"（pointerover 不是用户激活，在这里 new
+      AudioContext 会得到一个停在 interrupted 的上下文，之后时好时坏）
+   ② 创建/恢复只在真实手势（pointerdown / keydown / touchstart）里做 */
+addEventListener('pointerover',()=>{
+  const c=SND.ctx;if(c&&c.state!=='running'){try{c.resume()}catch(e){}}
+},{passive:true});
+['pointerdown','keydown','touchstart'].forEach(ev=>addEventListener(ev,()=>{
+  SND.__act=true;
   const c=SND.ac();if(!c)return;
   if(!SND.out)SND.bus();
   if(c.state==='running'&&!SND.__warmed){
@@ -2226,7 +2248,7 @@ const SND={on:true,ctx:null,out:null,
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&SND.ctx)SND.ac()});
 /* 捕获阶段最早解锁：任何用户手势内第一时刻创建/恢复音频上下文——
    Safari 只认手势内同步 resume，这里保证线上（https）与本地（file://）行为一致 */
-['pointerdown','touchstart','keydown'].forEach(ev=>addEventListener(ev,()=>SND.ac(),{capture:true,passive:true}));
+['pointerdown','touchstart','keydown'].forEach(ev=>addEventListener(ev,()=>{SND.__act=true;SND.ac()},{capture:true,passive:true}));
 /* 手势后音频仍被浏览器拦住（自动播放策略/ interrupted）→ 给一次性提示条，点击即解锁 */
 let __sndTries=0,__sndToast=null;
 addEventListener('pointerdown',()=>{
