@@ -574,6 +574,21 @@ body.dragging .scene.active{transition:none!important}
 .choice-btn:active,.hud-btn:active{transform:scale(.99)}
 
 /* quiet verdict — a tint and a small mark, nothing shouting */
+.predict-btn.picked{
+  border-color:transparent!important;
+  background:
+    radial-gradient(240px 160px at var(--mx) var(--my),rgba(255,255,255,.55),transparent 72%) padding-box,
+    linear-gradient(135deg,rgba(84,132,208,.34) 0%,rgba(84,132,208,.12) 62%,rgba(255,255,255,.22) 100%) padding-box,
+    linear-gradient(135deg,rgba(255,255,255,.72),rgba(255,255,255,.50)) padding-box,
+    var(--rim-hot) border-box;
+  background-origin:padding-box,padding-box,padding-box,border-box;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,1),
+    inset 0 0 24px -9px rgba(84,132,208,.55),
+    0 0 0 2px rgba(84,132,208,.10),
+    0 6px 16px -10px rgba(58,74,104,.24);
+  color:#2b4c86;
+}
 .choice-btn.picked.ok{border-color:rgba(10,143,91,.45);background:rgba(10,143,91,.05)}
 .choice-btn.picked.ok::after{background:rgba(10,143,91,.06);opacity:1}
 .choice-btn.picked.bad{border-color:rgba(221,43,43,.4);background:rgba(221,43,43,.045)}
@@ -689,6 +704,13 @@ body.dragging .scene.active{transition:none!important}
   background:rgba(186,117,23,.13);border:1px solid rgba(186,117,23,.4);border-radius:8px;
   padding:6px 9px;margin-bottom:9px}
 body.dark .live-note{color:#ffc08a;background:rgba(186,117,23,.2);border-color:rgba(186,117,23,.5)}
+/* 顶栏右侧的模型/密钥指纹：让人一眼确认「现在用的是哪把钥匙」 */
+.live-meta{margin-left:auto;font-family:var(--mono);font-size:9.5px;line-height:1.4;letter-spacing:.04em;
+  color:rgba(10,16,28,.42);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:62%}
+body.dark .live-meta{color:rgba(226,236,250,.48)}
+@media (max-width:760px){
+  .live-meta{margin-left:0;max-width:100%;white-space:normal;font-size:8.5px}
+}
 /* 顶栏里的预录说明：一行小字，长了省略，不和徽标抢位置 */
 .live-head .live-note{margin:0 0 0 4px;flex:1;min-width:0;font-size:9.5px;letter-spacing:.04em;
   padding:4px 9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -777,6 +799,9 @@ body.dark .live-note{color:#ffc08a;background:rgba(186,117,23,.2);border-color:r
 .vd-calc{font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:var(--faint);
   padding:0 18px 6px;display:flex;gap:12px;flex-wrap:wrap}
 .vd-calc b{color:var(--dim);font-weight:600}
+/* 「模型说采纳，但自报信心只有 X%」——把矛盾摊开，不藏着 */
+.vd-contra{padding:0 18px 7px;font-size:10px;line-height:1.5;letter-spacing:.02em;color:#8a4c4a}
+body.dark .vd-contra{color:#e0a8a5}
 .vd-risks{display:flex;flex-direction:column;gap:3px;border-top:1px solid rgba(8,13,24,.07);padding:8px 18px 8px}
 .vd-rk{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;color:var(--faint);text-transform:uppercase;margin-bottom:2px}
 .vd-chip{font-size:12.5px;color:var(--dim);display:flex;align-items:baseline;gap:8px;line-height:1.5}
@@ -795,17 +820,19 @@ body.dark .vd-calc b{color:rgba(232,238,250,.72)}
 .stage-sweep.on{opacity:1}
 /* 主体光团：超大椭圆 + 大 blur，从卡片顶部外侧缓慢沉入并扩张 */
 .stage-sweep i{position:absolute;left:50%;top:-52%;width:158%;height:112%;margin-left:-79%;
+  /* 只做「光在玻璃上扫过」，不能把卡片糊成一片白：
+     中心降到 30%，边缘几乎透明——卡面始终能看清 */
   background:radial-gradient(closest-side,
-    rgba(255,255,255,.80) 0%,rgba(234,244,255,.64) 18%,
-    rgba(188,220,255,.44) 40%,rgba(142,192,255,.27) 62%,
-    rgba(118,174,255,.12) 80%,rgba(118,174,255,0) 100%);
-  filter:blur(30px);opacity:0;will-change:transform,opacity}
+    rgba(255,255,255,.30) 0%,rgba(234,244,255,.23) 18%,
+    rgba(188,220,255,.16) 40%,rgba(142,192,255,.10) 62%,
+    rgba(118,174,255,.05) 80%,rgba(118,174,255,0) 100%);
+  filter:blur(34px);opacity:0;will-change:transform,opacity}
 .stage-sweep.on i{animation:stageLightDown 2.9s cubic-bezier(.33,0,.22,1) .04s forwards}
 @keyframes stageLightDown{
   0%{transform:translateY(-4%) scale(.88);opacity:0}
-  16%{opacity:1}
-  54%{transform:translateY(26%) scale(1.14);opacity:.92}
-  80%{opacity:.55}
+  16%{opacity:.85}
+  54%{transform:translateY(26%) scale(1.14);opacity:.55}
+  80%{opacity:.28}
   100%{transform:translateY(62%) scale(1.3);opacity:0}}
 /* 弧形光痕：一个巨大椭圆的「上缘内侧」亮边——就是参考图里那圈光的轮廓 */
 .stage-sweep b{position:absolute;left:50%;top:2%;width:182%;height:100%;margin-left:-91%;
@@ -849,7 +876,7 @@ body.dark .sdust{
 .live-stage[data-focus="think"] #liveVerdict{opacity:.3}
 .live-stage[data-focus="answer"] .live-pane.reason{opacity:.35}
 .live-stage[data-focus="tree"] .live-body,
-.live-stage[data-focus="verdict"] .live-body{opacity:.62}
+.live-stage[data-focus="verdict"] .live-body{opacity:.78}
 .live-stage[data-focus="tree"] #liveVerdict{opacity:.3}
 .live-stage[data-focus="verdict"] .live-tree{opacity:.32}
 /* neuron 节点弹入：跳跃点掉落后逐个变成网络节点 */
@@ -1592,6 +1619,479 @@ body.dark .chip .tag.sig{color:#8fc7ae;background:rgba(92,151,127,.12);border-co
   .hyp{gap:14px;flex-wrap:wrap;padding:20px 22px}
   .hyp .who{width:100%;margin-left:0;padding-right:0}
 }
+
+/* ============================================================
+   GLASS 3.0 · 边缘、按钮、选中态
+   ------------------------------------------------------------
+   之前所有按钮的边框都是「1px 单色灰蓝线」：左上和右下完全一样，
+   所以看着像贴纸，不像玻璃。真实玻璃的边是光在厚度里折射出来的：
+     左上 = 光源直射 → 接近纯白
+     侧边 = 掠射 → 冷灰蓝
+     右下 = 环境反光 → 再亮回来
+   所以边框必须是一条【有方向、有明暗】的渐变环。用伪元素 + mask
+   画环，不依赖 border-color，hover 换背景时也不会丢边。
+   ============================================================ */
+:root{
+  /* 折射环必须有「走向」：左上被光直射接近纯白 → 侧面掠射成冷蓝灰 →
+     右下再被环境光反射回亮白。三段明暗差拉开，才不会是一圈均匀浅蓝线。 */
+  --rim:linear-gradient(148deg,
+    rgba(255,255,255,1) 0%,
+    rgba(255,255,255,.82) 8%,
+    rgba(234,243,252,.42) 24%,
+    rgba(202,215,232,.34) 46%,
+    rgba(182,196,216,.32) 64%,
+    rgba(214,210,232,.34) 82%,
+    rgba(255,255,255,.80) 100%);
+  --rim-hot:linear-gradient(148deg,
+    rgba(255,255,255,1) 0%,
+    rgba(255,255,255,.88) 8%,
+    rgba(234,243,252,.46) 24%,
+    rgba(200,213,230,.38) 46%,
+    rgba(180,194,214,.36) 64%,
+    rgba(212,208,230,.38) 82%,
+    rgba(255,255,255,.86) 100%);
+}
+body.dark{
+  --rim:linear-gradient(148deg,
+    rgba(226,240,255,.55) 0%,
+    rgba(196,222,252,.30) 22%,
+    rgba(150,185,235,.20) 52%,
+    rgba(196,170,235,.24) 76%,
+    rgba(230,244,255,.46) 100%);
+}
+
+/* ① 小控件统一换成「折射环」：border 保留 1px 只为占位，颜色透明 */
+.chip,.badge,.tool-btn,.predict-btn,.choice-btn{
+  position:relative;
+  border-color:transparent!important;
+}
+.chip::before,.badge::before,.tool-btn::before,.predict-btn::before,.choice-btn::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;z-index:3;
+  background:var(--rim);pointer-events:none;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  mask-composite:exclude;
+  /* 真玻璃的边是「化开」的：加一点柔焦，别像描边工具画的线 */
+  filter:blur(.8px);opacity:.88;
+}
+/* 环只负责「亮」，厚度还是靠箱阴影：上缘一道纯白，下缘一道极淡暗线 */
+.chip,.badge,.tool-btn,.predict-btn{
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,1),
+    inset 0 -1px 0 rgba(118,140,170,.06),
+    0 1px 1px rgba(255,255,255,.92),
+    0 0 0 1px rgba(255,255,255,.45),
+    0 2px 4px -2px rgba(58,74,104,.08),
+    0 10px 22px -16px rgba(58,74,104,.26);
+}
+/* 主按钮（RUN / Reveal）保留唯一一点蓝，但同样是玻璃：环偏冷白 */
+.live-input .tool-btn,.tool-btn.primary{
+  border-color:transparent!important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,1),
+    0 1px 1px rgba(255,255,255,.9),
+    0 4px 12px -6px rgba(63,102,180,.35),
+    0 12px 26px -18px rgba(63,102,180,.45);
+}
+.live-input .tool-btn::before,.tool-btn.primary::before{
+  background:linear-gradient(148deg,#FFFFFF 0%,rgba(255,255,255,.98) 12%,
+    rgba(198,220,246,.9) 40%,rgba(150,182,224,.75) 66%,#FFFFFF 100%);
+}
+
+/* ② 选中 / 判定：不再描一圈颜色，改成「淡色浸染 + 内侧光晕」 */
+.choice-btn.picked{
+  border-color:transparent!important;
+  background:
+    radial-gradient(240px 160px at var(--mx) var(--my),rgba(255,255,255,.56),transparent 72%) padding-box,
+    linear-gradient(135deg,rgba(84,132,208,.20) 0%,rgba(84,132,208,.07) 62%,rgba(255,255,255,.24) 100%) padding-box,
+    linear-gradient(135deg,rgba(255,255,255,.76),rgba(255,255,255,.54)) padding-box,
+    var(--rim-hot) border-box;
+  background-origin:padding-box,padding-box,padding-box,border-box;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,1),
+    inset 0 0 24px -9px rgba(84,132,208,.38),
+    0 0 0 2px rgba(84,132,208,.06),
+    0 6px 16px -10px rgba(58,74,104,.22);
+  color:#2b4c86;
+}
+.choice-btn.picked.ok{
+  background:
+    radial-gradient(240px 160px at var(--mx) var(--my),rgba(255,255,255,.55),transparent 72%) padding-box,
+    linear-gradient(135deg,rgba(74,146,116,.20) 0%,rgba(74,146,116,.055) 62%,rgba(255,255,255,.22) 100%) padding-box,
+    linear-gradient(135deg,rgba(255,255,255,.72),rgba(255,255,255,.50)) padding-box,
+    var(--rim-hot) border-box;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,1),
+    inset 0 0 18px -8px rgba(92,151,127,.35),
+    0 0 0 2px rgba(92,151,127,.05),
+    0 6px 16px -10px rgba(58,74,104,.24);
+}
+.choice-btn.picked.bad{
+  background:
+    radial-gradient(240px 160px at var(--mx) var(--my),rgba(255,255,255,.55),transparent 72%) padding-box,
+    linear-gradient(135deg,rgba(186,92,90,.18) 0%,rgba(186,92,90,.05) 62%,rgba(255,255,255,.22) 100%) padding-box,
+    linear-gradient(135deg,rgba(255,255,255,.72),rgba(255,255,255,.50)) padding-box,
+    var(--rim-hot) border-box;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,1),
+    inset 0 0 18px -8px rgba(176,106,104,.32),
+    0 0 0 2px rgba(176,106,104,.05),
+    0 6px 16px -10px rgba(58,74,104,.24);
+}
+/* 判定条：绿/红只出现在左侧 3px 细线和文字上，整圈仍是玻璃 */
+.verdict.good{
+  border-color:transparent!important;
+  background:
+    linear-gradient(135deg,rgba(92,151,127,.13) 0%,rgba(92,151,127,.03) 70%,rgba(255,255,255,.20) 100%) padding-box,
+    linear-gradient(135deg,rgba(255,255,255,.74),rgba(255,255,255,.52)) padding-box,
+    var(--rim-hot) border-box;
+  background-origin:padding-box,padding-box,border-box;
+  color:#3e6d58;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,1),
+    inset 3px 0 0 rgba(92,151,127,.50),
+    0 6px 18px -12px rgba(58,74,104,.26);
+}
+.verdict.bad{
+  border-color:transparent!important;
+  background:
+    linear-gradient(135deg,rgba(176,106,104,.12) 0%,rgba(176,106,104,.03) 70%,rgba(255,255,255,.20) 100%) padding-box,
+    linear-gradient(135deg,rgba(255,255,255,.74),rgba(255,255,255,.52)) padding-box,
+    var(--rim-hot) border-box;
+  background-origin:padding-box,padding-box,border-box;
+  color:#8a4c4a;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,1),
+    inset 3px 0 0 rgba(176,106,104,.48),
+    0 6px 18px -12px rgba(58,74,104,.26);
+}
+
+/* ③ 顶部按钮：保持彼此独立（并成一条胶囊会全挤在一起，反而更丑），
+      每一片都是独立玻璃：折射渐变边 + 上缘高光 + 向下柔影。 */
+.hud-right{gap:8px;padding:0;border:0;background:none;box-shadow:none;
+  -webkit-backdrop-filter:none;backdrop-filter:none;position:relative}
+.hud-right .hud-btn{
+  border:1px solid transparent!important;
+  background:
+    radial-gradient(150px 110px at var(--mx) var(--my),rgba(255,255,255,.60),transparent 72%) padding-box,
+    linear-gradient(135deg,rgba(255,255,255,.80) 0%,rgba(255,255,255,.52) 100%) padding-box,
+    var(--rim-hot) border-box;
+  background-origin:padding-box,padding-box,border-box;
+  padding:9px 15px;font-size:10.5px;letter-spacing:.12em;border-radius:12px;
+  color:rgba(10,16,28,.64);transform:none;
+  -webkit-backdrop-filter:blur(18px) saturate(1.7);backdrop-filter:blur(18px) saturate(1.7);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,1),
+    0 1px 1px rgba(255,255,255,.95),
+    0 2px 4px -2px rgba(58,74,104,.10),
+    0 8px 18px -12px rgba(58,74,104,.28);
+  transition:background .22s,color .22s,box-shadow .22s,transform .22s;
+}
+.hud-right .hud-btn:hover{
+  color:#0a1020;transform:translateY(-1px);
+  background:
+    radial-gradient(180px 130px at var(--mx) var(--my),rgba(255,255,255,.92),transparent 72%) padding-box,
+    linear-gradient(135deg,rgba(255,255,255,.92) 0%,rgba(255,255,255,.70) 100%) padding-box,
+    var(--rim-hot) border-box;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,1),
+    0 1px 1px rgba(255,255,255,1),
+    0 4px 8px -3px rgba(58,74,104,.14),
+    0 12px 24px -14px rgba(58,74,104,.34);
+}
+body.dark .hud-right .hud-btn{
+  color:rgba(222,234,252,.68);
+  background:
+    linear-gradient(135deg,rgba(32,45,72,.82) 0%,rgba(22,32,52,.70) 100%) padding-box,
+    var(--rim) border-box;
+  background-origin:padding-box,border-box;
+  box-shadow:0 1px 0 rgba(255,255,255,.10),0 8px 20px -14px rgba(0,0,0,.8);
+}
+body.dark .hud-right .hud-btn:hover{
+  color:#fff;
+  background:
+    linear-gradient(135deg,rgba(42,58,88,.92) 0%,rgba(28,40,64,.86) 100%) padding-box,
+    var(--rim) border-box;
+}
+
+/* ④ 大卡片的边：3px 环加一档对比，右下再亮回来，像光真的穿过玻璃厚度 */
+.demo-stage::after,.live-stage::after,.live-verdict::after,.cd-panel::after,.fact::after{
+  background:linear-gradient(147deg,
+    #FFFFFF 0%,
+    #F4FAFF 12%,
+    #DCe9f8 32%,
+    #CBDCEE 50%,
+    #E7E1F4 72%,
+    #FFF7FD 88%,
+    #FFFFFF 100%);
+  opacity:.8;
+  filter:blur(.9px);
+}
+body.dark .demo-stage::after,body.dark .live-stage::after,body.dark .live-verdict::after,
+body.dark .cd-panel::after,body.dark .fact::after{
+  background:linear-gradient(147deg,
+    rgba(225,242,255,.52) 0%,rgba(180,212,248,.30) 34%,
+    rgba(150,180,230,.16) 52%,rgba(215,180,240,.30) 78%,rgba(235,248,255,.44) 100%);
+  opacity:.75;
+}
+/* 大玻璃的内部：底部透光 + 左右两侧的色散（蓝在左、粉在右），
+   这是「光穿过玻璃」最容易被眼睛认出来的地方 */
+.demo-stage,.live-stage,.live-verdict,.cd-panel{
+  box-shadow:
+    var(--glass-in),
+    inset 0 -20px 34px -30px rgba(255,255,255,1),
+    inset -16px -14px 30px -26px rgba(164,206,246,.40),
+    inset 16px -14px 30px -26px rgba(246,204,230,.36),
+    var(--glass-sh),
+    var(--glass-glow);
+}
+
+/* 裁决条先占位、后淡入：高度不变，画面不会突然跳一下 */
+.live-verdict.on.vd-hold{display:flex;opacity:0;transform:translateY(10px);pointer-events:none}
+
+/* ============================================================
+   MOBILE 3.0 · 420–760px 真正重排，而不是把桌面缩放
+   ============================================================ */
+@media (max-width:760px){
+  /* 舞台：从顶部 HUD 下方开始，左右 20px，底部避开 pager */
+  .scene{padding:calc(76px + env(safe-area-inset-top)) 20px calc(74px + env(safe-area-inset-bottom))}
+  .scene.scene-live{padding-top:calc(72px + env(safe-area-inset-top));padding-bottom:calc(68px + env(safe-area-inset-bottom))}
+  .wrap{margin:auto}
+
+  /* 开场页：标题留在上部，提示语压到底部——中间的空不是一个「洞」 */
+  .scene.divider:first-of-type .wrap{
+    display:flex;flex-direction:column;
+    min-height:calc(100dvh - 150px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  }
+  .scene.divider:first-of-type .press-hint{margin-top:auto;padding-top:26px}
+  .scene.divider:first-of-type .wb-hint{margin-top:8px}
+
+  /* 字阶：手机上不能沿用桌面的 vw clamp（4.6vw 在 420px 只有 19px） */
+  .kicker{font-size:9.5px;letter-spacing:.18em;gap:10px;margin-bottom:16px}
+  .kicker::before{width:22px}
+  .giant{font-size:clamp(44px,12.4vw,60px);line-height:1.05;letter-spacing:-.035em}
+  h2.title{font-size:clamp(28px,7.9vw,36px);line-height:1.14}
+  .sub{font-size:15.5px;line-height:1.62;margin-top:14px;max-width:none}
+  .foot-note{font-size:11px;line-height:1.65;margin-top:18px}
+  .cover-team{gap:10px 16px;font-size:10.5px;margin-top:26px;letter-spacing:.1em}
+  .press-hint{margin-top:30px;font-size:9.5px;letter-spacing:.18em}
+  .wb-hint{font-size:9.5px;line-height:1.6}
+
+  /* HUD：每片独立玻璃，间距拉开，别挤在一起 */
+  .hud{padding:calc(8px + env(safe-area-inset-top)) 12px 8px;justify-content:flex-end;background:none}
+  .hud-right{gap:6px;padding:0;border:0;border-radius:0;width:auto}
+  .hud-right .hud-btn{padding:9px 10px;font-size:9.5px;letter-spacing:.02em;min-height:34px;border-radius:11px}
+
+  /* 开场页：标题和团队信息不要贴边 */
+  .divider .chapter-no{font-size:clamp(88px,28vw,140px)}
+  .divider .chapter-name{font-size:clamp(27px,7.4vw,34px)}
+  .divider .hyp-line{font-size:14px;line-height:1.6;margin-top:16px}
+  .divider .speaker{margin-top:26px;font-size:10px}
+
+  /* 三段式 hook：动词一行，箭头 + 风险一行 */
+  .hook-row{display:flex;flex-wrap:wrap;gap:8px 10px;padding:20px 0}
+  .hook-row .verb{font-size:clamp(23px,6.6vw,30px);flex:1 1 100%}
+  .hook-row .arrow{display:none}
+  .hook-row .risk{font-size:10.5px;letter-spacing:.14em;text-align:left;white-space:normal}
+
+  /* 假设卡 */
+  .hyp{gap:12px;padding:18px 18px;border-radius:16px}
+  .hyp .no{min-width:40px;font-size:26px}
+  .hyp .body h3{font-size:17px;line-height:1.3}
+  .hyp .body p{font-size:13.5px;line-height:1.58;margin-top:5px}
+  .hyp .who{font-size:9.5px;letter-spacing:.14em}
+
+  /* 事实卡：两列，数字够大、说明够小 */
+  .facts{gap:10px}
+  .fact{padding:14px 14px;border-radius:16px;min-width:calc(50% - 5px);flex:1 1 calc(50% - 5px)}
+  .fact .fv{font-size:clamp(24px,7vw,30px)}
+  .fact .fk{font-size:9px;letter-spacing:.08em;line-height:1.35;margin-top:6px}
+
+  /* 演示卡 */
+  .demo-stage{padding:16px 14px;border-radius:18px}
+  .demo-head{gap:8px;margin-bottom:14px}
+  .badge{font-size:9.5px;padding:7px 11px;letter-spacing:.1em}
+  .demo-tag{font-size:9px;letter-spacing:.1em}
+  .ai-row{gap:10px}
+  .ai-avatar{width:30px;height:30px;border-radius:8px;font-size:11px}
+  .ai-bubble{font-size:16.5px;line-height:1.4}
+  .ai-meta{margin-top:12px;padding-top:11px;gap:5px}
+  .ai-meta span:first-child{font-size:12px}
+  .ai-meta span+span{font-size:13px;letter-spacing:.02em}
+  .conf-bar .cb-top{font-size:12px}
+  .choice-btn{font-size:16px;line-height:1.32;padding:15px 14px;margin-top:10px;gap:10px;border-radius:13px;min-height:52px}
+  .choice-btn .key{font-size:10px;padding:3px 6px;border-radius:6px}
+  .choice-btn .k2{font-size:9.5px;letter-spacing:.1em}
+  .truth-line{font-size:13.5px;line-height:1.55;padding-left:12px;margin-top:16px}
+  .verdict{font-size:13.5px;padding:13px 14px;margin-top:14px;line-height:1.4}
+
+  /* 倒计时 */
+  .cd-panel{padding:15px 14px;border-radius:16px}
+  .cd-top{font-size:11.5px;gap:8px}
+  .cd-top b{font-size:26px}
+  .cd-live{width:54px;height:54px}
+  #cdNum{font-size:21px}
+
+  /* 预测 / 揭晓 */
+  .predict-btns{gap:10px;margin-top:24px}
+  .predict-btn{min-width:100%;padding:18px 16px;font-size:17px;line-height:1.32;border-radius:16px}
+  .predict-btn small{font-size:9px;letter-spacing:.12em;margin-top:5px}
+  .reveal-hero{gap:10px}
+  .reveal-hero .from{font-size:29px}
+  .reveal-hero .arr{font-size:18px}
+  .reveal-hero .to{font-size:clamp(50px,14vw,64px)}
+  .reveal-hero .unit{flex-basis:100%;font-size:15px;margin-top:4px}
+  .stat-chips{gap:8px;margin-top:14px}
+  .chip{padding:10px 12px;font-size:13px;gap:7px;border-radius:12px}
+  .chip b{font-size:16px}
+  .chip .tag{font-size:9.5px;padding:2px 5px;letter-spacing:.08em}
+  .punch{margin-top:18px;font-size:clamp(26px,7.2vw,34px);line-height:1.22}
+  .twist{padding-left:16px;margin-top:20px}
+  .twist p{font-size:16px}
+  .chart-box{margin-top:16px}
+  .chart-note{font-size:9.5px;line-height:1.5}
+  .mech{border-radius:16px;overflow:hidden}
+  .mech>div{padding:18px 16px}
+  .mech .m-t{font-size:18px;margin-top:8px}
+  .mech .m-d{font-size:12.5px;line-height:1.55;margin-top:7px}
+  .app-row{gap:4px 10px;padding:16px 0}
+  .app-row .a-t{font-size:16.5px;min-width:0}
+  .app-row .a-d{font-size:13px;line-height:1.55}
+  .end-big{font-size:clamp(32px,9vw,44px)}
+  .end-stats{font-size:11px;line-height:1.6}
+
+  /* 最后一页：一屏装下，裁决条两行栅格 */
+  .scene.scene-live .kicker{display:none}
+  .scene.scene-live .title{font-size:clamp(26px,7.2vw,32px);line-height:1.16}
+  .scene.scene-live .sub{font-size:14px;line-height:1.55;margin-top:10px}
+  .scene.scene-live .wrap{padding-bottom:8px}
+  .scene.scene-live .live-tree{display:none!important}
+  .live-stage{padding:13px 12px;border-radius:18px;margin-top:14px}
+  .live-head{gap:7px}
+  .live-meta{font-size:8px;letter-spacing:.06em}
+  .live-body{grid-template-columns:1fr;gap:8px}
+  .live-pane{min-height:92px;max-height:138px;padding:10px 11px;border-radius:13px}
+  .live-input{flex-direction:column;gap:8px;margin-top:10px}
+  .live-input input{font-size:16px;padding:12px 13px;border-radius:12px}
+  .live-input .tool-btn{width:100%;min-height:46px;font-size:11.5px;border-radius:12px}
+  .live-chips{gap:6px;margin-top:12px}
+  .live-chips .chip{font-size:10.5px;padding:7px 10px}
+  /* 顶栏那句来源说明在手机上别再截成「…」，允许换行读完 */
+  .live-note{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.4;font-size:8.5px}
+  .vd-main{display:grid;grid-template-columns:auto 1fr;gap:6px 11px;align-items:center;padding:12px 13px 8px}
+  .vd-face{grid-row:1/3;width:36px;height:36px}
+  .vd-txt{grid-column:2;min-width:0}
+  .vd-k{font-size:8.5px;margin-bottom:2px}
+  .vd-l{font-size:15px;line-height:1.24}
+  .vd-conf{grid-column:1/-1;display:flex;align-items:center;gap:9px;margin-top:2px}
+  .vd-cb{flex:1 1 auto;width:auto}
+  .vd-pct{min-width:auto;font-size:18px}
+  .vd-calc{padding:0 13px 6px;font-size:8.5px;gap:7px;line-height:1.4}
+  .vd-risks{padding:7px 13px;gap:4px}
+  .vd-chip{font-size:10px;padding:4px 7px}
+
+  /* 装饰层：小屏一律不画（会整块盖住内容） */
+  .ad-core,.ad-halo,.ad-ring,.ad-absorb,.ad-spark,.fly-dot,.fly-mist{display:none!important}
+  #spot{display:none!important}
+}
+
+/* ============================================================
+   选中态优先级收口
+   ------------------------------------------------------------
+   hover 规则在文件后面，会盖掉上面的选中底色，导致「点了还是白的」。
+   这里用 .x.picked / .x.picked:hover 的更高特异性把它钉死：
+     蓝 = 你的选择 · 绿 = 答对 · 红 = 答错
+   三种都是玻璃（淡色浸染 + 内侧光晕），不是实心色块，也不是硬描边。
+   ============================================================ */
+.choice-btn.picked,.choice-btn.picked:hover{
+  border-color:transparent!important;
+  background:
+    radial-gradient(240px 160px at var(--mx) var(--my),rgba(255,255,255,.56),transparent 72%) padding-box,
+    linear-gradient(135deg,rgba(84,132,208,.20) 0%,rgba(84,132,208,.07) 62%,rgba(255,255,255,.24) 100%) padding-box,
+    linear-gradient(135deg,rgba(255,255,255,.76),rgba(255,255,255,.54)) padding-box,
+    var(--rim-hot) border-box;
+  background-origin:padding-box,padding-box,padding-box,border-box;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,1),
+    inset 0 0 24px -9px rgba(84,132,208,.38),
+    0 0 0 2px rgba(84,132,208,.06),
+    0 6px 16px -10px rgba(58,74,104,.22);
+}
+.choice-btn.picked.ok,.choice-btn.picked.ok:hover{
+  border-color:transparent!important;
+  background:
+    radial-gradient(240px 160px at var(--mx) var(--my),rgba(255,255,255,.50),transparent 72%) padding-box,
+    linear-gradient(135deg,rgba(74,146,116,.30) 0%,rgba(74,146,116,.10) 62%,rgba(255,255,255,.22) 100%) padding-box,
+    linear-gradient(135deg,rgba(255,255,255,.72),rgba(255,255,255,.50)) padding-box,
+    var(--rim-hot) border-box;
+  color:#2f5f4c;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,1),
+    inset 0 0 24px -9px rgba(74,146,116,.50),
+    0 0 0 2px rgba(74,146,116,.08),
+    0 6px 16px -10px rgba(58,74,104,.24);
+}
+.choice-btn.picked.bad,.choice-btn.picked.bad:hover{
+  border-color:transparent!important;
+  background:
+    radial-gradient(240px 160px at var(--mx) var(--my),rgba(255,255,255,.50),transparent 72%) padding-box,
+    linear-gradient(135deg,rgba(186,92,90,.28) 0%,rgba(186,92,90,.09) 62%,rgba(255,255,255,.22) 100%) padding-box,
+    linear-gradient(135deg,rgba(255,255,255,.72),rgba(255,255,255,.50)) padding-box,
+    var(--rim-hot) border-box;
+  color:#7e4442;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,1),
+    inset 0 0 24px -9px rgba(186,92,90,.48),
+    0 0 0 2px rgba(186,92,90,.07),
+    0 6px 16px -10px rgba(58,74,104,.24);
+}
+.predict-btn.picked,.predict-btn.picked:hover{
+  border-color:transparent!important;
+  background:
+    radial-gradient(240px 160px at var(--mx) var(--my),rgba(255,255,255,.56),transparent 72%) padding-box,
+    linear-gradient(135deg,rgba(84,132,208,.25) 0%,rgba(84,132,208,.09) 62%,rgba(255,255,255,.24) 100%) padding-box,
+    linear-gradient(135deg,rgba(255,255,255,.76),rgba(255,255,255,.54)) padding-box,
+    var(--rim-hot) border-box;
+  background-origin:padding-box,padding-box,padding-box,border-box;
+  color:#2b4c86;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,1),
+    inset 0 0 24px -9px rgba(84,132,208,.42),
+    0 0 0 2px rgba(84,132,208,.08),
+    0 6px 16px -10px rgba(58,74,104,.22);
+}
+body.dark .choice-btn.picked,body.dark .predict-btn.picked{
+  background:
+    linear-gradient(135deg,rgba(74,120,196,.30) 0%,rgba(74,120,196,.12) 62%,rgba(255,255,255,.04) 100%) padding-box,
+    var(--rim) border-box;
+  background-origin:padding-box,border-box;
+}
+
+/* ============================================================
+   离线时的连接条：不假装有答案，直接把「接上真实模型」放在卡片里
+   ============================================================ */
+.live-connect{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px;padding:10px 12px;border-radius:14px;
+  border:1px solid rgba(198,214,234,.75);
+  background:linear-gradient(135deg,rgba(255,255,255,.74),rgba(255,255,255,.46));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,1),0 4px 12px -8px rgba(58,74,104,.28);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.lc-k{flex:1 1 100%;font-family:var(--mono);font-size:10.5px;line-height:1.45;letter-spacing:.02em;color:rgba(10,16,28,.62)}
+.lc-in{flex:1 1 150px;min-width:0;border:1px solid rgba(198,214,234,.9);border-radius:10px;padding:9px 11px;
+  font-size:13px;font-family:var(--mono);color:var(--ink);background:rgba(255,255,255,.82);outline:none}
+.lc-in:focus{border-color:rgba(74,114,196,.55);box-shadow:0 0 0 3px rgba(74,114,196,.10)}
+.lc-go{flex:0 0 auto;border:1px solid transparent;border-radius:10px;padding:9px 14px;cursor:pointer;
+  font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#2b4c86;
+  background:linear-gradient(135deg,rgba(212,229,250,.78),rgba(255,255,255,.55));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,1),0 4px 10px -8px rgba(58,74,104,.4)}
+/* 浏览器拦了 file:// 存储时的提示：说清楚「现在能用、刷新会丢」 */
+.lc-warn{flex:1 1 100%;margin-top:2px;font-family:var(--mono);font-size:10px;line-height:1.5;
+  letter-spacing:.02em;color:rgba(150,96,26,.9)}
+@media (max-width:760px){
+  .lc-k{font-size:10px}
+  .lc-in{flex:1 1 100%;font-size:16px}
+  .lc-go{flex:1 1 100%;min-height:40px}
+}
 </style>
 </head>
 <body>
@@ -2149,6 +2649,7 @@ body.dark .chip .tag.sig{color:#8fc7ae;background:rgba(92,151,127,.12);border-co
       <div class="stage-sweep" id="stageSweep" aria-hidden="true"><b></b><i></i></div>
       <div class="live-head">
         <span class="badge calm" id="liveMode"><span class="dot"></span><b id="liveModeTxt">LIVE</b></span>
+        <span class="live-meta" id="liveMeta"></span>
       </div>
       <div class="live-input">
         <input id="liveQ" type="text" maxlength="180" placeholder="Ask it anything… press Enter ↵" aria-label="Your question">
@@ -2200,12 +2701,21 @@ body.dark .chip .tag.sig{color:#8fc7ae;background:rgba(92,151,127,.12);border-co
   <div class="n-body" id="noteBody"></div>
 </aside>
 
+<!-- 本地私钥：这个文件只在你电脑上存在，不随 index.html 一起公开。
+     缺失时静默跳过（onerror 吞掉），部署版靠 proxy 或 connect 输入框。
+     想换 key 就改 config.local.js 里那一行，别改 index.html。 -->
+<script src="config.local.js" onerror="void 0"></script>
 <script>
-/* ============ CONFIG · 只有这两行需要你改 ============ */
-/* 推荐：把 Vercel 代理地址填在这里。key 存在 Vercel 的环境变量里，GitHub 上永远看不到。 */
-window.LIVE_URL = window.LIVE_URL || 'https://whitebox-proxy.vercel.app/api/chat';
-/* 备选：直连模式。把 DeepSeek key 填在这里 —— 它会随页面公开，任何人 View Source 都能拿走。
-   只有在你接受「余额被刷光」这一代价时才用；白盒里会把这件事写明。 */
+/* ============ CONFIG ============ */
+/* 推荐（线上）：把 Vercel 代理地址填在这里。key 存在 Vercel 的环境变量里，GitHub 上永远看不到。 */
+/* 默认不指向任何占位代理：没有端点就说没有端点。
+   填了 key（或部署了代理）才会真正发起调用。 */
+window.LIVE_URL = window.LIVE_URL || '';
+/* 备选：直连模式。key 的来源有三处，优先级从高到低：
+   1) window.DS_KEY —— 由上面的 config.local.js 注入（本地开发，最省事）
+   2) 浏览器里输入过、已存进 localStorage 的 ds_key
+   3) 白盒卡片里的 CONNECT 输入框
+   页面源码本身不含 key：View Source 看不到，GitHub 上也拿不到。 */
 window.DS_KEY = window.DS_KEY || '';
 
 /* ============ DATA (computed from 34 deduplicated participants) ============ */
@@ -3514,14 +4024,33 @@ addEventListener('keydown',e=>{
 });
 
 /* ============ LIVE WHITE BOX · a real call, or an honestly-labelled replay ============ */
+/* key 的三个来源：config.local.js（window.DS_KEY）> localStorage > sessionStorage。
+   页面源码里没有 key，所以 View Source / GitHub 都看不到。 */
+function readStoredKey(){
+  try{const a=localStorage.getItem('ds_key');if(a)return a}catch(e){}
+  try{const b=sessionStorage.getItem('ds_key');if(b)return b}catch(e){}
+  return '';
+}
 const LIVE={
   proxy:(window.LIVE_URL||'').replace(/\/+$/,''),
-  key:(window.DS_KEY||'').trim(),
+  key:(window.DS_KEY||readStoredKey()||'').trim(),
   model:'deepseek-reasoner',
   busy:false,
   direct:'https://api.deepseek.com/chat/completions',
   get mode(){return this.proxy?'proxy':(this.key?'direct':'none')}
 };
+const SYS_PROMPT='You are a careful assistant inside a research demo about AI transparency. '
+ +'Think first, then answer the question in under 90 words. For medical, legal or attribution questions, '
+ +'say plainly what you cannot know and what the user should check, instead of sounding certain.\n\n'
+ +'After the answer, output ONE extra line in exactly this format (the page parses it and never shows it):\n'
+ +'VERDICT_JSON: {"adopt":true|false,"confidence":<integer 0-100>,"risks":["<specific caveat>","<specific caveat>"]}\n'
+ +'Rules for that line:\n'
+ +'- adopt = whether the user should act on or trust the answer as-is.\n'
+ +'- confidence = YOUR honest, calibrated confidence in that recommendation. It must genuinely depend on THIS question: '
+ +'hedge when context or evidence is missing, be high only for well-supported, low-stakes, checkable answers. '
+ +'Never default to a round number and never reuse a value from another question.\n'
+ +'- risks = 1 to 3 concrete, question-specific caveats, not generic advice.\n'
+ +'- Valid single-line JSON only. No markdown fences, no text after it. Output nothing after that line.';
 const LIVE_REC=[
  {re:/ibuprofen|headache|pain|painkill|pill|medicine|medication|medical|doctor|pharmac|hospital|symptom|fever|flu|cough|dose|dosage|drug|health|头疼|止痛|药|医|病|发烧|咳嗽|剂|健康/i,
   reason:"The user is asking for a dose. This is a medical question, so I should not prescribe for a specific person.\nWhat I can state safely: adult OTC single dose 200–400 mg, at most 1200 mg/day without supervision.\nRisks worth naming: pregnancy, stomach ulcers, kidney function, interactions with blood thinners.\nDecision: give label-level facts, refuse to dose this individual, and point to a pharmacist.",
@@ -3554,21 +4083,74 @@ const LIVE_REC=[
    它只讲"能给形状不能给假答案"，不会把一条不相干的合同答案硬套到你的问题上 */
 function pickRec(q){
   for(const r of LIVE_REC)if(r.re.test(q))return r;
-  return LIVE_REC[LIVE_REC.length-1];
+  /* 没有匹配就返回 null。以前这里会退回「最后一条」，
+     结果问 1+1 却弹出合同风险——那是编造，比没有答案更糟。 */
+  return null;
 }
 function liveEl(id){return document.getElementById(id)}
+/* 没有端点时，把「接上真实模型」的入口直接放在卡片里：
+   填入 key 存进本机浏览器，填完立刻重跑当前问题。
+   想永久保留（不受清缓存/换浏览器影响）：写进同目录的 config.local.js。 */
+function liveConnectBar(){
+  const stage=document.querySelector('.scene.active .live-stage');
+  if(!stage||stage.querySelector('.live-connect'))return;
+  const bar=document.createElement('div');
+  bar.className='live-connect';
+  bar.innerHTML='<span class="lc-k">'+(lang==='en'
+      ?'Paste a DeepSeek API key to run a real call. It stays in this browser. To keep it across reloads, put it in config.local.js.'
+      :'填入 DeepSeek API key 即可真实调用。key 只留在本机浏览器；想重开页面也不丢，就写进同目录的 config.local.js。')+'</span>'
+    +'<input class="lc-in" type="password" placeholder="sk-..." autocomplete="off" spellcheck="false">'
+    +'<button class="lc-go" type="button">'+(lang==='en'?'Connect':'连接')+'</button>';
+  stage.appendChild(bar);
+  const inp=bar.querySelector('.lc-in'),go=bar.querySelector('.lc-go');
+  const submit=()=>{
+    const k=inp.value.trim();if(!k)return;
+    let kept=false;
+    /* 存两份：localStorage（长期）+ sessionStorage（标签页内）；file:// 下有些浏览器会拦前者 */
+    try{localStorage.setItem('ds_key',k);kept=localStorage.getItem('ds_key')===k}catch(e){kept=false}
+    try{sessionStorage.setItem('ds_key',k);kept=kept||sessionStorage.getItem('ds_key')===k}catch(e){}
+    LIVE.key=k;LIVE.proxy='';
+    bar.remove();
+    setTimeout(()=>{try{liveRun()}catch(e){}},140);
+    if(!kept){
+      const st=document.querySelector('.scene.active .live-stage');
+      if(st&&!st.querySelector('.lc-warn')){
+        const w=document.createElement('div');
+        w.className='lc-warn';
+        w.textContent=lang==='en'
+          ?'This browser blocks storage on file:// — the key works now but is forgotten on reload. Put it in config.local.js to keep it.'
+          :'这个浏览器在 file:// 下禁用了本地存储：本次能用，刷新就没了。想永久保留，把它写进 config.local.js。';
+        st.appendChild(w);
+      }
+    }
+  };
+  go.addEventListener('click',submit);
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='Enter'&&!e.isComposing){e.preventDefault();e.stopPropagation();submit()}
+  });
+  go.style.pointerEvents='auto';
+}
 function liveSetMode(kind,note){
   const badge=liveEl('liveMode'), txt=liveEl('liveModeTxt'), meta=liveEl('liveMeta');
   if(txt)txt.textContent=kind;
   if(badge){badge.classList.toggle('calm',kind==='LIVE');badge.classList.toggle('warn',kind!=='LIVE')}
   if(meta&&note)meta.textContent=note;
 }
+/* key 指纹：只显示头尾，用来确认「用的是哪把钥匙」，不泄露完整 key */
+function maskKey(k){
+  k=(k||'').trim(); if(!k)return '';
+  return k.length<=11 ? 'sk-…' : 'sk-…'+k.slice(-4);
+}
 function liveBaseMeta(){
   const en=lang==='en';
+  /* 窄屏只留「哪把钥匙 + 哪个模型」：长句在小屏会折成两行，读起来像报错 */
+  const tight=(window.matchMedia&&window.matchMedia('(max-width:760px)').matches);
+  const mkey=maskKey(LIVE.key);
   return (LIVE.mode==='proxy'?(en?'deepseek-reasoner · temp 0.7 · verdict self-reported · key held by proxy'
                               :'deepseek-reasoner · temp 0.7 · 裁决由模型自报 · 代理持密钥')
-        :LIVE.mode==='direct'?(en?'deepseek-reasoner · temp 0.7 · verdict self-reported · ⚠ key is in this page'
-                              :'deepseek-reasoner · temp 0.7 · 裁决由模型自报 · ⚠ 密钥在本页')
+        :LIVE.mode==='direct'?(tight?(en?'deepseek-reasoner · key '+mkey:'deepseek-reasoner · 本机 key '+mkey)
+                              :(en?'deepseek-reasoner · temp 0.7 · verdict self-reported · key '+mkey+' loaded locally'
+                                :'deepseek-reasoner · temp 0.7 · 裁决由模型自报 · 本机 key '+mkey))
         :(en?'No endpoint configured · recorded traces only'
             :'未配置端点 · 只播放预录轨迹'));
 }
@@ -3595,9 +4177,10 @@ function liveClear(){
   const tree=liveEl('liveTree');if(tree){tree.classList.remove('on');tree.innerHTML=''}
   const ans=document.querySelector('.scene.active .live-pane.answer');if(ans)ans.classList.remove('done');
   const note=document.querySelector('.scene.active .live-note');if(note)note.remove();
+  const cbar=document.querySelector('.scene.active .live-connect');if(cbar)cbar.remove();
   const chk=liveEl('liveCheck');if(chk)chk.classList.remove('on');
   const d3=liveEl('liveDots');if(d3)d3.classList.remove('on');
-  const vd=liveEl('liveVerdict');if(vd){vd.classList.remove('on');vd.innerHTML=''}
+  const vd=liveEl('liveVerdict');if(vd){vd.classList.remove('on');vd.classList.remove('vd-hold');vd.innerHTML=''}
   const lg=liveEl('liveLedger');if(lg)lg.textContent='READY · PRESS RUN';
   const wrap=document.querySelector('.scene.active .wrap');
   if(wrap&&wrap.querySelector('.live-stage'))wrap.style.transform='';
@@ -3657,9 +4240,11 @@ const LT_COL={red:'#b06a68',orange:'#bd8f61',yellow:'#ab975f',green:'#5c977f',bl
 const LT_TXT={red:'#8a4c4a',orange:'#87643d',yellow:'#786734',green:'#3e6d58',blue:'#3f5f96'};
 /* 3D 球体渐变：高光偏左上 → 本色 → 暗部收边（同步降饱和，避免节点成为高亮色块） */
 const LT_DEFS=(()=>{let s='<defs>';
+  /* Q 球用「亮色玻璃球」：高光接近纯白，本色是极淡的冷蓝，只在收边处
+     压一档蓝灰——否则白球在浅底上会糊掉，但绝不能是一颗灰球 */
   const G={red:['#e2b7b3','#b06a68','#7d4543'],orange:['#e4c5a2','#bd8f61','#85603a'],
            yellow:['#dfd0a4','#ab975f','#756230'],green:['#aed1c0','#5c977f','#3a6957'],
-           blue:['#b4c9e8','#5a7fbe','#3a5687'],ink:['#5d6f98','#27324a','#121a2e']};
+           blue:['#b4c9e8','#5a7fbe','#3a5687'],ink:['#ffffff','#d6e9ff','#5b93da']};
   for(const k in G){s+='<radialGradient id="sg-'+k+'" cx="34%" cy="30%" r="78%">'
     +'<stop offset="0%" stop-color="'+G[k][0]+'"/><stop offset="44%" stop-color="'+G[k][1]+'"/>'
     +'<stop offset="100%" stop-color="'+G[k][2]+'"/></radialGradient>'}
@@ -3707,8 +4292,8 @@ function liveTree(){
         off+=rowH;
       });
       v+='<circle class="lt-q lt-wait" data-n="q" cx="'+xQ+'" cy="'+yQ+'" r="26" fill="'+ink+'" fill-opacity=".10"/>'
-        +'<circle class="lt-q lt-wait" data-n="q" cx="'+xQ+'" cy="'+yQ+'" r="17" fill="url(#sg-ink)" filter="url(#ltSh)"/>'
-        +'<text class="lt-q lt-wait" data-n="q" x="'+xQ+'" y="'+(yQ+4.5)+'" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">Q</text>';
+        +'<circle class="lt-q lt-wait" data-n="q" cx="'+xQ+'" cy="'+yQ+'" r="17" fill="url(#sg-ink)" stroke="rgba(150,180,215,.55)" stroke-width="1" filter="url(#ltSh)"/>'
+        +'<text class="lt-q lt-wait" data-n="q" x="'+xQ+'" y="'+(yQ+4.5)+'" text-anchor="middle" font-size="13" font-weight="700" fill="#3a5a86">Q</text>';
       svg='<svg class="lt-net" viewBox="0 0 '+W+' '+H+'">'+LT_DEFS+e+v+'</svg>';
     }else{
       /* 手机折叠层：Q → 类别(带计数) */
@@ -3722,8 +4307,8 @@ function liveTree(){
           +'<text class="lt-wait" data-n="'+ci+'" x="'+(xC+26)+'" y="'+(y+4)+'" font-size="12" font-weight="700" fill="'+LT_TXT[c]+'" font-family="ui-monospace,Menlo,monospace">'+esc(en?labEn:LT_CATS.find(x=>x[0]===c)[1])+' ×'+byCat[c].length+'</text>';
       });
       v+='<circle class="lt-q lt-wait" data-n="q" cx="'+xQ+'" cy="'+yQ+'" r="24" fill="'+ink+'" fill-opacity=".10"/>'
-        +'<circle class="lt-q lt-wait" data-n="q" cx="'+xQ+'" cy="'+yQ+'" r="16" fill="url(#sg-ink)" filter="url(#ltSh)"/>'
-        +'<text class="lt-q lt-wait" data-n="q" x="'+xQ+'" y="'+(yQ+4.5)+'" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">Q</text>';
+        +'<circle class="lt-q lt-wait" data-n="q" cx="'+xQ+'" cy="'+yQ+'" r="16" fill="url(#sg-ink)" stroke="rgba(150,180,215,.55)" stroke-width="1" filter="url(#ltSh)"/>'
+        +'<text class="lt-q lt-wait" data-n="q" x="'+xQ+'" y="'+(yQ+4.5)+'" text-anchor="middle" font-size="12.5" font-weight="700" fill="#3a5a86">Q</text>';
       svg='<svg class="lt-net" viewBox="0 0 '+W+' '+H+'">'+LT_DEFS+e+v+'</svg>';
     }
   }else{
@@ -3752,14 +4337,14 @@ function ltRevealAll(instant){
 }
 /* 编排：三颗跳跃点合一成一颗大点 → 坠落到 Q 节点 → 涟漪扩散 →
    Q 弹出，随后各类 neuron 节点与连线自 Q 依次级联点亮 */
-function ltFly(){
-  const box=liveEl('liveTree');if(!box){return}
+function ltFly(onDone){
+  const box=liveEl('liveTree');if(!box){try{onDone&&onDone()}catch(e){};return}
   const net=box.querySelector('.lt-net');
   const qEl=net?net.querySelector('.lt-q'):[];
   const dots=document.getElementById('liveDots');
   const dotEls=dots?[...dots.querySelectorAll('i')]:[];
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(!net||reduced){ltRevealAll(true);if(dots)dots.classList.remove('on');return}
+  if(!net||reduced){ltRevealAll(true);if(dots)dots.classList.remove('on');try{onDone&&onDone()}catch(e){};return}
   /* 立即抢拍思考点屏幕位置——此刻它们还可见；liveRun 的 finally 马上会摘掉 'on'，
      等编排延时开始时再读就全是 0 宽 rect 了 */
   const snap=dotEls.map(el=>el.getBoundingClientRect()).filter(r=>r.width>0);
@@ -3912,7 +4497,8 @@ function ltFly(){
       };
       const finishBall=()=>{
         w.remove();
-        /* 各类 neuron 自 Q 级联点亮 */
+        /* Q 已经滚出来站稳，接下来才让 Risk / Hedged / Reassuring 这些节点
+           自 Q 依次点亮——先有问题，再有它想到的类别，顺序不能反 */
         const cats=box.querySelectorAll('.lt-node');
         cats.forEach((nd,i)=>{
           setTimeout(()=>{
@@ -3922,9 +4508,13 @@ function ltFly(){
               el.classList.add('lt-pop');
             });
             try{SND.tone(640+i*150,.05,.08,'sine')}catch(e2){}
-          },240+i*200);
+          },180+i*230);
         });
-        setTimeout(()=>{layer.remove();if(dots)dots.classList.remove('on')},240+cats.length*200+420);
+        const total=180+Math.max(1,cats.length)*230+780;
+        setTimeout(()=>{
+          layer.remove();if(dots)dots.classList.remove('on');
+          try{onDone&&onDone()}catch(e2){}
+        },total);
       };
       /* AirDrop 式碰撞：白热核心在接触点亮起 → 柔光晕荡开 → 两道冲击环向外、
          一道吸收环向 Q 收拢（能量交付给接收方）→ 火花向四周溅射后减速熄灭 */
@@ -3982,7 +4572,7 @@ function ltFly(){
           if(!restBurst){restBurst=true;airdropBurst()}
           const rp=Math.min(1,(now-markT)/420);
           d.style.opacity=String(1-.96*rp);   /* 球融进白热核心（transform 由下方公共块管，别碰） */
-          if(now-markT>420){
+          if(now-markT>520){
             phase='sink';markT=now;
             /* 球已落定在 Q 上缘——Q 从球的落位滚出来接棒 */
             box.querySelectorAll('[data-n="q"]').forEach(el=>{el.classList.remove('lt-wait');if(el.tagName!=='path')el.classList.add('lt-qroll')});
@@ -3990,7 +4580,7 @@ function ltFly(){
           }
         }else if(phase==='sink'){
           /* 球已在停驻期融进光里，这里只等 Q 滚出接棒 */
-          if(now-markT>240){finishBall();return}
+          if(now-markT>640){finishBall();return}
           requestAnimationFrame(frame);return;
         }
         psq*=Math.exp(-dt*14);                 /* 形变恢复（约 50ms 半衰期） */
@@ -4025,16 +4615,26 @@ function liveVerdict(){
     return;
   }
 
-  const yes=!!v.adopt;
-  /* confidence 是模型自报的：这里只校验范围，不参与任何前端加权计算 */
-  const raw=Number(v.confidence);
-  const conf=(Number.isFinite(raw)&&raw>=0&&raw<=100)?Math.round(raw):null;
+  /* 注意：Number(null) === 0。回放里 confidence 是 null（没有模型数值），
+     如果直接 Number() 会把它当成 0%，屏幕上就会出现一个假的「0%」。
+     必须先判断类型，只接受模型真的给出的数字。 */
+  const raw=v.confidence;
+  const conf=(typeof raw==='number'&&Number.isFinite(raw)&&raw>=0&&raw<=100)?Math.round(raw):null;
+  /* 自洽性检查：模型可能一边说 adopt=true、一边自报很低的信心。
+     「0% 却建议采纳」是自相矛盾的，观众一眼就会觉得这是假的。
+     这时以它自己的数字为准，改成「信心不足，不建议采纳」，并在来源行
+     里如实写明模型原本说的是 adopt=true——不隐瞒，也不跟着它自相矛盾。 */
+  const weak=conf!==null&&conf<50;
+  const contradiction=!!v.adopt&&weak;
+  const yes=!!v.adopt&&!weak;
   const risks=v.risks.filter(r=>typeof r==='string'&&r.trim()).slice(0,2);
   const cc=yes?'#4f8f75':'#b06a68';
   const face=yes
     ?'<svg class="vd-face yes" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2"/><circle class="e" cx="9" cy="10" r="1.15"/><circle class="e" cx="15" cy="10" r="1.15"/><path class="m" d="M8.4 13.6c1.1 1.5 2.3 2.2 3.6 2.2s2.5-.7 3.6-2.2"/></svg>'
     :'<svg class="vd-face no" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2"/><circle class="e" cx="9" cy="10.4" r="1.15"/><circle class="e" cx="15" cy="10.4" r="1.15"/><path class="m" d="M8.6 14.6h6.8"/></svg>';
-  const label=yes?(en?'Recommend adopting':'建议采纳'):(en?'Do not adopt as-is':'不建议直接采纳');
+  const label=contradiction
+    ?(en?'Not enough confidence to adopt':'信心不足，不建议采纳')
+    :yes?(en?'Recommend adopting':'建议采纳'):(en?'Do not adopt as-is':'不建议直接采纳');
   const riskHtml=risks.length
     ?'<div class="vd-risks"><span class="vd-rk">'+(en?'Specific risks · named by the model':'具体风险 · 模型列出')+'</span>'
       +risks.map(r=>'<span class="vd-chip" style="--c:#bd8f61"><i></i>'+esc(r.trim())+'</span>').join('')+'</div>'
@@ -4043,6 +4643,11 @@ function liveVerdict(){
   const source=fromModel
     ?(en?'model-reported · deepseek-reasoner · this run':'模型自报 · deepseek-reasoner · 本次生成')
     :(en?'RECORDED EXAMPLE · a replay has no model confidence':'预录示例 · 回放没有模型置信度');
+  /* 自相矛盾时把「模型原话」摊开：它说 adopt，但它自己给的信心只有 X% */
+  const contraNote=contradiction
+    ?(en?'the model proposed adopting, but its own confidence is only '+conf+'% — we would not act on that'
+      :'模型原本建议采纳，但它自报的信心只有 '+conf+'%——这个数字不足以支撑采纳，因此不采纳')
+    :'';
   box.style.setProperty('--vc',cc);
   box.innerHTML='<div class="vd-main">'+face
     +'<div class="vd-txt"><div class="vd-k">'+(en?'Verdict · advice to you':'裁决 · 给你的建议')+'</div>'
@@ -4050,7 +4655,8 @@ function liveVerdict(){
     +'<div class="vd-conf"><div class="vd-cb"><i style="background:'+cc+'"></i></div>'
     +'<b class="vd-pct">'+(conf==null?'—':'0%')+'</b></div></div>'
     +'<div class="vd-calc"><span>'+source+'</span>'
-    +'<b>'+(conf==null?(en?'no number':'无数值'):'confidence '+conf+'%')+'</b></div>'+riskHtml;
+    +'<b>'+(conf==null?(en?'no number':'无数值'):'confidence '+conf+'%')+'</b></div>'
+    +(contraNote?'<div class="vd-contra">'+contraNote+'</div>':'')+riskHtml;
   box.classList.add('on');
   if(conf==null)return;
   const bar=box.querySelector('.vd-cb i'),pct=box.querySelector('.vd-pct'),t0=performance.now();
@@ -4114,10 +4720,23 @@ function liveDone(){
   /* 结论面板保持素净不上色——高亮只用于思考轨迹；关键句仍会进入下方网络图 */
   try{liveTree()}catch(e){}
   try{fitLiveStage()}catch(e){}
-  try{ltFly()}catch(e){}
   focusStage('tree');   /* 落点：网络图接力 */
-  /* 裁决条：等网络图点亮完再浮现（期间若用户重跑则跳过） */
-  setTimeout(()=>{if(!LIVE.busy){focusStage('verdict');try{liveVerdict()}catch(e){}}try{fitLiveStage()}catch(e){}},6100);
+  /* 顺序：球落地 → 爆开 → Q 滚出 → Risk 等节点依次点亮 → 最后才是裁决条。
+     所以裁决条不再用固定 6100ms 抢跑，而是等编排真正结束回调。 */
+  /* 裁决条先「占位渲染」（opacity 0，但高度已经占住），
+     否则它最后插进来会把整张卡撑高，画面会突然跳一下。 */
+  try{liveVerdict()}catch(e){}
+  const vb0=liveEl('liveVerdict');
+  if(vb0)vb0.classList.add('vd-hold');
+  const showVerdict=()=>{
+    if(LIVE.busy)return;
+    const vb=liveEl('liveVerdict');
+    if(!vb)return;
+    vb.classList.remove('vd-hold');
+    focusStage('verdict');
+    try{fitLiveStage()}catch(e){}
+  };
+  try{ltFly(showVerdict)}catch(e){setTimeout(showVerdict,2600)}
   try{SND.ok()}catch(e){}     /* 生成完成 = 支付成功那声 */
 }
 function liveLedger(o){
@@ -4144,8 +4763,54 @@ function liveAudit(q,o){
 async function liveReplay(q,id){
   const t0=performance.now();
   const rec=pickRec(q);
+  if(!rec){
+    /* 这条问题没有预录示例：如实说没有，并直接把「接上真实模型」的入口摆出来 */
+    LIVE.lastReason='';LIVE.lastAnswer='';
+    LIVE.verdict=null;LIVE.verdictSource='';
+    const rEl=liveEl('liveReason'),aEl=liveEl('liveAnswer');
+    const hadKey=!!LIVE.key, why=LIVE.lastError||'';
+    rEl.textContent=hadKey
+      ?(lang==='en'
+        ?'The model call did not complete, so there is no real trace to show.\n'+(why?('Error: '+why):'')
+        :'模型调用没有完成，因此没有真实轨迹可展示。\n'+(why?('错误：'+why):''))
+      :(lang==='en'
+        ?'No endpoint is connected, so there is no real reasoning trace to show.\nThere is also no recorded example for this question — so we will not stage one.'
+        :'没有连上真实模型，因此没有真实的推理轨迹可展示。\n这条问题也没有预录示例——所以我们不会随便拿一条来冒充。');
+    aEl.textContent=hadKey
+      ?(lang==='en'
+        ?'Nothing was answered, because the call failed. Check the key and the endpoint, then press Enter to try again.'
+        :'这次没有产生答案：调用失败了。检查密钥与端点后，按回车重试。')
+      :(lang==='en'
+        ?'I cannot answer this without a model: the page has no endpoint and no key. Paste a DeepSeek API key below to run this question for real.'
+        :'这个问题在没有模型的情况下我无法回答：页面没有端点也没有密钥。在下面填入 DeepSeek API key，就能真实运行这一次提问。');
+    const vd=liveEl('liveVerdict');if(vd){vd.classList.remove('on');vd.innerHTML=''}
+    liveSetMode('OFFLINE',lang==='en'
+      ?'No endpoint · nothing is staged, and no number is invented'
+      :'未连接 · 不摆预录、不编数字');
+    const hd=document.querySelector('.scene.active .live-head');
+    if(hd&&!hd.querySelector('.live-note')){
+      const n=document.createElement('div');n.className='live-note';
+      n.textContent=lang==='en'
+        ?'NO ENDPOINT · this question has no recorded example, so nothing is shown'
+        :'未连接 · 这个问题没有预录示例，因此什么都不显示';
+      hd.appendChild(n);
+    }
+    liveLedger({mode:'OFFLINE',ms:null,tk:null,exact:false,id:id});
+    liveAudit(q,{mode:'OFFLINE',ms:Math.round(performance.now()-t0),tk:0});
+    liveConnectBar();
+    try{fitLiveStage()}catch(e){}
+    return;
+  }
   LIVE.lastReason=rec.reason;LIVE.lastAnswer=rec.answer;
   LIVE.verdict=rec.v||null;LIVE.verdictSource='demo';
+  const hd=document.querySelector('.scene.active .live-head');
+  if(hd&&!hd.querySelector('.live-note')){
+    const n=document.createElement('div');n.className='live-note';
+    n.textContent=lang==='en'
+      ?'RECORDED · model unreachable: the trace, verdict and risks are pre-recorded examples; no confidence number is shown'
+      :'预录内容 · 未连上真实模型：轨迹、裁决与风险均为预录示例，不显示置信度数值';
+    hd.appendChild(n);
+  }
   await new Promise(res=>liveType(liveEl('liveReason'),rec.reason,res,true));
   await new Promise(res=>liveType(liveEl('liveAnswer'),rec.answer,res,false));
   const ms=Math.round(performance.now()-t0);
@@ -4163,7 +4828,7 @@ async function liveStream(q,id){
   const body=isProxy
     ?{prompt:q,model:LIVE.model}
     :{model:LIVE.model,stream:true,stream_options:{include_usage:true},temperature:0.7,
-      messages:[{role:'system',content:'You are a helpful assistant. Answer in under 90 words. Think first, then answer.'},{role:'user',content:q}]};
+      messages:[{role:'system',content:SYS_PROMPT},{role:'user',content:q}]};
   /* 6s hard timeout: if the proxy is unreachable (e.g. no network / no proxy),
      fail fast and honestly fall back to REPLAY instead of hanging forever. */
   const ctrl=('AbortController' in window)?new AbortController():null;
@@ -4241,18 +4906,14 @@ async function liveRun(){
     liveSetMode('LIVE',liveBaseMeta());
     await liveStream(q,id);
   }catch(err){
+    LIVE.lastError=err&&err.message?err.message:String(err);
     liveSetMode('REPLAY',lang==='en'?'Endpoint unreachable · falling back to recorded trace ('+err.message+')'
                                     :'端点不可用 · 回落到预录轨迹（'+err.message+'）');
     try{SND.err()}catch(e){}
     await liveReplay(q,id);
     /* 面板内显式声明：这是预录，不是真实模型——透明性原则不允许任何混淆。
        放在顶栏徽标旁边（不放答案卡里，免得把答案挤出去） */
-    const head=document.querySelector('.scene.active .live-head');
-    if(head&&!head.querySelector('.live-note')){
-      const n=document.createElement('div');n.className='live-note';
-      n.textContent=lang==='en'?'RECORDED · model unreachable: the trace, verdict and risks are pre-recorded examples; no confidence number is shown':'预录内容 · 未连上真实模型：轨迹、裁决与风险均为预录示例，不显示置信度数值';
-      head.appendChild(n);
-    }
+    try{liveConnectBar()}catch(e){}
   }finally{
     LIVE.busy=false;
     /* 思考点不在 finally 里立刻摘掉——合体编排 420ms 后才开始，需要它们还在原位。
