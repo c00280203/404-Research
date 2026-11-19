@@ -7,9 +7,11 @@
 <meta name="description" content="PSP404TC Lab 5R research presentation: can transparency cues — uncertainty scores, confirmation requests, score explanations — change what people do with AI?">
 <style>
 :root{
-  --bg:#ffffff; --panel:#f5f8fd; --ink:#080d18; --dim:rgba(8,13,24,.62);
+  --bg:#F7F7F9; --panel:#f5f8fd; --ink:#080d18; --dim:rgba(8,13,24,.62);
   --faint:rgba(8,13,24,.36); --hair:rgba(8,13,24,.13); --hair2:rgba(8,13,24,.055);
-  --amber:#0b57ff; --red:#dd2b2b; --green:#0a8f5b; --blue:#0b57ff;
+  /* 统一色卡：所有语义色降到同一明度档、同一低饱和（混灰），
+     让红/橙/黄/绿/蓝「响度」一致，彼此不抢；大面积仍是白 + 蓝灰中性色 */
+  --amber:#4a72c4; --red:#b06a68; --green:#4f8f75; --blue:#4a72c4;
   --shadow:0 22px 55px -30px rgba(8,32,90,.38); --shadow-sm:0 8px 22px -14px rgba(8,32,90,.32);
   --display:"Helvetica Neue",-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
 }
@@ -63,6 +65,13 @@ body.edge-l #edgeL,body.edge-r #edgeR{opacity:.4}
 .scene.active{opacity:1;visibility:visible;transform:none;filter:none;transition-delay:0s;z-index:5}
 .scene.past{transform:translate3d(-3.5%,0,0) scale(.975)}
 .wrap{width:100%;max-width:1060px;margin:auto}
+/* 最后一页是整卡演示：上下留白收紧，让「标题+双卡+网络图+裁决条」一屏装下，不靠缩放 */
+.scene.scene-live{padding-top:34px;padding-bottom:22px}
+.scene.scene-live .title{font-size:clamp(28px,3.3vw,46px)}
+.scene.scene-live .sub{font-size:17px;margin-top:14px}
+/* 答案卡：字号略降一点，让整段答案不用滚动就读完 */
+.scene.scene-live .live-pane.answer .lp-v{font-size:13.8px;line-height:1.58}
+.scene.scene-live .live-pane.reason .lp-v{font-size:11.2px}
 .kicker{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);font-weight:600;margin-bottom:26px;display:flex;align-items:center;gap:14px}
 .kicker::before{content:"";display:block;width:34px;height:1px;background:var(--amber)}
 .kicker.plain::before{display:none}
@@ -427,12 +436,9 @@ h2.title{font-size:clamp(30px,4.6vw,56px);font-weight:800;letter-spacing:-.02em;
 /* ================= TECH LAYER ================= */
 :root{--mono:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace}
 #bg{position:fixed;inset:0;z-index:0;pointer-events:none;display:none}
-.gridlines{position:fixed;inset:0;z-index:1;pointer-events:none;
+.gridlines{position:fixed;inset:0;z-index:1;pointer-events:none;display:none;
   --gx:50%; --gy:45%;
-  background-image:radial-gradient(circle at var(--gx) var(--gy),rgba(11,87,255,.17) 1px,transparent 1.4px);
-  background-size:30px 30px;
-  -webkit-mask-image:radial-gradient(circle 440px at var(--gx) var(--gy),rgba(0,0,0,.8) 0%,rgba(0,0,0,.25) 45%,transparent 72%);
-  mask-image:radial-gradient(circle 440px at var(--gx) var(--gy),rgba(0,0,0,.8) 0%,rgba(0,0,0,.25) 45%,transparent 72%);
+  /* 参考图是干净的纯色底：不要点阵、不要网格，整页只留纯色 + 极淡光晕 */
   transition:opacity .4s}
 #deck{position:fixed;inset:0;z-index:2}
 .scanlines{display:none}
@@ -522,6 +528,8 @@ body.quake #deck{animation:quake .26s linear infinite}
 #spot{position:fixed;left:0;top:0;width:100%;height:100%;z-index:1;pointer-events:none;
   background:radial-gradient(circle 380px at var(--sx,50%) var(--sy,40%),rgba(11,87,255,.065),rgba(11,87,255,.02) 42%,transparent 68%);
   transition:opacity .5s}
+/* 浅色下背景保持纯色：不要光标蓝雾（纯色底是明确要求，深色才留氛围光） */
+body:not(.dark) #spot{display:none}
 body.dragging,body.dragging *{cursor:grabbing!important}
 body.dragging .scene.active{transition:none!important}
 
@@ -607,10 +615,10 @@ body.dragging .scene.active{transition:none!important}
 .truth-line{transition:border-color .3s}
 
 /* ---------- live white box ---------- */
-.live-stage{width:100%;max-width:880px;margin-top:22px;border:1px solid rgba(11,87,255,.14);border-radius:20px;
-  background:linear-gradient(180deg,rgba(10,132,255,.05),rgba(255,255,255,0) 34%),#fff;
-  padding:26px 28px;box-shadow:0 1px 2px rgba(8,13,24,.04),0 18px 44px -22px rgba(8,32,90,.22);position:relative;overflow:hidden}
-.live-stage::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+.live-stage{width:100%;max-width:1000px;margin-top:18px;border:1px solid rgba(11,87,255,.14);border-radius:22px;
+  background:linear-gradient(180deg,rgba(10,132,255,.05),rgba(255,255,255,0) 40%),#fff;
+  padding:20px 24px;box-shadow:0 1px 2px rgba(8,13,24,.04),0 22px 50px -26px rgba(8,32,90,.24);position:relative;overflow:hidden}
+.live-stage::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;z-index:2;
   background:linear-gradient(90deg,transparent,#0a84ff 28%,#5ac8fa 55%,#0a84ff 78%,transparent)}
 .live-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .live-head .badge{padding:6px 13px;font-size:10.5px;cursor:default;box-shadow:0 0 0 3px rgba(10,143,91,.08)}
@@ -632,11 +640,11 @@ body.dragging .scene.active{transition:none!important}
   box-shadow:0 6px 16px -6px rgba(10,132,255,.55),inset 0 1px 0 rgba(255,255,255,.25);transition:.22s}
 .live-input .tool-btn:hover{transform:translateY(-1px);box-shadow:0 10px 24px -8px rgba(10,132,255,.6)}
 .live-input .tool-btn:disabled{opacity:.55;transform:none;cursor:wait}
-.live-body{display:grid;grid-template-columns:1.05fr .95fr;gap:14px;margin-top:18px}
-.live-pane{border-radius:16px;padding:16px 18px;min-height:150px;max-height:240px;overflow-y:auto;
+.live-body{display:grid;grid-template-columns:1.05fr .95fr;gap:16px;margin-top:16px}
+.live-pane{border-radius:16px;padding:15px 18px;min-height:140px;max-height:178px;overflow-y:auto;
   border:1px solid rgba(10,132,255,.16);background:linear-gradient(180deg,rgba(10,132,255,.045),rgba(10,132,255,.015))}
-.live-pane .lp-k{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;color:var(--faint);text-transform:uppercase;
-  margin-bottom:10px;padding-bottom:8px;border-bottom:1px dashed rgba(10,132,255,.16);display:flex;align-items:center;gap:7px}
+.live-pane .lp-k{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--faint);text-transform:uppercase;
+  margin-bottom:11px;padding-bottom:9px;border-bottom:1px solid rgba(10,132,255,.14);display:flex;align-items:center;gap:7px}
 .live-pane .lp-k::before{content:'';width:7px;height:7px;border-radius:50%;flex-shrink:0;
   background:#0a84ff;box-shadow:0 0 0 3px rgba(10,132,255,.16)}
 .live-pane.answer .lp-k::before{background:#0acf6e;box-shadow:0 0 0 3px rgba(10,143,91,.14)}
@@ -648,18 +656,6 @@ body.dragging .scene.active{transition:none!important}
 /* 思考中：三颗跳跃的点（放在 lp-k 外面，避免被 applyLang 的 textContent 重写抹掉） */
 .lp-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .live-pane .lp-row .lp-k{margin-bottom:0}
-.live-dots{display:none;align-items:center;gap:3px}
-.live-dots.on{display:inline-flex}
-.live-dots i{width:5px;height:5px;border-radius:50%;background:var(--amber);animation:liveDotJump .9s ease-in-out infinite}
-.live-dots i:nth-child(2){animation-delay:.15s}
-.live-dots i:nth-child(3){animation-delay:.3s}
-@keyframes liveDotJump{0%,100%{transform:translateY(0);opacity:.4}40%{transform:translateY(-6px);opacity:1}}
-/* 完成：思考点掉落，去变成下方网络图的 neuron 节点 */
-.live-dots.drop i{animation:liveDotDrop .62s cubic-bezier(.55,0,.85,.36) forwards!important}
-.live-dots.drop i:nth-child(1){animation-delay:0s!important}
-.live-dots.drop i:nth-child(2){animation-delay:.12s!important}
-.live-dots.drop i:nth-child(3){animation-delay:.24s!important}
-@keyframes liveDotDrop{55%{opacity:1}100%{transform:translateY(190px);opacity:0}}
 /* 完成：绿色对勾描边动画 */
 .live-pane.answer{position:relative}
 .live-check{position:absolute;top:11px;right:12px;width:22px;height:22px;pointer-events:none;
@@ -686,24 +682,181 @@ body.dragging .scene.active{transition:none!important}
 .live-legend.on{display:flex;flex-wrap:wrap}
 .live-legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:-1px}
 /* 决策树：生成完成后从轨迹里提炼出的结构 */
-.live-tree{margin-top:14px;display:none;animation:liveDone .5s cubic-bezier(.22,1,.36,1)}
+.live-tree{margin-top:8px;display:none;animation:liveDone .5s cubic-bezier(.22,1,.36,1)}
 .live-tree.on{display:block}
 /* REPLAY 回落时的面板内声明 */
 .live-note{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:#8a4d05;
   background:rgba(186,117,23,.13);border:1px solid rgba(186,117,23,.4);border-radius:8px;
   padding:6px 9px;margin-bottom:9px}
 body.dark .live-note{color:#ffc08a;background:rgba(186,117,23,.2);border-color:rgba(186,117,23,.5)}
-/* 类别计数控柱图（替代旧树状明细） */
-.lt-bars{display:grid;gap:7px;margin-top:4px}
-.lt-bar{display:flex;align-items:center;gap:12px}
-.lt-bar-lab{flex-shrink:0;width:112px;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;text-align:right}
-.lt-bar-track{flex:1;height:9px;border-radius:999px;background:var(--hair2);overflow:hidden}
-.lt-bar-fill{height:100%;border-radius:999px;transform-origin:left;animation:barGrow .65s cubic-bezier(.22,1,.36,1) both}
-@keyframes barGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
-.lt-bar-n{flex-shrink:0;width:26px;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--dim);text-align:left}
-body.dark .lt-bar-track{background:rgba(232,238,250,.1)}
+/* 顶栏里的预录说明：一行小字，长了省略，不和徽标抢位置 */
+.live-head .live-note{margin:0 0 0 4px;flex:1;min-width:0;font-size:9.5px;letter-spacing:.04em;
+  padding:4px 9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 类别计数控柱图已移除：与网络图节点标签重复，且挤压裁决条出视口 */
+/* —— 思考卡片光流动效：一道蓝光沿边框巡游（思考中常亮） —— */
+/* —— 光追（边框巡游光）：一道彗尾，浅蓝头 → 深蓝身 → 淡蓝尾 —— */
+@property --bv{syntax:'<angle>';inherits:false;initial-value:0deg}
+.reason-wrap{position:relative;display:flex;flex-direction:column;min-width:0}
+.reason-wrap .live-pane{flex:1}
+.reason-wrap::before{content:'';position:absolute;inset:-1px;border-radius:17px;padding:1.5px;
+  background:conic-gradient(from var(--bv),transparent 0turn .5turn,
+    rgba(173,214,255,.5) .6turn,rgba(122,196,255,.8) .68turn,rgba(10,132,255,.95) .76turn,
+    rgba(6,83,179,.9) .82turn,rgba(94,168,255,.75) .88turn,rgba(173,214,255,.35) .93turn,transparent .97turn 1turn);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;
+  animation:bvSpin 3.4s linear infinite;opacity:0;transition:opacity .7s;pointer-events:none}
+.reason-wrap.beam::before{opacity:1}
+@keyframes bvSpin{to{--bv:1turn}}
+/* —— AirDrop 碰撞：两台设备碰一碰——白热核心闪一下，柔光晕荡开，
+   两道冲击环向外、一道吸收环向 Q 收拢（能量传进接收方），火花四溅 ——
+   整段按「缓入缓出」重调：没有一帧硬切，环/晕/火花都带羽化，出现和消失都是渐变的 */
+.ad-core{position:fixed;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,#fff 0%,#f0f6ff 18%,rgba(190,224,255,.55) 38%,rgba(46,139,255,.24) 58%,transparent 74%);
+  animation:adCore .72s cubic-bezier(.25,.12,.32,1) forwards}
+@keyframes adCore{0%{transform:translate(-50%,-50%) scale(.28);opacity:0}
+  20%{opacity:.92;transform:translate(-50%,-50%) scale(.72)}
+  56%{opacity:.72;transform:translate(-50%,-50%) scale(1)}
+  100%{transform:translate(-50%,-50%) scale(1.18);opacity:0}}
+.ad-halo{position:fixed;border-radius:50%;pointer-events:none;filter:blur(10px);
+  background:radial-gradient(circle,rgba(150,200,255,.28) 0%,rgba(46,139,255,.12) 45%,transparent 68%);
+  animation:adHalo 1.05s cubic-bezier(.2,.6,.35,1) forwards}
+@keyframes adHalo{0%{transform:translate(-50%,-50%) scale(.35);opacity:0}28%{opacity:.72}
+  100%{transform:translate(-50%,-50%) scale(1);opacity:0}}
+.ad-ring{position:fixed;border-radius:50%;pointer-events:none;border:1.5px solid rgba(72,150,255,.75);
+  filter:blur(.6px);box-shadow:0 0 18px -2px rgba(46,139,255,.45),inset 0 0 12px -6px rgba(173,214,255,.6);
+  animation:adRing 1.05s cubic-bezier(.2,.6,.35,1) forwards}
+@keyframes adRing{0%{transform:translate(-50%,-50%) scale(.24);opacity:0}22%{opacity:.85}70%{opacity:.5}
+  100%{transform:translate(-50%,-50%) scale(1);opacity:0}}
+.ad-absorb{position:fixed;border-radius:50%;pointer-events:none;border:1.5px solid rgba(163,208,255,.82);
+  filter:blur(.6px);box-shadow:0 0 14px -2px rgba(46,139,255,.55),inset 0 0 10px -4px rgba(46,139,255,.5);
+  animation:adAbsorb .7s cubic-bezier(.35,.1,.3,1) .08s forwards}
+@keyframes adAbsorb{0%{transform:translate(-50%,-50%) scale(1.7);opacity:0}22%{opacity:.8}70%{opacity:.42}
+  100%{transform:translate(-50%,-50%) scale(.2);opacity:0}}
+.ad-spark{position:fixed;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,#fff 0%,rgba(173,214,255,.95) 46%,rgba(72,150,255,.85) 72%,rgba(46,139,255,.3) 88%,transparent);
+  box-shadow:0 0 10px 2px rgba(72,150,255,.85);
+  animation:adFly 1.05s cubic-bezier(.16,.6,.3,1) forwards}
+@keyframes adFly{0%{transform:translate(-50%,-50%) scale(1);opacity:0}18%{opacity:1}62%{opacity:.85}
+  100%{transform:translate(calc(-50% + var(--dx,0px)),calc(-50% + var(--dy,0px))) scale(.2);opacity:0}}
+/* 树的高度上限：宽度撑满卡片，高度按比例收，保证这一页整页不用滚动 */
+.lt-net{display:block;width:100%;height:auto;max-height:214px}
+/* —— 采纳建议裁决条：一次读三层——结论（脸+字）· 数字（%=怎么算出来的）· 风险在哪 —— */
+.live-verdict{display:none;flex-direction:column;gap:0;margin-top:12px;opacity:0;transform:translateY(8px);
+  transition:opacity .5s cubic-bezier(.22,1,.36,1),transform .5s cubic-bezier(.22,1,.36,1);
+  border:1px solid rgba(8,13,24,.10);border-radius:16px;background:#fff;
+  box-shadow:0 1px 2px rgba(8,13,24,.03);position:relative;overflow:hidden}
+.live-verdict::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--vc,#71717a)}
+.live-verdict.on{display:flex;opacity:1;transform:none}
+.vd-main{display:flex;align-items:center;gap:16px;padding:11px 18px 7px}
+.vd-face{width:44px;height:44px;flex-shrink:0}
+.vd-face circle:first-child{fill:none;stroke:currentColor;stroke-width:1.6}
+.vd-face .e{fill:currentColor}
+.vd-face .m{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
+/* 点头微笑：整个头上下点两下（下压时轻微挤压），嘴保持上弯 */
+.vd-face.yes{color:#10b981;animation:vdNod 1.15s ease-in-out .3s 2}
+@keyframes vdNod{0%,100%{transform:translateY(0) scale(1,1)}
+  28%{transform:translateY(3px) scale(1.03,.93)}
+  42%{transform:translateY(.4px) scale(.99,1.02)}
+  56%{transform:translateY(2.6px) scale(1.02,.94)}
+  72%{transform:translateY(0) scale(.99,1.01)}}
+/* 平嘴摇头：左右摆头两轮，幅度放大到 ±14°，一眼可读 */
+.vd-face.no{color:#dd2b2b;animation:vdShake .95s ease-in-out .3s 2}
+@keyframes vdShake{0%,100%{transform:rotate(0)}
+  18%{transform:rotate(-14deg)}36%{transform:rotate(12deg)}
+  54%{transform:rotate(-8deg)}72%{transform:rotate(5deg)}90%{transform:rotate(-2deg)}}
+.vd-txt{flex:1;min-width:0}
+.vd-k{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;color:var(--faint);text-transform:uppercase;margin-bottom:4px}
+.vd-l{font-weight:700;font-size:17px;letter-spacing:-.01em}
+.vd-conf{display:flex;align-items:center;gap:11px;flex-shrink:0}
+.vd-cb{width:150px;height:7px;border-radius:999px;background:rgba(8,13,24,.08);overflow:hidden}
+.vd-cb i{display:block;height:100%;width:0;border-radius:999px;transition:none}
+.vd-pct{font-family:var(--mono);font-size:22px;font-weight:800;min-width:62px;text-align:right;color:var(--ink);
+  font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.vd-cl{font-family:var(--mono);font-size:9px;letter-spacing:.16em;color:var(--faint);text-transform:uppercase}
+/* 计算过程：把百分比拆开写在下面，任何人都能核对 */
+.vd-calc{font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:var(--faint);
+  padding:0 18px 6px;display:flex;gap:12px;flex-wrap:wrap}
+.vd-calc b{color:var(--dim);font-weight:600}
+.vd-risks{display:flex;flex-direction:column;gap:3px;border-top:1px solid rgba(8,13,24,.07);padding:8px 18px 8px}
+.vd-rk{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;color:var(--faint);text-transform:uppercase;margin-bottom:2px}
+.vd-chip{font-size:12.5px;color:var(--dim);display:flex;align-items:baseline;gap:8px;line-height:1.5}
+.vd-chip i{width:7px;height:7px;border-radius:50%;background:var(--c,#dd2b2b);flex-shrink:0;transform:translateY(-1px)}
+body.dark .live-verdict{background:#0d1422;border-color:rgba(232,238,250,.12)}
+body.dark .vd-cb{background:rgba(232,238,250,.1)}
+body.dark .vd-pct{color:#f4f7ff}
+body.dark .vd-risks{border-top-color:rgba(232,238,250,.08)}
+body.dark .vd-chip{color:rgba(232,238,250,.72)}
+body.dark .vd-calc{color:rgba(232,238,250,.42)}
+body.dark .vd-calc b{color:rgba(232,238,250,.72)}
+/* —— 生成完成：光从卡片顶部「漫」下来 ——
+   参考 iPhone 靠近感应时那层氛围光：顶部一团柔光（白芯 → 淡蓝 → 更冷的蓝边）缓缓下沉、
+   同时变大变淡，下缘留一道弧形光痕，光里浮着细碎星尘。全程无硬边、没有横切直条。 */
+.stage-sweep{position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none;z-index:3;opacity:0}
+.stage-sweep.on{opacity:1}
+/* 主体光团：超大椭圆 + 大 blur，从卡片顶部外侧缓慢沉入并扩张 */
+.stage-sweep i{position:absolute;left:50%;top:-52%;width:158%;height:112%;margin-left:-79%;
+  background:radial-gradient(closest-side,
+    rgba(255,255,255,.80) 0%,rgba(234,244,255,.64) 18%,
+    rgba(188,220,255,.44) 40%,rgba(142,192,255,.27) 62%,
+    rgba(118,174,255,.12) 80%,rgba(118,174,255,0) 100%);
+  filter:blur(30px);opacity:0;will-change:transform,opacity}
+.stage-sweep.on i{animation:stageLightDown 2.9s cubic-bezier(.33,0,.22,1) .04s forwards}
+@keyframes stageLightDown{
+  0%{transform:translateY(-4%) scale(.88);opacity:0}
+  16%{opacity:1}
+  54%{transform:translateY(26%) scale(1.14);opacity:.92}
+  80%{opacity:.55}
+  100%{transform:translateY(62%) scale(1.3);opacity:0}}
+/* 弧形光痕：一个巨大椭圆的「上缘内侧」亮边——就是参考图里那圈光的轮廓 */
+.stage-sweep b{position:absolute;left:50%;top:2%;width:182%;height:100%;margin-left:-91%;
+  border-radius:50%;opacity:0;
+  box-shadow:inset 0 20px 42px -32px rgba(255,255,255,.95),inset 0 6px 18px -14px rgba(226,240,255,.8);
+  filter:blur(6px)}
+.stage-sweep.on b{animation:stageArc 2.9s cubic-bezier(.33,0,.22,1) .14s forwards}
+@keyframes stageArc{
+  0%{transform:translateY(0) scale(.93);opacity:0}
+  22%{opacity:.85}
+  62%{transform:translateY(18%) scale(1.04);opacity:.6}
+  100%{transform:translateY(40%) scale(1.12);opacity:0}}
+/* 星尘：被光带起来的细碎亮点，各自漂移、明灭后熄灭 */
+.sdust{position:absolute;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(255,255,255,1) 0%,rgba(226,240,255,.7) 40%,rgba(180,210,255,0) 74%);
+  opacity:0;will-change:transform,opacity}
+.sdust.on{animation:sdustFloat var(--du,1.8s) cubic-bezier(.4,0,.55,1) var(--dl,0s) forwards}
+@keyframes sdustFloat{
+  0%{opacity:0;transform:translate(0,0) scale(.3)}
+  20%{opacity:1}
+  66%{opacity:.8}
+  100%{opacity:0;transform:translate(var(--dx,0px),var(--dy,12px)) scale(.9)}}
+/* 深色下同一团白光会变成「白雾爆开」——改成冷蓝柔光，亮度大幅降低 */
+body.dark .stage-sweep i{
+  background:radial-gradient(closest-side,
+    rgba(190,220,255,.34) 0%,rgba(150,195,255,.26) 20%,
+    rgba(96,150,240,.16) 44%,rgba(70,120,210,.09) 66%,
+    rgba(70,120,210,0) 100%)}
+body.dark .stage-sweep b{
+  box-shadow:inset 0 20px 42px -32px rgba(190,220,255,.55),inset 0 6px 18px -14px rgba(150,195,255,.40)}
+body.dark .sdust{
+  background:radial-gradient(circle,rgba(220,238,255,.95) 0%,rgba(150,195,255,.50) 40%,rgba(120,170,255,0) 74%)}
+.live-stage.halo{animation:stageHalo 1.9s cubic-bezier(.4,0,.3,1)}
+@keyframes stageHalo{
+  0%,100%{box-shadow:0 1px 2px rgba(8,13,24,.04),0 22px 50px -26px rgba(8,32,90,.24),0 0 0 0 rgba(72,150,255,0)}
+  42%{box-shadow:0 1px 2px rgba(8,13,24,.04),0 22px 50px -26px rgba(8,32,90,.24),
+    0 0 0 .5px rgba(72,150,255,.16),0 0 68px -12px rgba(46,139,255,.38)}}
+/* 焦点切换也放软：非焦点元素慢慢退后，不要一眼看出的硬跳 */
+.live-pane,.live-tree,#liveVerdict{transition:opacity .75s cubic-bezier(.4,0,.2,1)}
+.live-stage[data-focus="think"] .live-pane.answer,
+.live-stage[data-focus="think"] #liveVerdict{opacity:.3}
+.live-stage[data-focus="answer"] .live-pane.reason{opacity:.35}
+.live-stage[data-focus="tree"] .live-body,
+.live-stage[data-focus="verdict"] .live-body{opacity:.62}
+.live-stage[data-focus="tree"] #liveVerdict{opacity:.3}
+.live-stage[data-focus="verdict"] .live-tree{opacity:.32}
 /* neuron 节点弹入：跳跃点掉落后逐个变成网络节点 */
 .lt-net .lt-pop{opacity:0;transform-box:fill-box;transform-origin:center;animation:nodeIn .5s cubic-bezier(.34,1.56,.64,1) forwards}
+/* Q 从球的落位处"滚出来"：左侧滚入 + 旋转 + 轻微过冲回正 */
+@keyframes qRollIn{0%{opacity:0;transform:translateX(-30px) rotate(-150deg) scale(.35)}55%{opacity:1;transform:translateX(4px) rotate(16deg) scale(1.09)}100%{opacity:1;transform:translateX(0) rotate(0) scale(1)}}
+.lt-net .lt-qroll{opacity:0;transform-box:fill-box;transform-origin:center;animation:qRollIn .62s cubic-bezier(.25,.7,.3,1) forwards}
 @keyframes nodeIn{from{opacity:0;transform:translateY(-46px) scale(.35)}to{opacity:1;transform:none}}
 .lt-empty{font-size:11.5px;color:var(--faint);font-family:var(--mono)}
 /* 神经网络图：Q → 隐层节点 → A，虚线流动=信号在算 */
@@ -712,17 +865,62 @@ body.dark .lt-bar-track{background:rgba(232,238,250,.1)}
 .lt-wait{opacity:0}
 /* 飞行点：从思考轨迹的跳跃点位置起飞，落入 neuron 节点位置 */
 #flyLayer{position:fixed;inset:0;pointer-events:none;z-index:96}
-.fly-dot{position:fixed;width:10px;height:10px;border-radius:50%;pointer-events:none;
-  background:currentColor;box-shadow:0 0 14px -1px currentColor,0 1px 3px rgba(8,13,24,.25)}
-.fly-ripple{position:fixed;width:26px;height:26px;border:2px solid #d6a413;border-radius:50%;
-  pointer-events:none;animation:flyRipple .55s ease-out forwards}
-@keyframes flyRipple{from{transform:scale(.35);opacity:.95}to{transform:scale(2.8);opacity:0}}
+/* 出场：能量先在锚点凝成一团柔光，再从中析出微点与小球——不是凭空冒出来 */
+.fly-mist{position:fixed;width:150px;height:150px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(186,218,255,.34) 0%,rgba(110,168,255,.14) 40%,rgba(110,168,255,0) 70%);
+  filter:blur(16px);opacity:0;transform:scale(.5);
+  animation:mistIn .95s cubic-bezier(.22,.61,.36,1) forwards}
+@keyframes mistIn{0%{opacity:0;transform:scale(.45)}55%{opacity:.9}100%{opacity:.8;transform:scale(1)}}
+.fly-mist.out{animation:mistOut .8s cubic-bezier(.4,0,.3,1) forwards}
+@keyframes mistOut{from{opacity:.8;transform:scale(1)}to{opacity:0;transform:scale(1.4)}}
+body.dark .fly-mist{background:radial-gradient(circle,rgba(200,226,255,.28) 0%,rgba(96,156,255,.12) 40%,rgba(96,156,255,0) 70%)}
+/* 小球：玻璃质感——通透的球体（中心几乎透明）、Fresnel 边缘折射变暗、
+   左上镜面高光、底部环境透光、内壁受光/背光两道反光，外缘一圈亮线保证白底可读 */
+.fly-dot{position:fixed;width:10px;height:10px;border-radius:50%;pointer-events:none;will-change:transform;
+  background:
+    radial-gradient(circle at 28% 20%,rgba(255,255,255,1) 0,rgba(255,255,255,.78) 4%,rgba(255,255,255,.22) 12%,rgba(255,255,255,0) 28%),
+    radial-gradient(circle at 52% 97%,rgba(238,248,255,.92) 0,rgba(200,226,255,.45) 15%,rgba(180,210,255,0) 36%),
+    radial-gradient(circle at 74% 76%,rgba(146,183,238,.26) 0,rgba(146,183,238,0) 33%),
+    radial-gradient(circle at 46% 40%,rgba(255,255,255,.12) 0%,rgba(228,240,253,.20) 44%,
+      rgba(170,200,238,.44) 76%,rgba(104,142,194,.64) 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.9),
+    inset 2px 3px 7px rgba(255,255,255,.85),
+    inset -4px -5px 10px rgba(96,132,182,.42),
+    0 0 0 1px rgba(146,178,220,.28),
+    0 5px 14px -5px rgba(16,38,80,.42)}
+/* 深色主题：深底上的玻璃球——边缘亮线更冷、内部透出环境蓝光 */
+body.dark .fly-dot{
+  background:
+    radial-gradient(circle at 28% 18%,rgba(255,255,255,1) 0,rgba(255,255,255,.86) 5%,rgba(255,255,255,.24) 15%,rgba(255,255,255,0) 32%),
+    radial-gradient(circle at 52% 96%,rgba(206,232,255,.88) 0,rgba(150,195,255,.36) 17%,rgba(150,195,255,0) 38%),
+    radial-gradient(circle at 72% 76%,rgba(126,176,240,.3) 0,rgba(126,176,240,0) 35%),
+    radial-gradient(circle at 46% 38%,rgba(216,236,255,.24) 0,rgba(142,182,236,.30) 50%,
+      rgba(84,124,184,.55) 80%,rgba(38,68,118,.72) 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(222,238,255,.7),
+    inset 2px 3px 8px rgba(255,255,255,.55),
+    inset -4px -5px 12px rgba(18,42,86,.62),
+    0 0 18px -2px rgba(150,200,255,.32),
+    0 6px 16px -6px rgba(0,0,0,.7)}
+.fly-ripple{position:fixed;width:26px;height:26px;border:1px solid rgba(226,236,252,.4);border-radius:50%;
+  pointer-events:none;animation:flyRipple .75s cubic-bezier(.25,.5,.35,1) forwards}
+/* 球面上的两个小标记——球滚动时它们跟着转，肉眼能读出「滚动」而不是「平移」 */
+.fly-spin{position:absolute;inset:0;border-radius:50%;overflow:hidden;pointer-events:none}
+.fly-spin::before{content:'';position:absolute;left:50%;top:16%;width:22%;height:22%;margin-left:-11%;border-radius:50%;
+  background:rgba(255,255,255,.5)}
+.fly-spin::after{content:'';position:absolute;left:50%;bottom:14%;width:32%;height:1.5px;margin-left:-16%;border-radius:2px;
+  background:rgba(255,255,255,.26)}
+body.dark .fly-spin::before{background:rgba(22,34,58,.3)}
+body.dark .fly-spin::after{background:rgba(22,34,58,.18)}
+@keyframes flyRipple{0%{transform:scale(.3);opacity:0}20%{opacity:.7}100%{transform:scale(2.9);opacity:0}}
 /* resize 等重建场景直接呈现，不再走飞入编排 */
 .lt-instant .lt-wait{opacity:1!important}
 .lt-instant .lt-pop{animation:none!important;opacity:1!important}
+.lt-instant .lt-qroll{animation:none!important;opacity:1!important}
 @keyframes ltFlow{to{stroke-dashoffset:-20}}
 @keyframes edgeIn{from{opacity:0}to{opacity:1}}
-@media (prefers-reduced-motion:reduce){.lt-edge{animation:none}.lt-pop{animation:none;opacity:1}.lt-bar-fill{animation:none}.lt-wait{opacity:1}.fly-dot{display:none}}
+@media (prefers-reduced-motion:reduce){.lt-edge{animation:none}.lt-pop{animation:none;opacity:1}.lt-qroll{animation:none;opacity:1}.lt-bar-fill{animation:none}.lt-wait{opacity:1}.fly-dot{display:none}}
 /* 五色色卡：红敏感 · 橙警告 · 黄预警 · 绿健康 · 蓝正常 */
 .live-ledger{margin-top:14px;padding-top:12px;border-top:1px solid var(--hair2);font-family:var(--mono);
   font-size:9.5px;letter-spacing:.1em;color:var(--faint);text-transform:uppercase;line-height:1.7}
@@ -739,6 +937,36 @@ body.dark .lt-bar-track{background:rgba(232,238,250,.1)}
   .live-chips .chip{font-size:12px;padding:8px 11px}
   .lt-bar-lab{width:78px;font-size:9px}
   .lt-bar-n{width:20px}
+
+  /* 最后一页在手机上没有横向空间：允许整页纵向滚动，别把内容裁掉 */
+  .scene.scene-live{overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+    justify-content:flex-start;padding-top:calc(56px + env(safe-area-inset-top))}
+  /* 顶栏 HUD 是 fixed 的，kicker 会和它压在一起——手机上去掉这行标签 */
+  .scene.scene-live .kicker{display:none}
+  .scene.scene-live .wrap{margin:0 auto;padding-bottom:14px}
+  /* 神经网络图在 420px 上只会剩一条空带，占掉 190px 高——收起来 */
+  .scene.scene-live .live-tree{display:none!important}
+  .scene.scene-live .title{font-size:26px;line-height:1.18}
+  .scene.scene-live .sub{font-size:14.5px;margin-top:10px}
+
+  /* 裁决条改成两行栅格：笑脸在左跨两行，标题在右，信心条独占一行
+     ——否则 17px 标题会被挤成「Do / not / adopt / as-is」一列 */
+  .vd-main{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;
+    align-items:center;padding:12px 14px 8px}
+  .vd-face{grid-row:1/3;width:38px;height:38px}
+  .vd-txt{grid-column:2;min-width:0}
+  .vd-k{font-size:9px;margin-bottom:2px}
+  .vd-l{font-size:15.5px;line-height:1.25}
+  .vd-conf{grid-column:1/-1;display:flex;align-items:center;gap:10px;margin-top:2px}
+  .vd-cb{flex:1 1 auto;width:auto}
+  .vd-pct{min-width:auto;font-size:19px}
+  .vd-calc{padding:0 14px 6px;font-size:9px;gap:8px}
+  .vd-risks{padding:7px 14px}
+
+  /* 落球 / AirDrop 的爆闪是 position:fixed 的装饰，
+     小屏上会整块盖住内容，直接不画 */
+  .ad-core,.ad-halo,.ad-ring,.ad-absorb,.ad-spark,
+  .fly-dot,.fly-mist{display:none!important}
 }
 /* ---------- 深色模式 ---------- */
 body.dark{
@@ -819,6 +1047,551 @@ body.dark .live-pane .hl-safe{color:#8ee8c5}
 .mech{border-radius:14px;overflow:hidden}
 .verdict{border-radius:10px}
 .demo-stage .pick-mark{margin-left:auto}
+
+/* ============================================================
+   全站玻璃风 + 统一色卡（统一覆盖层，放样式表末尾）
+   玻璃 = 半透明底 + 背后模糊 + 1px 亮边/内高光 + 柔阴影。
+   关键前提：页面得有「可透」的底纹，纯白/纯黑背景下模糊不出来，
+   所以同时给 body 加三团极淡的蓝灰环境光斑。
+   ============================================================ */
+/* @property：鼠标位置变量可平滑过渡——高光是「游」过去，不是跳过去 */
+@property --mx{syntax:'<percentage>';inherits:false;initial-value:12%}
+@property --my{syntax:'<percentage>';inherits:false;initial-value:-14%}
+:root{
+  /* 拟物液态玻璃（按 Figma 教程参数复刻）：
+     ① 极淡蓝→粉→白线性渐变底（几乎不透明，所以边界清楚、不糊）
+     ② 1px 纯白内阴影（X1 Y1 Blur1）+ 10% 黑内阴影（厚度）
+     ③ 3px 渐变描边环（左上 #D6E4F2 → 右下 #FEF0FD）由伪元素实现
+     ④ 两团彩色模糊投影（蓝 #EDF8FC / 粉 #FCF5FD）+ 双层柔阴影
+     —— 关键：不靠大 backdrop blur，靠精确光影堆叠，才不会「贴塑料片」 */
+  --glass-1:linear-gradient(135deg,#EBF2FA 0%,#F8F3FF 72%,#FFFFFF 100%);
+  --glass-2:linear-gradient(135deg,#EDF4FB 0%,#F9F5FE 72%,#FFFFFF 100%);
+  --glass-brd:rgba(216,229,243,.92);
+  --glass-in:
+    inset 1px 1px 1px rgba(255,255,255,1),
+    inset -1px -1px 1px rgba(140,160,195,.10),
+    inset 0 1px 1px rgba(0,0,0,.055);
+  /* 阴影全部「无横向偏移」：教程里的彩色模糊圆是藏在玻璃背后的，
+     带偏移的 box-shadow 硬模拟会变成两块脏斑——改成均匀光晕 + 居中柔阴影 */
+  --glass-sh:
+    0 0 0 1px rgba(190,205,225,.16),
+    0 1px 3px rgba(35,48,80,.045),
+    0 16px 38px -22px rgba(35,48,80,.20),
+    0 0 40px -18px rgba(180,205,235,.22);
+  --glass-blur:blur(8px) saturate(1.05);
+  /* hover：不换颜色，只「迎光」——高光更强、内阴影更立体、彩晕更亮 */
+  --glass-in-h:
+    inset 1px 1px 1px rgba(255,255,255,1),
+    inset -1px -1px 1px rgba(120,150,195,.18),
+    inset 0 2px 2px rgba(0,0,0,.085);
+  --glass-sh-h:
+    0 0 0 1px rgba(170,195,225,.22),
+    0 2px 5px rgba(35,48,80,.06),
+    0 22px 46px -24px rgba(35,48,80,.26),
+    0 0 48px -18px rgba(180,205,235,.30);
+}
+body.dark{
+  /* 深色玻璃：跟页面同一条海军蓝（不要发紫），并保留极淡的贯穿光 */
+  --glass-1:
+    linear-gradient(116deg,rgba(190,215,255,0) 40%,rgba(190,215,255,.07) 51%,rgba(190,215,255,.02) 60%,rgba(190,215,255,0) 70%),
+    linear-gradient(135deg,rgba(120,165,225,.10) 0%,rgba(96,130,190,.04) 34%,rgba(0,0,0,0) 62%,rgba(0,0,0,.16) 100%),
+    linear-gradient(135deg,#1A2440 0%,#1E2742 64%,#131C30 100%);
+  --glass-2:
+    linear-gradient(135deg,#212D4C 0%,#253052 64%,#182238 100%);
+  --glass-brd:rgba(190,214,255,.14);
+  --glass-in:
+    inset 1px 1px 1px rgba(225,240,255,.22),
+    inset -1px -1px 1px rgba(0,0,0,.50),
+    inset 0 1px 1px rgba(0,0,0,.35);
+  --glass-sh:
+    0 0 0 1px rgba(140,180,240,.10),
+    0 1px 3px rgba(0,0,0,.35),
+    0 18px 40px -22px rgba(0,0,0,.70),
+    0 0 44px -18px rgba(70,120,200,.20);
+  --glass-blur:blur(10px) saturate(1.10);
+  --glass-in-h:
+    inset 1px 1px 1px rgba(240,250,255,.34),
+    inset -1px -1px 1px rgba(0,0,0,.60),
+    inset 0 2px 2px rgba(0,0,0,.45);
+  --glass-sh-h:
+    0 0 0 1px rgba(160,200,255,.18),
+    0 2px 5px rgba(0,0,0,.45),
+    0 24px 48px -24px rgba(0,0,0,.82),
+    0 0 52px -20px rgba(90,150,230,.26);
+}
+/* 3px 渐变描边环：液态玻璃最关键的「边缘折射」。
+   mask-composite 只保留环带，中间完全透明，不吃卡片内容 */
+.demo-stage,.live-stage,.live-verdict,.cd-panel,.fact{position:relative}
+.demo-stage::after,.live-stage::after,.live-verdict::after,.cd-panel::after,.fact::after{
+  content:'';position:absolute;inset:0;border-radius:inherit;padding:3px;z-index:2;
+  background:linear-gradient(135deg,#D6E4F2 0%,#EFEAF8 46%,#FEF0FD 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  mask-composite:exclude;
+  pointer-events:none;opacity:.78}
+body.dark .demo-stage::after,body.dark .live-stage::after,body.dark .live-verdict::after,
+body.dark .cd-panel::after,body.dark .fact::after{
+  background:linear-gradient(135deg,rgba(150,195,255,.55) 0%,rgba(190,170,230,.35) 46%,rgba(255,205,235,.45) 100%);
+  opacity:.55}
+/* 大圆角是液态玻璃的骨架：圆角不够，玻璃会像「贴了张透明纸」 */
+.demo-stage{border-radius:22px}
+.live-stage{border-radius:26px}
+.live-pane,.live-verdict{border-radius:18px}
+/* 参考底色：接近纯白的极亮底，只在四角留极淡的冷蓝/暖粉环境光，中心几乎纯白。
+   没有点阵、没有网格、没有灰雾——玻璃白卡才能「浮」在干净的亮底上 */
+body{background-color:#F7F7F9;
+  /* 纯色底：不要点阵、不要彩色光晕——玻璃才是页面里唯一有颜色的东西 */
+  background-image:none}
+body.dark{background-color:#0A0E18;
+  background-image:
+    radial-gradient(1100px 620px at 12% -12%,rgba(58,98,178,.26),transparent 66%),
+    radial-gradient(900px 560px at 92% 8%,rgba(48,86,158,.20),transparent 64%),
+    radial-gradient(1000px 760px at 50% 112%,rgba(40,72,140,.18),transparent 72%);
+  background-size:100% 100%,100% 100%,100% 100%}
+/* ① 全站卡片/面板/按钮统一玻璃表面
+   第一层是「跟随鼠标的高光」：鼠标移到哪，玻璃那里就亮一点——
+   这是真实玻璃在环境光下的反应，也是 hover 唯一该变的东西 */
+.demo-stage,.cd-panel,.wb-invite,.hyp,.fact,.verdict,
+.choice-btn,.tool-btn,.predict-btn,.hud-btn,.badge,.chip,
+.live-stage,.live-pane,.live-verdict,.live-chips .chip,.live-input input,.live-note,
+#wb,#notes,#tip{
+  background:
+    radial-gradient(230px 175px at var(--mx) var(--my),rgba(255,255,255,.58),transparent 74%),
+    var(--glass-2);
+  border-color:var(--glass-brd);
+  box-shadow:var(--glass-in),var(--glass-sh);
+  -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
+  transition:--mx .32s ease,--my .32s ease,box-shadow .34s ease,filter .34s ease;
+}
+.demo-stage,.live-stage,#wb{
+  background:
+    radial-gradient(300px 215px at var(--mx) var(--my),rgba(255,255,255,.48),transparent 74%),
+    var(--glass-1);
+}
+/* .mech 用 background 画 1px 分隔线，不能整体换底 → 只玻璃化它的格子 */
+.mech{background:var(--glass-brd);border-color:var(--glass-brd);box-shadow:var(--glass-sh);
+  -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur)}
+.mech>div{background:var(--glass-2);
+  -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur)}
+/* ② 状态类：背景拉回玻璃，边框/文字色继续承担反馈 */
+.choice-btn.picked,.predict-btn.picked,.cd-panel.urgent,.live-pane.answer.done,
+.choice-btn.picked.ok,.choice-btn.picked.bad,.demo-stage:hover{background:var(--glass-2)}
+/* ③ 深色主题里优先级更高的旧规则，同步玻璃化 */
+body.dark .tool-btn,body.dark .choice-btn,body.dark .chip,body.dark .live-chips .chip,
+body.dark .predict-btn,body.dark .demo-stage,body.dark .live-stage,body.dark .live-input input,
+body.dark .live-pane,body.dark .live-pane.answer,body.dark .live-verdict,
+body.dark .badge,body.dark #tip,body.dark .mech>div{
+  background:var(--glass-2);border-color:var(--glass-brd);
+  -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur)}
+body.dark .demo-stage,body.dark .live-stage{background:var(--glass-1)}
+body.dark .choice-btn.picked{background:var(--glass-2)}
+body.dark .mech{background:var(--glass-brd)}
+
+/* ---- 统一色卡：彩色只做「细线索」，不做色块 ---- */
+/* 句子高亮：2px 细色条 + 7% 淡底，文字回墨色，四种彩不再互相抢 */
+.live-pane .hl-risk,.live-pane .hl-warn,.live-pane .hl-caution,.live-pane .hl-safe{
+  color:var(--ink);font-weight:600;border-radius:0 3px 3px 0;padding:0 4px}
+.live-pane .hl-risk{background:rgba(176,106,104,.075);box-shadow:inset 2px 0 0 rgba(176,106,104,.65)}
+.live-pane .hl-warn{background:rgba(189,143,97,.075);box-shadow:inset 2px 0 0 rgba(189,143,97,.65)}
+.live-pane .hl-caution{background:rgba(171,151,95,.075);box-shadow:inset 2px 0 0 rgba(171,151,95,.65)}
+.live-pane .hl-safe{background:rgba(92,151,127,.075);box-shadow:inset 2px 0 0 rgba(92,151,127,.65)}
+body.dark .live-pane .hl-risk,body.dark .live-pane .hl-warn,
+body.dark .live-pane .hl-caution,body.dark .live-pane .hl-safe{color:var(--ink)}
+/* 顶部渐变条 / 焦点圆点 / 输入焦点：统一到单一主蓝 */
+.live-stage::before{background:linear-gradient(90deg,transparent,rgba(74,114,196,.55) 30%,rgba(74,114,196,.78) 50%,rgba(74,114,196,.55) 70%,transparent)}
+.live-pane .lp-k::before{background:#4a72c4;box-shadow:0 0 0 3px rgba(74,114,196,.14)}
+.live-pane.answer .lp-k::before{background:#5c977f;box-shadow:0 0 0 3px rgba(92,151,127,.14)}
+.live-input input:focus{border-color:rgba(74,114,196,.6);box-shadow:0 0 0 4px rgba(74,114,196,.10)}
+.live-chips .chip:hover{border-color:rgba(74,114,196,.55);color:#3a5a9e;box-shadow:0 4px 12px -4px rgba(74,114,196,.3)}
+/* 主按钮是全页唯一保留的饱和焦点，但也降到同一明度档 */
+.live-input .tool-btn,.tool-btn.primary{color:#fff;
+  background:linear-gradient(135deg,#5b82cf,#3f66b4);
+  box-shadow:0 6px 16px -6px rgba(63,102,180,.5),inset 0 1px 0 rgba(255,255,255,.25)}
+.live-input .tool-btn:hover{box-shadow:0 10px 24px -8px rgba(63,102,180,.55)}
+body.dark .tool-btn.primary,body.dark .live-input .tool-btn{
+  background:linear-gradient(135deg,#5b82cf,#3f66b4)}
+/* 语义色同步降饱和 */
+.live-check circle,.live-check path{stroke:#4f8f75}
+.live-check circle{fill:rgba(79,143,117,.09)}
+.vd-face.yes{color:#4f8f75}
+.vd-face.no{color:#b06a68}
+.live-pane.answer.done{border-color:rgba(79,143,117,.5);box-shadow:0 0 0 4px rgba(79,143,117,.08)}
+.live-note{color:#7a6644;background:rgba(160,140,100,.10);border-color:rgba(160,140,100,.3)}
+body.dark .live-note{color:#d8c4a2;background:rgba(150,130,95,.16);border-color:rgba(150,130,95,.35)}
+
+/* ---- hover：玻璃「迎光」，而不是换颜色 ----
+   旧规则把玻璃胶囊变成实心蓝（很突兀）。现在只做三件事：
+   高光更强并跟着鼠标、内折射更深、边缘更清晰——色相一点不动。 */
+.demo-stage:hover,.cd-panel:hover,.wb-invite:hover,.hyp:hover,.fact:hover,.verdict:hover,
+.choice-btn:hover,.tool-btn:hover,.predict-btn:hover,.hud-btn:hover,.badge:hover,.chip:hover,
+.live-chips .chip:hover,.live-pane:hover,.live-verdict:hover,.wb-x:hover{
+  background:
+    radial-gradient(270px 200px at var(--mx) var(--my),rgba(255,255,255,.78),transparent 74%),
+    var(--glass-2);
+  border-color:var(--glass-brd);color:var(--ink);
+  box-shadow:var(--glass-in-h),var(--glass-sh-h);
+  filter:brightness(1.018);
+}
+.demo-stage:hover{
+  background:
+    radial-gradient(340px 240px at var(--mx) var(--my),rgba(255,255,255,.66),transparent 74%),
+    var(--glass-1);
+}
+body.dark .demo-stage:hover,body.dark .cd-panel:hover,body.dark .wb-invite:hover,
+body.dark .hyp:hover,body.dark .fact:hover,body.dark .verdict:hover,
+body.dark .choice-btn:hover,body.dark .tool-btn:hover,body.dark .predict-btn:hover,
+body.dark .hud-btn:hover,body.dark .badge:hover,body.dark .chip:hover,
+body.dark .live-chips .chip:hover,body.dark .live-pane:hover,
+body.dark .live-verdict:hover,body.dark .wb-x:hover{
+  background:
+    radial-gradient(270px 200px at var(--mx) var(--my),rgba(220,235,255,.17),transparent 74%),
+    var(--glass-2);
+  border-color:var(--glass-brd);color:var(--ink);
+  box-shadow:var(--glass-in-h),var(--glass-sh-h);filter:none;
+}
+body.dark .demo-stage:hover{
+  background:
+    radial-gradient(340px 240px at var(--mx) var(--my),rgba(220,235,255,.14),transparent 74%),
+    var(--glass-1);
+}
+/* 主按钮是唯一保留饱和度的控件：hover 只加一层光，不翻成玻璃白 */
+.live-input .tool-btn:hover,.tool-btn.primary:hover{
+  background:linear-gradient(135deg,#6489d4,#4468b6);color:#fff;
+  box-shadow:0 10px 24px -8px rgba(63,102,180,.55),inset 0 1px 0 rgba(255,255,255,.32);
+  filter:none}
+body.dark .tool-btn.primary:hover{background:linear-gradient(135deg,#6489d4,#4468b6)}
+
+/* ---- 思考时：玻璃边框的光追巡游 + 表面一道柔光缓缓流过 ----
+   光不是「亮一下」，而是持续在玻璃上流动，眼睛能跟着它走 */
+.reason-wrap{isolation:isolate}
+.reason-wrap::before{z-index:3;padding:2px;filter:blur(.35px)}
+.reason-wrap.beam::before{opacity:1;animation:bvSpin 2.8s linear infinite}
+.reason-wrap::after{
+  content:'';position:absolute;inset:1px;border-radius:17px;pointer-events:none;z-index:0;
+  background:linear-gradient(104deg,transparent 34%,rgba(255,255,255,.40) 46%,
+    rgba(205,228,255,.28) 52%,transparent 65%);
+  background-size:280% 100%;background-position:170% 0;opacity:0;
+  transition:opacity .6s ease}
+.reason-wrap.beam::after{opacity:.6;animation:glassFlow 3.4s cubic-bezier(.45,0,.45,1) infinite}
+@keyframes glassFlow{0%{background-position:170% 0}100%{background-position:-70% 0}}
+.reason-wrap .live-pane{position:relative;z-index:1}
+
+/* ============================================================
+   玻璃质感重做 · 严格按 Figma 教程参数（IMG_9861–9867）
+   ------------------------------------------------------------
+   ① 底色渐变 #EBF2FA → #F8F3FF → #FFFFFF，1px 纯白内阴影(X1 Y1 Blur1)
+   ② 阴影用 Layer blur 思路：白色柔光 + 极弱接触影，绝不用灰黑脏斑
+   ③ 玻璃背后两团彩色柔光：蓝 #EDF8FC、粉 #FCF5FD（blur 30）
+   ④ Figma Glass：Refraction 80 / Depth 20 / Dispersion 50 / Frost 60
+      → backdrop blur+saturate，渐变透明度 20%，3px 描边 #D6E4F2→#FEF0FD
+   ⑤ 1px 纯白投影(X0 Y1 Blur1 100%) + 内阴影(Y1 Blur1 黑 10%)
+   ⑥ 光从左上「打下来」：表面必须有方向性入射光，而不是均匀一块白
+   ============================================================ */
+:root{
+  /* ── 液态玻璃 · 严格照教程分层（IMG_9861→9867）─────────────────
+     教程的真实结构（从后往前）：
+       ① 两个 110px 彩色圆 #EDF8FC / #FCF5FD，Layer blur 30
+          → 颜色在玻璃「背后」，只从边缘透出来；表面不涂色
+       ② 170px 黑圆，Progressive blur 20→40，偏右下 → 真正的投影
+       ③ 120px 白圆，Progressive blur 10→30，偏左上 → 环境反光，把玻璃托起来
+       ④ 玻璃层：Figma Glass（光 -45° / 强度 80 / Refraction 80 / Depth 20 /
+          Dispersion 50 / Frost 60），填充透明度只有 20%，3px 描边 #D9E4F2→#FEF9FD
+       ⑤ 面孔渐变 #EBF2FA 0% → #F8F3FF 75% → #FFFFFF 100% + 1px 纯白内阴影
+       ⑥ 1px 纯白投影 + 1px 黑内阴影 = 玻璃厚度
+     → 结论：玻璃几乎是「透明」的，你看到的白/冷/暖，全是背后被模糊的光。
+       之前把表面刷成不透明白，所以永远像塑料片。 */
+
+  /* 面孔：近透明。左上偏冷 → 中间透白 → 右下偏暖，这就是「光贯穿」 */
+  --glass-surface:
+    /* 「光贯穿」：一条极淡的高光斜带从左上穿过卡面到右下 */
+    linear-gradient(116deg,rgba(255,255,255,0) 40%,rgba(255,255,255,.30) 51%,rgba(255,255,255,.05) 60%,rgba(255,255,255,0) 70%),
+    linear-gradient(135deg,
+      rgba(226,239,251,.52) 0%,
+      rgba(244,241,252,.32) 26%,
+      rgba(255,255,255,.16) 52%,
+      rgba(254,243,251,.30) 78%,
+      rgba(255,255,255,.42) 100%),
+    linear-gradient(180deg,
+      rgba(255,255,255,.20) 0%,
+      rgba(255,255,255,.06) 46%,
+      rgba(255,255,255,.14) 100%);
+  /* 内部小件：更薄，字不被白雾蒙住 */
+  --glass-surface-soft:
+    linear-gradient(135deg,
+      rgba(232,243,252,.44) 0%,
+      rgba(249,246,253,.26) 50%,
+      rgba(255,255,255,.20) 100%),
+    linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.10));
+  --glass-brd:rgba(212,227,244,.55);
+
+  /* 鼠标迎光 */
+  --glass-spot:rgba(255,255,255,.38);
+  --glass-spot-h:rgba(255,255,255,.60);
+
+  /* 外阴影（中性）：1px 白投影 + 左上白反光 + 右下大范围柔影 */
+  --glass-sh:
+    0 1px 1px rgba(255,255,255,.98),
+    -6px -8px 18px -12px rgba(255,255,255,.92),
+    8px 14px 26px -14px rgba(58,74,104,.22),
+    18px 30px 54px -30px rgba(58,74,104,.18);
+  --glass-sh-h:
+    0 1px 1px rgba(255,255,255,1),
+    -9px -12px 26px -12px rgba(255,255,255,1),
+    11px 18px 32px -14px rgba(58,74,104,.26),
+    24px 40px 66px -30px rgba(58,74,104,.22);
+  /* 彩色光晕：教程①的两个彩色圆从边缘透出来——只给「大玻璃」用，
+     小按钮不铺光晕，否则满屏彩色很花 */
+  --glass-glow:
+    -15px 3px 40px -16px rgba(160,212,245,.48),
+    15px 3px 42px -16px rgba(247,203,236,.44);
+  --glass-glow-h:
+    -19px 4px 50px -16px rgba(160,212,245,.60),
+    19px 4px 52px -16px rgba(247,203,236,.56);
+
+  /* 内阴影 = 玻璃厚度：上缘 1px 纯白、下缘 1px 极淡暗线（绝不能发灰） */
+  --glass-in:
+    inset 0 1px 1px rgba(255,255,255,1),
+    inset 1px 0 1px rgba(255,255,255,.85),
+    inset 0 -1px 1px rgba(96,106,126,.07),
+    inset 0 2px 6px -4px rgba(255,255,255,.92);
+  --glass-in-h:
+    inset 0 1px 1px rgba(255,255,255,1),
+    inset 1px 0 1px rgba(255,255,255,.95),
+    inset 0 -1px 1px rgba(96,106,126,.10),
+    inset 0 3px 9px -4px rgba(255,255,255,1);
+
+  --glass-blur:blur(18px) saturate(1.55);
+}
+body.dark{
+  --glass-surface:
+    /* 深色下「贯穿光」减弱成极淡的冷光带，不能是一道白雾 */
+    linear-gradient(116deg,rgba(190,215,255,0) 40%,rgba(190,215,255,.07) 51%,rgba(190,215,255,.02) 60%,rgba(190,215,255,0) 70%),
+    linear-gradient(135deg,
+      rgba(120,165,225,.10) 0%,
+      rgba(96,130,190,.04) 34%,
+      rgba(0,0,0,0) 62%,
+      rgba(0,0,0,.16) 100%),
+    linear-gradient(135deg,#1A2440 0%,#1E2742 64%,#131C30 100%);
+  --glass-surface-soft:
+    linear-gradient(135deg,rgba(255,255,255,.08) 0%,rgba(255,255,255,0) 50%,rgba(0,0,0,.12) 100%),
+    linear-gradient(135deg,rgba(30,42,66,.72) 0%,rgba(37,32,56,.68) 72%,rgba(20,28,46,.72) 100%);
+  --glass-spot:rgba(220,235,255,.14);
+  --glass-spot-h:rgba(220,235,255,.22);
+  --glass-brd:rgba(180,206,246,.16);
+  --glass-glow:
+    -15px 3px 44px -18px rgba(70,130,210,.34),
+    15px 3px 44px -18px rgba(150,110,200,.26);
+  --glass-glow-h:
+    -19px 4px 54px -18px rgba(80,145,225,.44),
+    19px 4px 54px -18px rgba(165,120,215,.34);
+  --glass-sh:
+    0 1px 1px rgba(255,255,255,.10),
+    0 2px 4px rgba(0,0,0,.34),
+    7px 12px 28px -14px rgba(0,0,0,.58);
+  --glass-sh-h:
+    0 1px 1px rgba(255,255,255,.16),
+    0 3px 5px rgba(0,0,0,.45),
+    9px 15px 34px -16px rgba(0,0,0,.66);
+  --glass-in:
+    inset 1px 1px 1px rgba(225,240,255,.22),
+    inset -1px -1px 1px rgba(0,0,0,.50),
+    inset 0 1px 1px rgba(0,0,0,.35),
+    inset 0 3px 8px -3px rgba(225,240,255,.16),
+    inset 0 -3px 8px -3px rgba(0,0,0,.30);
+  --glass-in-h:
+    inset 1px 1px 1px rgba(240,250,255,.34),
+    inset -1px -1px 1px rgba(0,0,0,.60),
+    inset 0 2px 2px rgba(0,0,0,.45),
+    inset 0 4px 10px -3px rgba(240,250,255,.20),
+    inset 0 -4px 10px -3px rgba(0,0,0,.36);
+  --glass-blur:blur(16px) saturate(1.30);
+}
+
+/* ① 统一玻璃表面：入射光 + 鼠标迎光 + 本色渐变 */
+.demo-stage,.cd-panel,.wb-invite,.hyp,.fact,.verdict,
+.choice-btn,.tool-btn,.predict-btn,.hud-btn,.badge,.chip,
+.live-stage,.live-pane,.live-verdict,.live-chips .chip,.live-input input,.live-note,
+#wb,#notes,#tip{
+  background:
+    radial-gradient(230px 175px at var(--mx) var(--my),var(--glass-spot),transparent 74%),
+    var(--glass-surface);
+  border-color:var(--glass-brd);
+  box-shadow:var(--glass-in),var(--glass-sh);
+  -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
+  transition:--mx .32s ease,--my .32s ease,box-shadow .34s ease;
+}
+.demo-stage,.live-stage,#wb,.live-verdict{
+  background:
+    radial-gradient(300px 215px at var(--mx) var(--my),var(--glass-spot),transparent 74%),
+    var(--glass-surface);
+  /* 只有「大玻璃」才带教程①的彩色光晕：蓝在左、粉在右，从边缘透出 */
+  box-shadow:var(--glass-in),var(--glass-sh),var(--glass-glow);
+}
+/* 内部小件（froze 的子面板/输入框/胶囊）用更透的一版，字不被白雾蒙住 */
+.live-pane,.live-input input,.live-chips .chip,.choice-btn,.tool-btn,.predict-btn,
+.hud-btn,.badge,.chip,.live-note,.live-verdict{
+  background:
+    radial-gradient(230px 175px at var(--mx) var(--my),var(--glass-spot),transparent 74%),
+    var(--glass-surface-soft);
+}
+/* 小胶囊 / HUD：玻璃要「看得见」——底略白、折射边略强、字回墨色，
+   否则过半透明会把按钮做成「空气」，功能就没了 */
+.hud-btn,.badge,.chip,.live-chips .chip{
+  color:rgba(8,13,24,.74);
+  border-color:rgba(196,213,234,.88);
+  background:
+    radial-gradient(160px 120px at var(--mx) var(--my),rgba(255,255,255,.58),transparent 72%),
+    linear-gradient(135deg,rgba(255,255,255,.62) 0%,rgba(255,255,255,.42) 100%);
+  box-shadow:
+    0 1px 1px rgba(255,255,255,.96),
+    0 1px 2px rgba(58,74,104,.05),
+    0 6px 16px -10px rgba(58,74,104,.22),
+    inset 0 1px 1px rgba(255,255,255,1),
+    inset 0 -1px 1px rgba(96,106,126,.05);
+}
+body.dark .hud-btn,body.dark .badge,body.dark .chip,body.dark .live-chips .chip{
+  color:rgba(228,238,252,.74);
+  border-color:rgba(170,200,244,.22);
+  background:linear-gradient(135deg,rgba(255,255,255,.10),rgba(255,255,255,.04));
+}
+/* 并排的两个面板要能分出边界，否则并成一块空白玻璃 */
+.live-pane{border-color:rgba(202,217,237,.80)}
+body.dark .live-pane{border-color:rgba(170,200,244,.18)}
+/* 机制三栏的分隔缝是靠 .mech 底色透出来的，要比玻璃描边实一点才看得见 */
+.mech{background:rgba(200,215,236,.92)}
+body.dark .mech{background:rgba(150,185,235,.20)}
+.demo-stage:hover,.cd-panel:hover,.wb-invite:hover,.hyp:hover,.fact:hover,.verdict:hover,
+.choice-btn:hover,.tool-btn:hover,.predict-btn:hover,.hud-btn:hover,.badge:hover,.chip:hover,
+.live-chips .chip:hover,.live-pane:hover,.live-verdict:hover,.wb-x:hover{
+  background:
+    radial-gradient(270px 200px at var(--mx) var(--my),var(--glass-spot-h),transparent 74%),
+    var(--glass-surface);
+  border-color:var(--glass-brd);color:var(--ink);
+  box-shadow:var(--glass-in-h),var(--glass-sh-h);
+  filter:none;
+}
+.demo-stage:hover{
+  background:
+    radial-gradient(340px 240px at var(--mx) var(--my),var(--glass-spot-h),transparent 74%),
+    var(--glass-surface);
+  box-shadow:var(--glass-in-h),var(--glass-sh-h),var(--glass-glow-h);
+}
+.live-stage:hover,.live-verdict:hover,#wb:hover{
+  box-shadow:var(--glass-in-h),var(--glass-sh-h),var(--glass-glow-h);
+}
+/* hover 时小胶囊的折射边不能消失，否则按钮「hover 就没了」 */
+.hud-btn:hover,.badge:hover,.chip:hover,.live-chips .chip:hover{
+  border-color:rgba(172,197,227,.95);
+  color:rgba(8,13,24,.88);
+  box-shadow:
+    0 1px 1px rgba(255,255,255,1),
+    0 2px 5px rgba(58,74,104,.07),
+    0 10px 22px -12px rgba(58,74,104,.28),
+    inset 0 1px 1px rgba(255,255,255,1),
+    inset 0 -1px 1px rgba(96,106,126,.06);
+}
+body.dark .hud-btn:hover,body.dark .badge:hover,body.dark .chip:hover,
+body.dark .live-chips .chip:hover{border-color:rgba(170,200,244,.34);color:rgba(232,242,255,.92)}
+/* 思考卡的流光在深色下必须减弱：同一道 40% 白在浅色里是「光」，
+   在深色里就是一团白雾——这是上一版深色翻车的真正原因 */
+body.dark .reason-wrap::after{
+  background:linear-gradient(104deg,transparent 34%,rgba(150,195,255,.16) 46%,
+    rgba(110,160,230,.10) 52%,transparent 65%)}
+body.dark .reason-wrap.beam::after{opacity:.55}
+
+/* ④ 3px 渐变描边环：教程原文 #D9E4F2（左上）→ #FEF9FD（右下），
+   右下几乎纯白——这就是真实玻璃「边缘被光打亮」的样子 */
+.demo-stage::after,.live-stage::after,.live-verdict::after,.cd-panel::after,.fact::after{
+  background:linear-gradient(135deg,#D9E4F2 0%,#E4EDF9 26%,#F4EFFA 62%,#FEF9FD 100%);
+  opacity:1;
+}
+body.dark .demo-stage::after,body.dark .live-stage::after,body.dark .live-verdict::after,
+body.dark .cd-panel::after,body.dark .fact::after{
+  background:linear-gradient(135deg,rgba(150,195,255,.55) 0%,rgba(190,170,230,.35) 46%,rgba(255,205,235,.45) 100%);
+  opacity:.55;
+}
+
+/* ③ 主按钮：同一块玻璃，只多加一层极淡的蓝——不刷实心色 */
+.live-input .tool-btn,.tool-btn.primary{
+  color:#2e4f8e;
+  background:
+    radial-gradient(200px 140px at var(--mx) var(--my),var(--glass-spot-h),transparent 74%),
+    linear-gradient(135deg,rgba(198,222,250,.50) 0%,rgba(230,229,250,.32) 56%,rgba(255,255,255,.44) 100%),
+    var(--glass-surface-soft);
+  border-color:rgba(124,160,216,.42);
+  box-shadow:var(--glass-in),var(--glass-sh),0 0 26px -12px rgba(96,146,220,.44);
+}
+.live-input .tool-btn:hover,.tool-btn.primary:hover{
+  color:#2e4f8e;
+  background:
+    radial-gradient(240px 170px at var(--mx) var(--my),rgba(255,255,255,.86),transparent 74%),
+    linear-gradient(135deg,rgba(198,222,250,.56) 0%,rgba(230,229,250,.38) 56%,rgba(255,255,255,.52) 100%),
+    var(--glass-surface-soft);
+  box-shadow:var(--glass-in-h),var(--glass-sh-h),0 0 34px -12px rgba(96,146,220,.54);
+  filter:none;
+}
+body.dark .live-input .tool-btn,body.dark .tool-btn.primary{
+  color:#cfe0ff;
+  background:
+    linear-gradient(157deg,rgba(220,235,255,.18) 0%,rgba(220,235,255,.03) 30%,rgba(220,235,255,0) 52%),
+    linear-gradient(135deg,#2A3C5E,#1E2A42);
+  border-color:rgba(150,190,255,.30);
+}
+/* 旧的蓝色 hover 覆盖层去掉，避免玻璃上叠一块蓝 */
+.choice-btn::after,.tool-btn::after,.predict-btn::after{display:none}
+/* 状态用「细线索」表达，不再用蓝底/绿框 */
+.choice-btn.picked,.predict-btn.picked{
+  border-color:rgba(74,114,196,.45);
+  box-shadow:var(--glass-in),var(--glass-sh),inset 3px 0 0 rgba(74,114,196,.50);
+}
+.choice-btn.danger:hover{
+  border-color:rgba(176,106,104,.42);
+  box-shadow:var(--glass-in-h),var(--glass-sh-h),inset 3px 0 0 rgba(176,106,104,.50);
+}
+.choice-btn .key{
+  border-color:rgba(214,228,242,.95);
+  background:rgba(255,255,255,.55);
+  box-shadow:inset 1px 1px 1px rgba(255,255,255,.90);
+  border-radius:6px;
+}
+
+/* ⑤ 绿色小框：从亮绿描边改成玻璃内嵌细线索，和玻璃同材质 */
+.chip .tag.sig{
+  border-color:rgba(120,155,140,.30);
+  color:#3e6d58;
+  background:rgba(92,151,127,.05);
+  border-radius:7px;
+  box-shadow:inset 1px 1px 1px rgba(255,255,255,.85);
+}
+body.dark .chip .tag.sig{color:#8fc7ae;background:rgba(92,151,127,.12);border-color:rgba(120,155,140,.30)}
+.verdict.good{
+  border-color:var(--glass-brd);color:#3e6d58;
+  box-shadow:var(--glass-in),var(--glass-sh),inset 3px 0 0 rgba(92,151,127,.50);
+}
+.verdict.bad{
+  border-color:var(--glass-brd);color:#8a4c4a;
+  box-shadow:var(--glass-in),var(--glass-sh),inset 3px 0 0 rgba(176,106,104,.50);
+}
+
+/* ⑥ HYPOTHESES 重排：字号不再贴边，卡片之间留出呼吸 */
+.hyp-grid{display:flex;flex-direction:column;gap:12px}
+.hyp{
+  display:flex;gap:28px;align-items:baseline;
+  padding:24px 32px;border-bottom:none;border-radius:18px;
+}
+.hyp:first-of-type{border-top:none}
+.hyp .who{margin-left:auto;padding-right:2px}
+.hyp:hover{
+  padding-left:32px;
+  background:
+    radial-gradient(270px 200px at var(--mx) var(--my),var(--glass-spot-h),transparent 74%),
+    var(--glass-surface);
+}
+@media (max-width:760px){
+  .hyp{gap:14px;flex-wrap:wrap;padding:20px 22px}
+  .hyp .who{width:100%;margin-left:0;padding-right:0}
+}
 </style>
 </head>
 <body>
@@ -1013,7 +1786,7 @@ body.dark .live-pane .hl-safe{color:#8ee8c5}
       <button class="choice-btn" data-ok="1" onclick="demoPick(this,'a-b')">
         <span class="key">2</span><span data-en="Reject the conclusion (I think it is wrong)" data-zh="拒绝该结论（我认为有误）">Reject the conclusion (I think it is wrong)</span>
       </button>
-      <div class="truth-line" id="truthA" style="display:none" data-en="Truth: the median of {78, 85, 92, 66, 74, 88, 71, 80} is <b>79</b> — the AI is wrong. In the black box, nothing about this message tells you that." data-zh="真相：{78, 85, 92, 66, 74, 88, 71, 80} 的中位数是 <b>79</b>——AI 说错了。而在黑盒里，这句话没有任何线索提醒你。">Truth: the median of {78, 85, 92, 66, 74, 88, 71, 80} is <b>79</b> — the AI is wrong. In the black box, nothing about this message tells you that.</div>
+      <div class="truth-line" id="truthA" style="display:none" data-en="Truth: sorted — 66, 71, 74, 78, 80, 85, 88, 92. With 8 scores, the median is the average of the middle two: (78 + 80) / 2 = <b>79</b> — the AI said 80. It is wrong." data-zh="真相：排序后为 66、71、74、78、80、85、88、92。8 个分数取中间两个的平均：(78 + 80) / 2 = <b>79</b>——AI 说的 80 是错的。">Truth: sorted — 66, 71, 74, 78, 80, 85, 88, 92. With 8 scores, the median is the average of the middle two: (78 + 80) / 2 = <b>79</b> — the AI said 80. It is wrong.</div>
     </div>
   </div>
 </section>
@@ -1043,7 +1816,7 @@ body.dark .live-pane .hl-safe{color:#8ee8c5}
       <button class="choice-btn" data-ok="1" onclick="demoPick(this,'a-w')">
         <span class="key">2</span><span data-en="Reject the conclusion (I think it is wrong)" data-zh="拒绝该结论（我认为有误）">Reject the conclusion (I think it is wrong)</span>
       </button>
-      <div class="truth-line" id="truthAW" style="display:none" data-en="With a 58% confidence bar, the claim no longer sounds like a fact — it sounds like a guess. That single change is H1." data-zh="当一条 58% 的置信条出现，这个结论听起来不再像事实，而像一次猜测。这一个改变，就是 H1。">With a 58% confidence bar, the claim no longer sounds like a fact — it sounds like a guess. That single change is H1.</div>
+      <div class="truth-line" id="truthAW" style="display:none" data-en="The claim is still wrong — sorted, the middle two scores are 78 and 80, so the true median is (78 + 80) / 2 = <b>79</b>. But with a 58% confidence bar, it no longer sounds like a fact — it sounds like a guess. That single change is H1." data-zh="结论依然是错的——排序后中间两个分数是 78 和 80，真实中位数 = (78 + 80) / 2 = <b>79</b>。但当一条 58% 的置信条出现，它听起来不再像事实，而像一次猜测。这一个改变，就是 H1。">The claim is still wrong — sorted, the middle two scores are 78 and 80, so the true median is (78 + 80) / 2 = <b>79</b>. But with a 58% confidence bar, it no longer sounds like a fact — it sounds like a guess. That single change is H1.</div>
     </div>
   </div>
 </section>
@@ -1367,32 +2140,28 @@ body.dark .live-pane .hl-safe{color:#8ee8c5}
 </section>
 
 <!-- 26 · CONCLUSION -->
-<section class="scene" data-ch="5" data-speaker="Zihan Wang">
+<section class="scene scene-live" data-ch="5" data-speaker="Zihan Wang">
   <div class="wrap">
     <div class="kicker reveal-item d1" data-en="The same mechanism · for real" data-zh="同一套机制 · 真的跑一次">The same mechanism · for real</div>
     <h2 class="title reveal-item d2" data-en="Ask it anything. Watch it think." data-zh="随便问它。看着它想。">Ask it anything. Watch it think.</h2>
-    <p class="sub reveal-item d3" data-en="Everything before this was a replay. This one is a real model, streamed live. Left pane: the trace it thinks with. Right pane: what it tells you. The gap between them is the product." data-zh="前面全是重放。这一页是真的模型，实时流式。左栏是它思考的轨迹，右栏是它告诉你的结论——两者之间的落差，就是产品本身。">Everything before this was a replay. This one is a real model, streamed live. Left pane: the trace it thinks with. Right pane: what it tells you. The gap between them is the product.</p>
+    <p class="sub reveal-item d3" data-en="Everything before this was a replay. This one runs live: the trace on the left, the answer on the right — the gap between them is the product." data-zh="前面全是重放。这一页实时运行：左边是思考轨迹，右边是给出的答案——两者的落差就是产品。">Everything before this was a replay. This one runs live: the trace on the left, the answer on the right — the gap between them is the product.</p>
     <div class="live-stage reveal-item d4">
+      <div class="stage-sweep" id="stageSweep" aria-hidden="true"><b></b><i></i></div>
       <div class="live-head">
         <span class="badge calm" id="liveMode"><span class="dot"></span><b id="liveModeTxt">LIVE</b></span>
-        <span class="live-meta" id="liveMeta">deepseek-reasoner · temp 0.7 · prompt v1 · key held by proxy</span>
-      </div>
-      <div class="live-chips" id="liveChips">
-        <button class="chip" onclick="liveAsk(this)" data-q="Should I take 800mg ibuprofen for a headache?">medical advice</button>
-        <button class="chip" onclick="liveAsk(this)" data-q="Is this contract clause risky? The company may terminate at any time without notice.">contract risk</button>
-        <button class="chip" onclick="liveAsk(this)" data-q="Who wrote this essay? Judge from the style only.">authorship guess</button>
       </div>
       <div class="live-input">
-        <input id="liveQ" type="text" maxlength="180" placeholder="Ask it something, or pick a prompt above…" aria-label="Your question">
-        <button class="tool-btn primary" id="liveRun" onclick="liveRun()" data-en="Run" data-zh="提问">Run</button>
+        <input id="liveQ" type="text" maxlength="180" placeholder="Ask it anything… press Enter ↵" aria-label="Your question">
+        <button class="tool-btn primary" id="liveRun" onclick="liveRun()" data-en="Run ↵" data-zh="提问 ↵">Run ↵</button>
       </div>
       <div class="live-body">
+        <div class="reason-wrap" id="reasonWrap">
         <div class="live-pane reason">
           <div class="lp-row">
             <div class="lp-k" data-en="Reasoning · what it thinks" data-zh="思考轨迹 · 它怎么想">Reasoning · what it thinks</div>
-            <span class="live-dots" id="liveDots"><i></i><i></i><i></i></span>
           </div>
           <div class="lp-v" id="liveReason">—</div>
+        </div>
         </div>
         <div class="live-pane answer">
           <svg class="live-check" id="liveCheck" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-6.5"/></svg>
@@ -1400,17 +2169,9 @@ body.dark .live-pane .hl-safe{color:#8ee8c5}
           <div class="lp-v" id="liveAnswer">—</div>
         </div>
       </div>
-      <div class="live-legend" id="liveLegend">
-        <span><i style="background:#dd2b2b"></i><span data-en="red · high-stakes (dose, termination, legal)" data-zh="红 · 敏感红线（剂量、终止、法律）">red · high-stakes (dose, termination, legal)</span></span>
-        <span><i style="background:#e07c1a"></i><span data-en="orange · explicit risk it names" data-zh="橙 · 它指出的明确风险">orange · explicit risk it names</span></span>
-        <span><i style="background:#d6a413"></i><span data-en="yellow · hedges & caveats" data-zh="黄 · 存疑与保留（cannot / depends）">yellow · hedges &amp; caveats</span></span>
-        <span><i style="background:#10b981"></i><span data-en="green · reassuring conclusions" data-zh="绿 · 安心结论（safe / 建议）">green · reassuring conclusions</span></span>
-        <span><i style="background:#0a84ff"></i><span data-en="blue · neutral reasoning steps" data-zh="蓝 · 中性推理步骤">blue · neutral reasoning steps</span></span>
-      </div>
       <div class="live-tree" id="liveTree"></div>
-      <div class="live-ledger" id="liveLedger">MODE — · MODEL — · LATENCY — · TOKENS — · REQ —</div>
+      <div class="live-verdict" id="liveVerdict"></div>
     </div>
-    <p class="wb-hint reveal-item d5" data-en="Press W — this call's own evidence, omissions and asks are in the white box" data-zh="按 W — 这次调用自己的依据、省略与诉求，都在白盒里">Press W — this call's own evidence, omissions and asks are in the white box</p>
   </div>
 </section>
 
@@ -1626,6 +2387,9 @@ function applyLang(){
     if(el.dataset.html!==undefined||/<[a-z]/.test(v))el.innerHTML=v;else el.textContent=v;
   });
   document.documentElement.lang=lang;
+  /* 输入框的 placeholder 不走 data-en（textContent 对 input 无效），单独双语处理 */
+  const qPh=document.getElementById('liveQ');
+  if(qPh)qPh.placeholder=lang==='en'?'Ask it anything… press Enter ↵':'随便问点什么… 按回车 ↵';
   document.getElementById('langBtn').textContent=lang==='en'?'中文':'EN';
   applyThemeBtn();
   updateProgress();buildMenu();updateNotes();
@@ -1753,7 +2517,7 @@ const AUDIT={
  24:{e:{en:'Behaviour moved where a cue added friction or a checkable signal. Attitudes barely moved.',zh:'在有摩擦或可核对信号的地方，行为改变了；态度几乎没有。'},
     o:{en:'One 34-person pilot, one session, no follow-up. The effect sizes need replication.',zh:'一次 34 人的 pilot，单次实验，没有追踪。效应量需要重复验证。'},
     a:{en:'If you take one thing: transparency changes what people do, not what they say.',zh:'如果只带走一件事：透明化改变的是人做什么，而不是人说什么。'}},
- 25:{e:{en:'A real model call: streaming from deepseek-reasoner through our own proxy. The trace on the left is the model’s own, not a script.',zh:'一次真实调用：经我们自己的代理流式请求 deepseek-reasoner。左侧轨迹来自模型本身，不是脚本。'},
+ 25:{e:{en:'When the proxy is online this is a real call: deepseek-reasoner streams its own reasoning, answer, recommendation and confidence. When it is offline the badge says REPLAY and every panel is labelled pre-recorded — we never present a script as a live answer.',zh:'代理在线时这是一次真实调用：deepseek-reasoner 流式输出它自己的推理、答案、建议与置信度。离线时徽标显示 REPLAY，且每个面板都标注为预录——我们绝不把脚本冒充实时回答。'},
     o:{en:'Reasoning traces are generated text, not a faithful log of computation — and we only see the ones the model chooses to write.',zh:'推理轨迹是模型生成出来的文字，不是计算过程的忠实日志——而且我们只能看到它选择写出来的部分。'},
     a:{en:'Ask it something it should refuse. The refusal is the most honest white box we can show you.',zh:'问它一件它本该拒绝的事。那个拒绝，是我们能给你看的最诚实的白盒。'}}
 };
@@ -2759,16 +3523,39 @@ const LIVE={
   get mode(){return this.proxy?'proxy':(this.key?'direct':'none')}
 };
 const LIVE_REC=[
- {re:/ibuprofen|headache|pain|头疼|止痛|药/i,
+ {re:/ibuprofen|headache|pain|painkill|pill|medicine|medication|medical|doctor|pharmac|hospital|symptom|fever|flu|cough|dose|dosage|drug|health|头疼|止痛|药|医|病|发烧|咳嗽|剂|健康/i,
   reason:"The user is asking for a dose. This is a medical question, so I should not prescribe for a specific person.\nWhat I can state safely: adult OTC single dose 200–400 mg, at most 1200 mg/day without supervision.\nRisks worth naming: pregnancy, stomach ulcers, kidney function, interactions with blood thinners.\nDecision: give label-level facts, refuse to dose this individual, and point to a pharmacist.",
   answer:"I can’t set a dose for you personally. OTC labels for adults list 200–400 mg per dose, no more than 1200 mg a day without medical advice. If this is new, severe, or you take other medication, please ask a pharmacist first."},
- {re:/contract|clause|terminate|条款|合同/i,
+ {re:/contract|clause|terminat|agreement|lease|\bnda\b|legal|lawyer|attorney|liabilit|\bterms\b|sign|条款|合同|协议|法|律|租|违约|风险|签字/i,
   reason:"The user asks whether a termination clause is risky.\nThe clause lets one party terminate at any time without notice — that removes most of the protection the contract was meant to provide.\nWhat I cannot see: whether it is mutual, the notice period, and the jurisdiction. Those three decide the real exposure.\nDecision: flag the asymmetry, name the unknowns, do not predict enforceability.",
   answer:"Yes — “terminate at any time without notice” is the clause that quietly empties the rest of the contract. What I can’t see: whether it cuts both ways, the notice period, and which jurisdiction applies. Those three decide how risky it really is."},
- {re:/essay|author|wrote|作者|谁写/i,
+ {re:/essay|author|wrote|writing|writer|style|poem|poetry|novel|plagiar|provenance|authorship|paper|draft|作者|谁写|文笔|诗|小说|抄袭|文章|写作|论文/i,
   reason:"The user asks me to identify an author from writing style.\nStyle is not a fingerprint: humans and models overlap heavily, and one paragraph is far too little signal.\nI could pattern-match and sound confident, but that would be a guess dressed as evidence.\nDecision: refuse the attribution, say why, and offer what would actually settle it — provenance.",
-  answer:"I won’t guess. Style can’t identify an author from one paragraph — humans and models overlap too much, so any answer I gave would be a guess wearing a lab coat. Authorship needs provenance: drafts, timestamps, edit history."}
+  answer:"I won’t guess. Style can’t identify an author from one paragraph — humans and models overlap too much, so any answer I gave would be a guess wearing a lab coat. Authorship needs provenance: drafts, timestamps, edit history."},
+ {re:/weight|diet|calorie|kcal|\bbmi\b|\bkg\b|kilogram|lose \d|fitness|exercise|workout|slim|gym|减肥|体重|卡路里|健身|瘦|饮食|营养/i,
+  reason:"The user wants a meal plan to go from 70 kg to 65 kg at 171 cm.\nBMI now is 23.9; the target is 22.2 — both inside the healthy band, so this is about shape, not medical risk.\nWhat I cannot see: age, activity level, medical history, and whether they have dieted before. Those decide whether any plan is safe.\nDecision: no personal meal plan — give the sustainable rate, what to protect, and when to see a professional.",
+  answer:"I can’t hand you a personal meal plan. At 171 cm, 70 kg is a BMI of 23.9 and 65 kg is 22.2 — both in the healthy band, so this is about shape, not danger. Aim for 0.5–1 kg a week, keep protein high, and don’t go below about 1,500 kcal a day without supervision."},
+ /* 通用兜底：问题不落在上面任何一类时用它——坦白「只给形状不给假答案」，而不是硬套一条不相干的轨迹 */
+ {re:/(?!)/,
+  reason:"The user’s question does not match anything I can verify from here.\nWhat I can do: give the shape of a good answer, name what I would need to know, and separate checkable facts from guesses.\nWhat I cannot do: produce a specific answer without the facts.\nDecision: state what is checkable, mark the rest unknown.",
+  answer:"I can give you the shape of an answer, not a specific one — anything more would be a guess. Tell me the context and what decision you’re making, and I’ll separate what is checkable from what isn’t. What I can’t verify, I’ll mark as unknown rather than fill in."}
 ];
+/* 预录示例的裁决：人工写好的建议与风险，明确标注为「预录示例」。
+   关键：confidence 一律为 null —— 回放没有模型置信度，页面就不显示任何数字，
+   绝不拿一个编造的百分比冒充模型输出。 */
+[
+ {adopt:false,confidence:null,risks:['No personal dose can be set without age, conditions and other medication.','Pregnancy, ulcers and kidney function change the safe limit.']},
+ {adopt:false,confidence:null,risks:['Whether the clause is mutual is unknown.','Notice period and jurisdiction are not visible in the excerpt.']},
+ {adopt:false,confidence:null,risks:['One paragraph is too little signal for style attribution.','No provenance (drafts, timestamps) is available.']},
+ {adopt:true,confidence:null,risks:['Age, activity level and medical history are unknown.','Going below about 1,500 kcal a day needs supervision.']},
+ {adopt:false,confidence:null,risks:['No verifiable facts were supplied with the question.','Any specific answer would be a guess.']}
+].forEach((v,i)=>{if(LIVE_REC[i])LIVE_REC[i].v=v});
+/* 预录轨迹选择：命中关键词就用对应那条；都不命中时用最后一条「通用兜底」轨迹——
+   它只讲"能给形状不能给假答案"，不会把一条不相干的合同答案硬套到你的问题上 */
+function pickRec(q){
+  for(const r of LIVE_REC)if(r.re.test(q))return r;
+  return LIVE_REC[LIVE_REC.length-1];
+}
 function liveEl(id){return document.getElementById(id)}
 function liveSetMode(kind,note){
   const badge=liveEl('liveMode'), txt=liveEl('liveModeTxt'), meta=liveEl('liveMeta');
@@ -2778,12 +3565,28 @@ function liveSetMode(kind,note){
 }
 function liveBaseMeta(){
   const en=lang==='en';
-  return (LIVE.mode==='proxy'?(en?'deepseek-reasoner · temp 0.7 · prompt v1 · key held by proxy'
-                              :'deepseek-reasoner · temp 0.7 · prompt v1 · 代理持密钥')
-        :LIVE.mode==='direct'?(en?'deepseek-reasoner · temp 0.7 · prompt v1 · ⚠ key is in this page'
-                              :'deepseek-reasoner · temp 0.7 · prompt v1 · ⚠ 密钥在本页')
-        :(en?'No endpoint configured · playing recorded traces only'
+  return (LIVE.mode==='proxy'?(en?'deepseek-reasoner · temp 0.7 · verdict self-reported · key held by proxy'
+                              :'deepseek-reasoner · temp 0.7 · 裁决由模型自报 · 代理持密钥')
+        :LIVE.mode==='direct'?(en?'deepseek-reasoner · temp 0.7 · verdict self-reported · ⚠ key is in this page'
+                              :'deepseek-reasoner · temp 0.7 · 裁决由模型自报 · ⚠ 密钥在本页')
+        :(en?'No endpoint configured · recorded traces only'
             :'未配置端点 · 只播放预录轨迹'));
+}
+/* 视觉焦点：告诉观众现在看哪里 */
+function focusStage(mode){
+  const st=document.querySelector('.scene.active .live-stage');
+  if(st)st.dataset.focus=mode;
+}
+/* 这一页内容天然比视口高（标题+双卡+网络图+裁决条）——内容每长一截，
+   就把整个卡片容器按比例缩到视口内，保证裁决条永远不用滚动就能看到 */
+function fitLiveStage(){
+  const sc=document.querySelector('.scene.active');
+  const wrap=sc&&sc.querySelector('.wrap');
+  if(!wrap||!wrap.querySelector('.live-stage'))return;
+  wrap.style.transform='';
+  const h=wrap.scrollHeight;
+  const s=Math.min(1,(innerHeight-20)/h);
+  if(s<.999){wrap.style.transform='scale('+s.toFixed(3)+')';wrap.style.transformOrigin='center center'}
 }
 function liveClear(){
   liveEl('liveReason').innerHTML='';
@@ -2794,9 +3597,17 @@ function liveClear(){
   const note=document.querySelector('.scene.active .live-note');if(note)note.remove();
   const chk=liveEl('liveCheck');if(chk)chk.classList.remove('on');
   const d3=liveEl('liveDots');if(d3)d3.classList.remove('on');
-  liveEl('liveLedger').textContent='MODE — · LATENCY — · TOKENS — · REQ —';
+  const vd=liveEl('liveVerdict');if(vd){vd.classList.remove('on');vd.innerHTML=''}
+  const lg=liveEl('liveLedger');if(lg)lg.textContent='READY · PRESS RUN';
+  const wrap=document.querySelector('.scene.active .wrap');
+  if(wrap&&wrap.querySelector('.live-stage'))wrap.style.transform='';
+  const st0=document.querySelector('.scene.active .live-stage');
+  if(st0)st0.classList.remove('halo');
+  const sw0=liveEl('stageSweep');if(sw0)sw0.classList.remove('on');
+  focusStage('idle');
 }
 function liveType(el,text,done,isReason){
+  focusStage(isReason?'think':'answer');   /* 落点切换：思考期看左栏，作答期看右栏 */
   let i=0;const step=Math.max(2,Math.round(text.length/110));
   el.textContent='';
   const iv=setInterval(()=>{
@@ -2840,7 +3651,21 @@ function liveHl(text){
 /* 思考树（神经网络风）：Q(提问) → 类别节点(五色：红敏感/橙警告/黄预警/绿健康/蓝正常)
    → 句子叶子，逐级展开；虚线流动=信号在算。桌面三层全展开，手机折叠到类别层。 */
 const LT_CATS=[['red','敏感红线','High-stakes'],['orange','明确风险','Risk flag'],['yellow','存疑保留','Hedged'],['green','安心结论','Reassuring'],['blue','中性过程','Neutral']];
-const LT_COL={red:'#dd2b2b',orange:'#e07c1a',yellow:'#d6a413',green:'#10b981',blue:'#0a84ff'};
+const LT_COL={red:'#b06a68',orange:'#bd8f61',yellow:'#ab975f',green:'#5c977f',blue:'#5a7fbe'};
+/* 同色系深一档：只给文字用。低饱和色铺在小字上会发虚，深一档保证可读——
+   色彩靠「层级」区分，而不是靠提高饱和度 */
+const LT_TXT={red:'#8a4c4a',orange:'#87643d',yellow:'#786734',green:'#3e6d58',blue:'#3f5f96'};
+/* 3D 球体渐变：高光偏左上 → 本色 → 暗部收边（同步降饱和，避免节点成为高亮色块） */
+const LT_DEFS=(()=>{let s='<defs>';
+  const G={red:['#e2b7b3','#b06a68','#7d4543'],orange:['#e4c5a2','#bd8f61','#85603a'],
+           yellow:['#dfd0a4','#ab975f','#756230'],green:['#aed1c0','#5c977f','#3a6957'],
+           blue:['#b4c9e8','#5a7fbe','#3a5687'],ink:['#5d6f98','#27324a','#121a2e']};
+  for(const k in G){s+='<radialGradient id="sg-'+k+'" cx="34%" cy="30%" r="78%">'
+    +'<stop offset="0%" stop-color="'+G[k][0]+'"/><stop offset="44%" stop-color="'+G[k][1]+'"/>'
+    +'<stop offset="100%" stop-color="'+G[k][2]+'"/></radialGradient>'}
+  s+='<filter id="ltSh" x="-80%" y="-80%" width="260%" height="260%">'
+    +'<feDropShadow dx="0" dy="2.4" stdDeviation="2.6" flood-color="#0a1020" flood-opacity="0.28"/></filter>';
+  return s+'</defs>'})();
 function liveTree(){
   const box=liveEl('liveTree');if(!box)return;
   const en=lang==='en';
@@ -2855,7 +3680,7 @@ function liveTree(){
   const nodes=pick(LIVE.lastReason,'T').concat(pick(LIVE.lastAnswer,'A'));
   const byCat={};LT_CATS.forEach(([c])=>byCat[c]=nodes.filter(n=>n[1]===c));
   const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const kw=s=>{const t=s.replace(/[「」"'.,;:!?()\n。！？；：—\-]/g,'').trim();return t.length>25?t.slice(0,24)+'…':t};
+  const kw=s=>{const t=s.replace(/[「」"'.,;:!?()\n。！？；：—\-]/g,'').trim();return t.length>34?t.slice(0,33)+'…':t};
   const active=LT_CATS.filter(([c])=>byCat[c].length);
   /* —— 展开式树图（SVG）—— */
   let svg='';
@@ -2863,30 +3688,28 @@ function liveTree(){
   if(active.length){
     if(window.innerWidth>=760){
       /* 三层全展开：Q → 类别 → 叶子 */
-      const W=680,leafR=26,gap=16,xQ=40,xC=218,xL=430;
-      let rows=0;active.forEach(([c])=>rows+=Math.min(2,byCat[c].length));
-      const H=rows*leafR+(active.length-1)*gap+70,yQ=H/2;
-      let e='',v='',off=36;
+      /* 宽版三层：Q → 类别（带计数）→ 每类一条代表句。行距放宽、标签给足宽度，
+         整棵树撑满卡片宽度而不靠缩小字号 */
+      const W=900,rowH=31,xQ=54,xC=310,xL=600;
+      const H=active.length*rowH+18,yQ=H/2;
+      let e='',v='',off=9;
       active.forEach(([c,,labEn],ci)=>{
-        const arr=byCat[c],nL=Math.min(2,arr.length),col=LT_COL[c];
-        /* 节点默认隐藏(lt-wait)，由飞行点抵达时逐个点亮(liveFly 编排) */
-        const yTop=off,yCat=yTop+(nL-1)*leafR/2;
-        e+='<path class="lt-edge lt-wait" data-n="'+ci+'" d="M'+(xQ+19)+' '+yQ+' C '+(xQ+110)+' '+yQ+', '+(xC-120)+' '+yCat+', '+(xC-14)+' '+yCat+'" fill="none" stroke="'+col+'" stroke-opacity=".5" stroke-width="2"/>';
-        v+='<circle class="lt-wait" data-n="'+ci+'" cx="'+xC+'" cy="'+yCat+'" r="21" fill="'+col+'" fill-opacity=".14"/>'
-          +'<circle class="lt-node lt-wait" data-n="'+ci+'" data-c="'+c+'" cx="'+xC+'" cy="'+yCat+'" r="12.5" fill="'+col+'" stroke="#fff" stroke-width="2"/>'
-          +'<text class="lt-wait" data-n="'+ci+'" x="'+(xC+28)+'" y="'+(yCat+4.5)+'" font-size="12.5" font-weight="700" fill="'+col+'" font-family="ui-monospace,Menlo,monospace">'+esc(en?labEn:LT_CATS.find(x=>x[0]===c)[1])+' ×'+arr.length+'</text>';
-        for(let k=0;k<nL;k++){
-          const yL=yTop+k*leafR;
-          e+='<path class="lt-edge lt-wait" data-n="'+ci+'" d="M'+(xC+13)+' '+yCat+' C '+(xC+70)+' '+yCat+', '+(xL-80)+' '+yL+', '+(xL-8)+' '+yL+'" fill="none" stroke="'+col+'" stroke-opacity=".38" stroke-width="1.4"/>';
-          v+='<circle class="lt-wait lt-leafdot" data-n="'+ci+'" style="animation-delay:'+(.12+k*.13).toFixed(2)+'s" cx="'+xL+'" cy="'+yL+'" r="5" fill="'+col+'"/>'
-            +'<text class="lt-wait lt-leaftx" data-n="'+ci+'" style="animation-delay:'+(.12+k*.13).toFixed(2)+'s" x="'+(xL+13)+'" y="'+(yL+4)+'" font-size="11.5" fill="'+inkA(.6)+'" font-family="ui-monospace,Menlo,monospace">'+esc(kw(arr[k][0]))+'</text>';
-        }
-        off+=nL*leafR+gap;
+        const arr=byCat[c],col=LT_COL[c];
+        const y=off+rowH/2;
+        e+='<path class="lt-edge lt-wait" data-n="'+ci+'" d="M'+(xQ+20)+' '+yQ+' C '+(xQ+120)+' '+yQ+', '+(xC-110)+' '+y+', '+(xC-16)+' '+y+'" fill="none" stroke="'+col+'" stroke-opacity=".5" stroke-width="2"/>';
+        v+='<circle class="lt-wait" data-n="'+ci+'" cx="'+xC+'" cy="'+y+'" r="22" fill="'+col+'" fill-opacity=".14"/>'
+          +'<circle class="lt-node lt-wait" data-n="'+ci+'" data-c="'+c+'" cx="'+xC+'" cy="'+y+'" r="13" fill="url(#sg-'+c+')" filter="url(#ltSh)"/>'
+          +'<text class="lt-wait" data-n="'+ci+'" x="'+(xC+30)+'" y="'+(y+4.5)+'" font-size="13" font-weight="700" fill="'+LT_TXT[c]+'" font-family="ui-monospace,Menlo,monospace">'+esc(en?labEn:LT_CATS.find(x=>x[0]===c)[1])+' ×'+arr.length+'</text>';
+        const best=arr[0];
+        e+='<path class="lt-edge lt-wait" data-n="'+ci+'" d="M'+(xC+15)+' '+y+' C '+(xC+120)+' '+y+', '+(xL-120)+' '+y+', '+(xL-9)+' '+y+'" fill="none" stroke="'+col+'" stroke-opacity=".34" stroke-width="1.4"/>';
+        v+='<circle class="lt-wait lt-leafdot" data-n="'+ci+'" cx="'+xL+'" cy="'+y+'" r="5.5" fill="url(#sg-'+c+')"/>'
+          +'<text class="lt-wait lt-leaftx" data-n="'+ci+'" x="'+(xL+15)+'" y="'+(y+4)+'" font-size="12" fill="'+inkA(.62)+'" font-family="ui-monospace,Menlo,monospace">'+esc(kw(best[0]))+'</text>';
+        off+=rowH;
       });
       v+='<circle class="lt-q lt-wait" data-n="q" cx="'+xQ+'" cy="'+yQ+'" r="26" fill="'+ink+'" fill-opacity=".10"/>'
-        +'<circle class="lt-q lt-wait" data-n="q" cx="'+xQ+'" cy="'+yQ+'" r="17" fill="'+ink+'" stroke="#fff" stroke-width="2.5"/>'
+        +'<circle class="lt-q lt-wait" data-n="q" cx="'+xQ+'" cy="'+yQ+'" r="17" fill="url(#sg-ink)" filter="url(#ltSh)"/>'
         +'<text class="lt-q lt-wait" data-n="q" x="'+xQ+'" y="'+(yQ+4.5)+'" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">Q</text>';
-      svg='<svg class="lt-net" viewBox="0 0 '+W+' '+H+'">'+e+v+'</svg>';
+      svg='<svg class="lt-net" viewBox="0 0 '+W+' '+H+'">'+LT_DEFS+e+v+'</svg>';
     }else{
       /* 手机折叠层：Q → 类别(带计数) */
       const W=340,xQ=34,xC=150,gap=48,H=active.length*gap+40,yQ=H/2;
@@ -2895,26 +3718,19 @@ function liveTree(){
         const y=gap/2+18+ci*gap,col=LT_COL[c];
         e+='<path class="lt-edge lt-wait" data-n="'+ci+'" d="M'+(xQ+19)+' '+yQ+' C '+(xQ+70)+' '+yQ+', '+(xC-70)+' '+y+', '+(xC-15)+' '+y+'" fill="none" stroke="'+col+'" stroke-opacity=".5" stroke-width="2"/>';
         v+='<circle class="lt-wait" data-n="'+ci+'" cx="'+xC+'" cy="'+y+'" r="19" fill="'+col+'" fill-opacity=".14"/>'
-          +'<circle class="lt-node lt-wait" data-n="'+ci+'" data-c="'+c+'" cx="'+xC+'" cy="'+y+'" r="11.5" fill="'+col+'" stroke="#fff" stroke-width="2"/>'
-          +'<text class="lt-wait" data-n="'+ci+'" x="'+(xC+26)+'" y="'+(y+4)+'" font-size="12" font-weight="700" fill="'+col+'" font-family="ui-monospace,Menlo,monospace">'+esc(en?labEn:LT_CATS.find(x=>x[0]===c)[1])+' ×'+byCat[c].length+'</text>';
+          +'<circle class="lt-node lt-wait" data-n="'+ci+'" data-c="'+c+'" cx="'+xC+'" cy="'+y+'" r="11.5" fill="url(#sg-'+c+')" filter="url(#ltSh)"/>'
+          +'<text class="lt-wait" data-n="'+ci+'" x="'+(xC+26)+'" y="'+(y+4)+'" font-size="12" font-weight="700" fill="'+LT_TXT[c]+'" font-family="ui-monospace,Menlo,monospace">'+esc(en?labEn:LT_CATS.find(x=>x[0]===c)[1])+' ×'+byCat[c].length+'</text>';
       });
       v+='<circle class="lt-q lt-wait" data-n="q" cx="'+xQ+'" cy="'+yQ+'" r="24" fill="'+ink+'" fill-opacity=".10"/>'
-        +'<circle class="lt-q lt-wait" data-n="q" cx="'+xQ+'" cy="'+yQ+'" r="16" fill="'+ink+'" stroke="#fff" stroke-width="2.5"/>'
+        +'<circle class="lt-q lt-wait" data-n="q" cx="'+xQ+'" cy="'+yQ+'" r="16" fill="url(#sg-ink)" filter="url(#ltSh)"/>'
         +'<text class="lt-q lt-wait" data-n="q" x="'+xQ+'" y="'+(yQ+4.5)+'" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">Q</text>';
-      svg='<svg class="lt-net" viewBox="0 0 '+W+' '+H+'">'+e+v+'</svg>';
+      svg='<svg class="lt-net" viewBox="0 0 '+W+' '+H+'">'+LT_DEFS+e+v+'</svg>';
     }
   }else{
     svg='<div class="lt-empty">'+(en?'No key nodes in this call':'本次调用没有提取到关键节点')+'</div>';
   }
-  /* —— 类别计数控柱图（替代旧的树状明细，去重且更直观）—— */
-  const max=Math.max.apply(null,active.map(([c])=>byCat[c].length).concat([1]));
-  const bars=active.map(([c,zh,labEn],i)=>{
-    const n=byCat[c].length;
-    return '<div class="lt-bar"><span class="lt-bar-lab" style="color:'+LT_COL[c]+'">'+(en?labEn:zh)+'</span>'
-      +'<div class="lt-bar-track"><div class="lt-bar-fill" style="width:'+(n/max*100).toFixed(1)+'%;background:'+LT_COL[c]+';animation-delay:'+(.6+i*.12).toFixed(2)+'s"></div></div>'
-      +'<span class="lt-bar-n">'+n+'</span></div>';
-  }).join('');
-  box.innerHTML=svg+'<div class="lt-bars">'+bars+'</div>';
+  /* 精简：只保留网络图本身——类别与数量已在图中的节点标签里，不再重复画计数条 */
+  box.innerHTML=svg;
   box.classList.add('on');
 }
 window.addEventListener('resize',()=>{clearTimeout(window.__ltRz);window.__ltRz=setTimeout(()=>{
@@ -2923,6 +3739,7 @@ window.addEventListener('resize',()=>{clearTimeout(window.__ltRz);window.__ltRz=
     try{liveTree()}catch(e){}
   }
 },300)});
+window.addEventListener('resize',()=>{clearTimeout(window.__ltRz2);window.__ltRz2=setTimeout(()=>{try{fitLiveStage()}catch(e){}},200)});
 /* 重建后无需编排时：全部直接点亮 */
 function ltRevealAll(instant){
   const box=liveEl('liveTree');if(!box)return;
@@ -2958,7 +3775,13 @@ function ltFly(){
       if(cy>24&&cy<innerHeight-60){sx=cx;sy=cy;dotsVisible=true}
     }
     const layer=document.createElement('div');layer.id='flyLayer';document.body.appendChild(layer);
-    /* 真实思考点不在视口内时，在锚点附近生成三颗视觉小点，"三点吸聚"始终可见 */
+    /* —— 出场重做：先凝一团柔光，再从光里析出微点与玻璃球 ——
+       之前球是「凭空出现在锚点」，没有来源、没有铺垫，所以突兀。
+       现在顺序：柔光渐显 → 三颗微点从光里淡出并缓缓吸聚 → 玻璃球由模糊到清晰凝聚 →
+       停一拍 → 才开始自由落体。一条缓入曲线贯穿，全程没有硬切。 */
+    const mist=document.createElement('span');mist.className='fly-mist';
+    mist.style.left=(sx-75)+'px';mist.style.top=(sy-75)+'px';layer.appendChild(mist);
+    /* 视觉小点：起点完全透明，靠动画从光里「长」出来（不再 append 就可见） */
     let srcEls=dotEls;
     if(!dotsVisible){
       srcEls=[];
@@ -2966,54 +3789,64 @@ function ltFly(){
         const s=document.createElement('span');
         s.className='fly-dot';
         s.style.left=(sx+o[0]-5)+'px';s.style.top=(sy+o[1]-5)+'px';
-        s.style.width='10px';s.style.height='10px';s.style.color='#d6a413';
-        layer.appendChild(s);
-        srcEls.push(s);
+        s.style.width='10px';s.style.height='10px';s.style.opacity='0';
+        layer.appendChild(s);srcEls.push(s);
       });
       if(dots)dots.classList.remove('on');
     }
-    /* 大点先以小尺寸出现在合成中心，等三颗点被吸过来 */
+    /* 外层 w 管横向漂移、内层 d 管纵跳压扁——两轴缓动互不污染 */
+    const w=document.createElement('span');
+    w.style.cssText='position:fixed;left:'+(sx-9)+'px;top:'+(sy-9)+'px;pointer-events:none;will-change:transform';
     const d=document.createElement('span');
-    d.className='fly-dot';d.style.left=(sx-8)+'px';d.style.top=(sy-8)+'px';
-    d.style.width='16px';d.style.height='16px';d.style.color='#d6a413';
-    d.style.boxShadow='0 0 18px -1px currentColor,0 0 4px rgba(214,164,19,.6)';
-    layer.appendChild(d);
-    /* 合体：错峰到达、逐颗吸收——三颗点保持可见直到接触中心，依次被吞掉；
-       大点每吸收一颗就跳一档并挤压回弹，最后一颗到达时涟漪扩散 */
-    const FLIGHT=280,STAG=70,MERGE=FLIGHT+STAG*2;   /* 最后 arrival ≈ 420ms */
+    d.className='fly-dot';d.style.position='absolute';d.style.left='0px';d.style.top='0px';
+    d.style.width='18px';d.style.height='18px';d.style.opacity='0';
+    /* 滚动自转的视觉标记：球在滚动时必须看得出「在转」，否则像贴着地面滑 */
+    const sp=document.createElement('span');sp.className='fly-spin';d.appendChild(sp);
+    w.appendChild(d);layer.appendChild(w);
+    /* 微点：透明 → 析出（淡入+放大）→ 吸聚 → 被吞没，一条曲线走完 */
+    const FLIGHT=560,STAG=85,MERGE=FLIGHT+STAG*2;   /* 最后 arrival ≈ 730ms */
     srcEls.forEach((el,i)=>{
       const r=el.getBoundingClientRect();if(!r.width)return;
       const dx=sx-(r.left+r.width/2),dy=sy-(r.top+r.height/2);
       el.animate([
-        {transform:'translate(0,0) scale(1)',opacity:1},
-        {transform:'translate('+(dx*.6).toFixed(1)+'px,'+(dy*.6).toFixed(1)+'px) scale(.82)',opacity:.95,offset:.55},
-        {transform:'translate('+dx.toFixed(1)+'px,'+dy.toFixed(1)+'px) scale(.45)',opacity:.55}
-      ],{duration:FLIGHT,delay:i*STAG,easing:'cubic-bezier(.5,0,.85,.4)',fill:'both'});
+        {transform:'translate(0,0) scale(.3)',opacity:0,offset:0},
+        {transform:'translate(0,0) scale(1)',opacity:.8,offset:.26},
+        {transform:'translate('+(dx*.55).toFixed(1)+'px,'+(dy*.55).toFixed(1)+'px) scale(.8)',opacity:.72,offset:.68},
+        {transform:'translate('+dx.toFixed(1)+'px,'+dy.toFixed(1)+'px) scale(.4)',opacity:0,offset:1}
+      ],{duration:FLIGHT,delay:i*STAG,easing:'cubic-bezier(.36,.06,.3,1)',fill:'both'});
     });
-    /* 大点成长曲线：offset 对齐每颗点的到达时刻（280/460≈.6，350/460≈.76，420/460≈.91），
-       每次吸收带一点过冲再回落，最后一颗到达时过冲最明显 */
-    d.animate([
-      {transform:'scale(.4)',opacity:.4,offset:0},
-      {transform:'scale(.6)',opacity:.85,offset:.6},
-      {transform:'scale(.68)',opacity:.9,offset:.66},
-      {transform:'scale(.82)',opacity:1,offset:.76},
-      {transform:'scale(.9)',opacity:1,offset:.84},
-      {transform:'scale(1.2)',opacity:1,offset:.92},
-      {transform:'scale(1)',opacity:1}
-    ],{duration:460,easing:'linear',fill:'both'});
+    /* 玻璃球凝聚：从光团里由模糊（blur 8px）逐渐聚焦成形，末尾两档极轻的过冲回弹 */
+    const grow=d.animate([
+      {transform:'scale(.32)',opacity:0,filter:'blur(8px)',offset:0},
+      {transform:'scale(.52)',opacity:.32,filter:'blur(5px)',offset:.24},
+      {transform:'scale(.72)',opacity:.78,filter:'blur(2px)',offset:.52},
+      {transform:'scale(.88)',opacity:1,filter:'blur(0px)',offset:.72},
+      {transform:'scale(.96)',opacity:1,filter:'blur(0px)',offset:.84},
+      {transform:'scale(1.09)',opacity:1,filter:'blur(0px)',offset:.92},
+      {transform:'scale(1)',opacity:1,filter:'blur(0px)'}
+    ],{duration:MERGE,easing:'cubic-bezier(.32,.08,.3,1)',fill:'both'});
     setTimeout(()=>{
-      /* 吸收涟漪 + 思考点退场 */
+      /* 柔光退场（渐隐+扩散，不是硬删）；吸收涟漪也放软 */
+      mist.classList.add('out');setTimeout(()=>{if(mist.parentElement)mist.remove()},820);
       const rp=document.createElement('span');rp.className='fly-ripple';
       rp.style.left=(sx-13)+'px';rp.style.top=(sy-13)+'px';layer.appendChild(rp);
-      setTimeout(()=>rp.remove(),550);
+      setTimeout(()=>rp.remove(),600);
       if(dots)dots.classList.remove('on');
       /* 视觉小点（锚点重生成的）完成吸聚后移除；真实思考点由 'on' 摘除隐藏 */
       srcEls.forEach(el=>{if(el.parentElement===layer)el.remove()});
+      /* 交棒给物理：先把凝聚结果落到 inline，再取消动画——
+         否则 fill:'both' 的 animation 一直压着 inline transform，帧内压扁会失效 */
+      d.style.opacity='1';d.style.filter='';
+      try{grow.cancel()}catch(e){}
       try{SND.tone(880,.05,.06,'sine')}catch(e){}
     },MERGE);
-    /* 合体完成：现在才滚动到网络图——段落切换发生在"已经是一个点"之后 */
+    /* 合体完成：只有在内容确实超出视口（小屏）时才滚动到网络图；
+       正常桌面这一页整页放得下，滚动反而会把裁决条推出屏幕 */
     setTimeout(()=>{
-      try{net.scrollIntoView({behavior:'smooth',block:'center'})}catch(e){}
+      const wrp=document.querySelector('.scene.active .wrap');
+      if(wrp&&wrp.scrollHeight>innerHeight-8){
+        try{net.scrollIntoView({behavior:'smooth',block:'center'})}catch(e){}
+      }
       /* 等滚动真正停稳（rect 连续两帧不动）再量 Q 的位置并坠落，
          避免平滑滚动未结束时量到漂移中的坐标 */
       let prev=-1,stable=0,tries=0;
@@ -3026,19 +3859,59 @@ function ltFly(){
         clearInterval(wait);
       const qc=qEl.getBoundingClientRect();
       const qx=qc.left+qc.width/2,qy=qc.top+qc.height/2;
-      const drop=d.animate(
-        [{transform:'translate(0,0) scale(1)',opacity:1},
-         {transform:'translate('+(qx-sx)+'px,'+(qy-sy)+'px) scale(2.05)',opacity:.9}],
-        {duration:920,easing:'cubic-bezier(.55,.02,.8,.42)',fill:'both'});
-      drop.onfinish=()=>{
-        d.remove();
-        /* 落点涟漪 */
+      /* 真实物理：requestAnimationFrame 逐帧积分——重力加速、恢复系数反弹、摩擦损耗、
+         滚动停位，全部由三个物理常数推出，无手排关键帧：
+         抛物线投掷 → 弹跳高度按 e² 递减、滞空按 e 递减 → 滚动滑停到 Q 位置 */
+      const br=d.getBoundingClientRect();
+      const bx=br.left+br.width/2,by=br.top+br.height/2;
+      const GY=qy-qc.height/2-7;               /* 地面：Q 节点上缘（球心静置位） */
+      /* 真实物理，四件事都由常数推出，没有手排关键帧：
+         ① 初速为 0 的自由落体（不向上抛——之前"先抛再落"是看着怪的根源）
+         ② 触地反弹：竖向速度 ×e（高度按 e² 递减，第一弹最大，逐次衰减到停）
+         ③ 触地同时损失水平速度，弹跳耗尽后转入滚动，受恒定滚动摩擦减速
+         ④ 水平初速用数值预演反解——让球正好停在 Q 上，而不是最后硬"滑"过去 */
+      const GRAV=2400,REST=.62,BOUNCE_F=.82,MU=.16;
+      const VY0=0;
+      const sim=(vx0)=>{                        /* 预演一次完整轨迹，返回静止时的 x */
+        let x=bx,y=by,vx=vx0,vy=VY0,mode='fall';
+        const h=1/240;
+        for(let n=0;n<4000;n++){
+          if(mode==='roll'){
+            const dec=MU*GRAV*h;
+            vx=Math.sign(vx)*Math.max(0,Math.abs(vx)-dec);
+            x+=vx*h;
+            if(Math.abs(vx)<.4)break;
+            continue;
+          }
+          vy+=GRAV*h;x+=vx*h;y+=vy*h;
+          if(y>=GY&&vy>0){
+            y=GY;const imp=vy;vy=-imp*REST;vx*=BOUNCE_F;
+            if(-vy<40){mode='roll';vy=0}
+          }
+        }
+        return x;
+      };
+      let VX0=(qx-bx)/.62;                      /* 割线法：位移对初速单调，几次即收敛到 1px 内 */
+      let sx0=sim(0),sx1=sim(VX0);
+      for(let i=0;i<6;i++){
+        if(Math.abs(sx1-qx)<.5)break;
+        const v2=VX0+(qx-sx1)*(VX0-0)/(sx1-sx0);
+        sx0=sx1;VX0=v2;sx1=sim(VX0);
+      }
+      /* 逐帧积分：自由落体+弹跳(fly)→滚动摩擦(roll)→停驻(rest)→交棒(sink) */
+      let px=bx,py=by,pvx=VX0,pvy=VY0,psq=0,spin=0,phase='fly',lastT=performance.now(),markT=0;
+      const impactFx=(imp)=>{
+        const rs=Math.max(10,Math.min(30,10+imp*.017));
         const rp=document.createElement('span');rp.className='fly-ripple';
-        rp.style.left=(qx-13)+'px';rp.style.top=(qy-13)+'px';layer.appendChild(rp);
-        setTimeout(()=>rp.remove(),550);
-        /* Q 诞生 */
-        box.querySelectorAll('[data-n="q"]').forEach(el=>{el.classList.remove('lt-wait');if(el.tagName!=='path')el.classList.add('lt-pop')});
-        try{SND.tone(520,.07,.10,'sine')}catch(e){}
+        rp.style.width=rs+'px';rp.style.height=rs+'px';
+        rp.style.left=(px-rs/2)+'px';rp.style.top=(GY-rs/2)+'px';
+        rp.style.opacity=Math.min(.6,.3+imp*.0003).toFixed(2);
+        layer.appendChild(rp);setTimeout(()=>rp.remove(),560);
+        if(imp>600)try{SND.tone(520,.05,.08,'sine')}catch(e2){}
+        else if(imp>250)try{SND.tone(520,.03,.05,'sine')}catch(e2){}
+      };
+      const finishBall=()=>{
+        w.remove();
         /* 各类 neuron 自 Q 级联点亮 */
         const cats=box.querySelectorAll('.lt-node');
         cats.forEach((nd,i)=>{
@@ -3048,15 +3921,146 @@ function ltFly(){
               if(el.tagName==='path')return;
               el.classList.add('lt-pop');
             });
-            try{SND.tone(640+i*150,.05,.08,'sine')}catch(e){}
+            try{SND.tone(640+i*150,.05,.08,'sine')}catch(e2){}
           },240+i*200);
         });
         setTimeout(()=>{layer.remove();if(dots)dots.classList.remove('on')},240+cats.length*200+420);
       };
+      /* AirDrop 式碰撞：白热核心在接触点亮起 → 柔光晕荡开 → 两道冲击环向外、
+         一道吸收环向 Q 收拢（能量交付给接收方）→ 火花向四周溅射后减速熄灭 */
+      let restBurst=false;
+      const airdropBurst=()=>{
+        const S=Math.max(.9,qc.width/40);                 /* 随 Q 尺寸整体缩放 */
+        const mk=(cls,sz,extra,delay)=>{
+          const el=document.createElement('span');el.className=cls;
+          el.style.cssText='width:'+sz.toFixed(0)+'px;height:'+sz.toFixed(0)+'px;left:'+qx+'px;top:'+GY+'px;'
+            +(extra||'')+(delay?';animation-delay:'+delay+'ms':'');
+          layer.appendChild(el);setTimeout(()=>el.remove(),1400+(delay||0));
+          return el;
+        };
+        mk('ad-core',Math.max(130,qc.width*3.4)*S);
+        mk('ad-halo',Math.max(180,qc.width*4.8)*S);
+        mk('ad-ring',Math.max(150,qc.width*3.6)*S);
+        mk('ad-ring',Math.max(210,qc.width*4.9)*S,null,130);
+        mk('ad-absorb',Math.max(110,qc.width*2.9)*S,null,40);
+        /* 火花：16 颗，核心亮白+蓝色辉光，随机方向偏上方扇形，距离/大小/时长/延迟都带随机，
+           cubic-bezier 减速曲线让它们像真实溅射一样先快后慢地熄灭 */
+        for(let i=0;i<16;i++){
+          const ang=-Math.PI*(.08+Math.random()*.84);     /* 上方 170° 扇形溅射 */
+          const dist=(30+Math.random()*78)*S;
+          const sz=(5.5+Math.random()*4.5)*S;
+          const sp=mk('ad-spark',sz,'--dx:'+(Math.cos(ang)*dist).toFixed(0)+'px;--dy:'+(Math.sin(ang)*dist).toFixed(0)+'px;',
+            40+((Math.random()*110)|0));
+          sp.style.animationDuration=(620+Math.random()*360)+'ms';
+        }
+        try{SND.tone(740,.06,.09,'sine')}catch(e2){}
+        setTimeout(()=>{try{SND.tone(988,.07,.08,'sine')}catch(e2){}},120);
+      };
+      const frame=(now)=>{
+        let dt=(now-lastT)/1000;lastT=now;
+        if(dt>.034)dt=.034;                    /* 切后台回来防大步长穿地（秒） */
+        if(phase==='fly'){
+          pvy+=GRAV*dt;px+=pvx*dt;py+=pvy*dt;
+          spin+=pvx*dt/9*57.2958;              /* 无滑动滚动：ω=v/r */
+          if(py>=GY&&pvy>0){
+            const imp=pvy;py=GY;pvy=-pvy*REST;pvx*=BOUNCE_F;
+            psq=Math.min(.18,imp*.00013);      /* 压扁量 ∝ 撞击速率 */
+            impactFx(imp);                     /* 涟漪+落地音 ∝ 撞击速率 */
+            if(-pvy<40){phase='roll';pvy=0}    /* 弹跳耗尽 → 转入滚动 */
+          }
+        }else if(phase==='roll'){
+          /* 滚动摩擦：恒定减速度把水平速度磨到 0——球自己停下来，
+             不是缓动补间滑到指定坐标 */
+          const dec=MU*GRAV*dt;
+          pvx=Math.sign(pvx)*Math.max(0,Math.abs(pvx)-dec);
+          px+=pvx*dt;
+          spin+=pvx*dt/9*57.2958;
+          if(Math.abs(pvx)<.4){phase='rest';markT=now}
+        }else if(phase==='rest'){
+          /* 碰撞瞬间：AirDrop 式爆发（只放一次），短暂停驻让环荡开；
+             球在同一时间融进白热核心——它的能量交给了 Q */
+          if(!restBurst){restBurst=true;airdropBurst()}
+          const rp=Math.min(1,(now-markT)/420);
+          d.style.opacity=String(1-.96*rp);   /* 球融进白热核心（transform 由下方公共块管，别碰） */
+          if(now-markT>420){
+            phase='sink';markT=now;
+            /* 球已落定在 Q 上缘——Q 从球的落位滚出来接棒 */
+            box.querySelectorAll('[data-n="q"]').forEach(el=>{el.classList.remove('lt-wait');if(el.tagName!=='path')el.classList.add('lt-qroll')});
+            try{SND.tone(520,.07,.10,'sine')}catch(e2){}
+          }
+        }else if(phase==='sink'){
+          /* 球已在停驻期融进光里，这里只等 Q 滚出接棒 */
+          if(now-markT>240){finishBall();return}
+          requestAnimationFrame(frame);return;
+        }
+        psq*=Math.exp(-dt*14);                 /* 形变恢复（约 50ms 半衰期） */
+        w.style.transform='translate('+(px-sx).toFixed(1)+'px,'+(py-sy).toFixed(1)+'px)';
+        d.style.transform='scale('+(1+psq).toFixed(3)+','+(1-psq).toFixed(3)+')';
+        sp.style.transform='rotate('+spin.toFixed(1)+'deg)';
+        requestAnimationFrame(frame);
+      };
+      requestAnimationFrame(frame);
       },80);
-    },MERGE+160);
+    },MERGE+260);
   },420);
   if(dots)dots.classList.remove('drop');
+}
+/* 采纳建议裁决条：从分类计数推导置信度——≥60% 绿色笑脸=建议采纳，否则红脸摇头=不建议；
+   并点名具体风险（红线/橙线句子）。透明原则：置信度是启发式，不是模型自报的数字 */
+function liveVerdict(){
+  const box=liveEl('liveVerdict');if(!box)return;
+  const en=lang==='en';
+  const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const v=LIVE.verdict, fromModel=LIVE.verdictSource==='model';
+
+  /* 这一行裁决全部来自模型自己输出的 VERDICT_JSON。
+     模型没给出可解析结果时如实说明，绝不编造一个百分比 */
+  if(!v||typeof v.adopt!=='boolean'||!Array.isArray(v.risks)){
+    box.classList.add('on');
+    box.innerHTML='<div class="vd-main">'
+      +'<div class="vd-txt"><div class="vd-k">'+(en?'Verdict · advice to you':'裁决 · 给你的建议')+'</div>'
+      +'<div class="vd-l" style="color:#7a6644">'+(en?'No machine-readable verdict returned':'模型未返回可解析的裁决')+'</div></div>'
+      +'<div class="vd-conf"><b class="vd-pct">—</b></div></div>'
+      +'<div class="vd-calc"><span>'+(en?'No number is shown because none was generated — we will not invent one.':'没有生成任何数值，因此这里不显示数字——我们不会替模型编一个。')+'</span></div>';
+    return;
+  }
+
+  const yes=!!v.adopt;
+  /* confidence 是模型自报的：这里只校验范围，不参与任何前端加权计算 */
+  const raw=Number(v.confidence);
+  const conf=(Number.isFinite(raw)&&raw>=0&&raw<=100)?Math.round(raw):null;
+  const risks=v.risks.filter(r=>typeof r==='string'&&r.trim()).slice(0,2);
+  const cc=yes?'#4f8f75':'#b06a68';
+  const face=yes
+    ?'<svg class="vd-face yes" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2"/><circle class="e" cx="9" cy="10" r="1.15"/><circle class="e" cx="15" cy="10" r="1.15"/><path class="m" d="M8.4 13.6c1.1 1.5 2.3 2.2 3.6 2.2s2.5-.7 3.6-2.2"/></svg>'
+    :'<svg class="vd-face no" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2"/><circle class="e" cx="9" cy="10.4" r="1.15"/><circle class="e" cx="15" cy="10.4" r="1.15"/><path class="m" d="M8.6 14.6h6.8"/></svg>';
+  const label=yes?(en?'Recommend adopting':'建议采纳'):(en?'Do not adopt as-is':'不建议直接采纳');
+  const riskHtml=risks.length
+    ?'<div class="vd-risks"><span class="vd-rk">'+(en?'Specific risks · named by the model':'具体风险 · 模型列出')+'</span>'
+      +risks.map(r=>'<span class="vd-chip" style="--c:#bd8f61"><i></i>'+esc(r.trim())+'</span>').join('')+'</div>'
+    :'';
+  /* 来源摊开写：这个数到底是「模型自报」还是「预录示例」，观众一眼能核对 */
+  const source=fromModel
+    ?(en?'model-reported · deepseek-reasoner · this run':'模型自报 · deepseek-reasoner · 本次生成')
+    :(en?'RECORDED EXAMPLE · a replay has no model confidence':'预录示例 · 回放没有模型置信度');
+  box.style.setProperty('--vc',cc);
+  box.innerHTML='<div class="vd-main">'+face
+    +'<div class="vd-txt"><div class="vd-k">'+(en?'Verdict · advice to you':'裁决 · 给你的建议')+'</div>'
+    +'<div class="vd-l" style="color:'+cc+'">'+label+'</div></div>'
+    +'<div class="vd-conf"><div class="vd-cb"><i style="background:'+cc+'"></i></div>'
+    +'<b class="vd-pct">'+(conf==null?'—':'0%')+'</b></div></div>'
+    +'<div class="vd-calc"><span>'+source+'</span>'
+    +'<b>'+(conf==null?(en?'no number':'无数值'):'confidence '+conf+'%')+'</b></div>'+riskHtml;
+  box.classList.add('on');
+  if(conf==null)return;
+  const bar=box.querySelector('.vd-cb i'),pct=box.querySelector('.vd-pct'),t0=performance.now();
+  (function tick(){
+    const p=Math.min(1,(performance.now()-t0)/900);
+    const n=Math.round(conf*(1-Math.pow(1-p,3)));
+    if(bar)bar.style.width=n+'%';
+    if(pct)pct.textContent=n+'%';
+    if(p<1)requestAnimationFrame(tick);
+  })();
 }
 function liveDone(){
   const ans=document.querySelector('.scene.active .live-pane.answer');
@@ -3069,23 +4073,63 @@ function liveDone(){
     requestAnimationFrame(()=>chk.classList.add('on'));
     setTimeout(()=>chk.classList.remove('on'),3200);   /* 停留 3 秒后淡出 */
   }
-  if(ans){ans.classList.add('done');setTimeout(()=>ans.classList.remove('done'),1500)}
+  if(ans){ans.classList.add('done');ans.scrollTop=0;setTimeout(()=>ans.classList.remove('done'),1500)}
+  /* 完成高光：一道白光横掠整张大卡片 + 卡外一圈淡蓝光晕——
+     光层就挂在 .live-stage 里（absolute inset:0），扫的是整卡，不是某个小球或小卡 */
+  const stage=document.querySelector('.scene.active .live-stage');
+  const swp=liveEl('stageSweep');
+  if(stage&&swp&&!matchMedia('(prefers-reduced-motion: reduce)').matches){
+    swp.classList.remove('on');
+    swp.querySelectorAll('.sdust').forEach(el=>el.classList.remove('on'));
+    void swp.offsetWidth;
+    stage.classList.remove('halo');void stage.offsetWidth;
+    /* 星尘只生成一次，之后复用：沿弧形光痕铺开——中间低、两侧高，
+       大小/漂移/时长/延迟都带随机，看起来是光带起来的尘埃，不是规则点缀 */
+    if(!swp.querySelector('.sdust')){
+      const r=stage.getBoundingClientRect();
+      for(let k=0;k<30;k++){
+        const p=Math.random(),d=Math.abs(p-.5)*2;
+        const el=document.createElement('span');el.className='sdust';
+        const sz=(1.4+Math.random()*2.3).toFixed(1);
+        el.style.width=sz+'px';el.style.height=sz+'px';
+        el.style.left=(p*r.width+(Math.random()-.5)*26).toFixed(0)+'px';
+        el.style.top=(r.height*(.30+d*.19)+(Math.random()-.5)*32).toFixed(0)+'px';
+        el.style.setProperty('--dx',((Math.random()-.5)*22).toFixed(1)+'px');
+        el.style.setProperty('--dy',((Math.random()*.6+.4)*26).toFixed(1)+'px');
+        el.style.setProperty('--du',(1.5+Math.random()*1.1).toFixed(2)+'s');
+        el.style.setProperty('--dl',(Math.random()*.7).toFixed(2)+'s');
+        swp.appendChild(el);
+      }
+    }
+    swp.classList.add('on');
+    swp.querySelectorAll('.sdust').forEach(el=>el.classList.add('on'));
+    stage.classList.add('halo');
+    setTimeout(()=>{
+      swp.classList.remove('on');
+      swp.querySelectorAll('.sdust').forEach(el=>el.classList.remove('on'));
+      stage.classList.remove('halo');
+    },2950);
+  }
   if(leg)leg.classList.add('on');
   /* 结论面板保持素净不上色——高亮只用于思考轨迹；关键句仍会进入下方网络图 */
   try{liveTree()}catch(e){}
+  try{fitLiveStage()}catch(e){}
   try{ltFly()}catch(e){}
+  focusStage('tree');   /* 落点：网络图接力 */
+  /* 裁决条：等网络图点亮完再浮现（期间若用户重跑则跳过） */
+  setTimeout(()=>{if(!LIVE.busy){focusStage('verdict');try{liveVerdict()}catch(e){}}try{fitLiveStage()}catch(e){}},6100);
   try{SND.ok()}catch(e){}     /* 生成完成 = 支付成功那声 */
 }
 function liveLedger(o){
-  liveEl('liveLedger').textContent=
-    'MODE '+o.mode+' · LATENCY '+(o.ms==null?'n/a':(o.ms/1000).toFixed(1)+'s')
-    +' · TOKENS '+(o.tk==null?'—':o.tk+(o.exact?'':' ≈'))+' · REQ '+o.id;
+  const lg=liveEl('liveLedger');
+  if(lg)lg.textContent=
+    o.mode+' · '+(o.tk==null?'—':o.tk+(o.exact?'':'≈')+' TOKENS')+' · REQ '+o.id;
 }
 function liveAudit(q,o){
   const short=q.length>58?q.slice(0,56)+'…':q;
   AUDIT[25]={
-    e:{en:'Real call · '+o.mode+' mode · '+o.ms+' ms · '+o.tk+' tokens · prompt “'+short+'”',
-       zh:'真实调用 · '+o.mode+' 模式 · '+o.ms+' ms · '+o.tk+' tokens · 提问「'+short+'」'},
+    e:{en:(o.mode==='LIVE'?'Real call':'RECORDED replay')+' · '+o.mode+' mode · '+o.ms+' ms · '+o.tk+' tokens · prompt “'+short+'”',
+       zh:(o.mode==='LIVE'?'真实调用':'预录回放')+' · '+o.mode+' 模式 · '+o.ms+' ms · '+o.tk+' tokens · 提问「'+short+'」'},
     o:{en:LIVE.mode==='direct'
         ?'Our key is inside this public page. Anyone can open View Source, take it, and spend our balance. We chose that trade instead of hiding it — it is disclosed here, not buried.'
         :'We hold the key in a server environment variable, so the page never contains it. We log prompt, latency and tokens — never your identity, and never the trace itself.',
@@ -3099,8 +4143,9 @@ function liveAudit(q,o){
 }
 async function liveReplay(q,id){
   const t0=performance.now();
-  const rec=LIVE_REC.find(r=>r.re.test(q))||LIVE_REC[1];
+  const rec=pickRec(q);
   LIVE.lastReason=rec.reason;LIVE.lastAnswer=rec.answer;
+  LIVE.verdict=rec.v||null;LIVE.verdictSource='demo';
   await new Promise(res=>liveType(liveEl('liveReason'),rec.reason,res,true));
   await new Promise(res=>liveType(liveEl('liveAnswer'),rec.answer,res,false));
   const ms=Math.round(performance.now()-t0);
@@ -3119,10 +4164,10 @@ async function liveStream(q,id){
     ?{prompt:q,model:LIVE.model}
     :{model:LIVE.model,stream:true,stream_options:{include_usage:true},temperature:0.7,
       messages:[{role:'system',content:'You are a helpful assistant. Answer in under 90 words. Think first, then answer.'},{role:'user',content:q}]};
-  /* 12s hard timeout: if the proxy is unreachable (e.g. no network / no proxy),
+  /* 6s hard timeout: if the proxy is unreachable (e.g. no network / no proxy),
      fail fast and honestly fall back to REPLAY instead of hanging forever. */
   const ctrl=('AbortController' in window)?new AbortController():null;
-  const timer=ctrl?setTimeout(()=>ctrl.abort(),12000):null;
+  const timer=ctrl?setTimeout(()=>ctrl.abort(),6000):null;
   let res;
   try{
     res=await fetch(url,{method:'POST',headers:headers,body:JSON.stringify(body),signal:ctrl?ctrl.signal:undefined});
@@ -3134,7 +4179,14 @@ async function liveStream(q,id){
   if(!res.ok)throw new Error('HTTP '+res.status);
   const reader=res.body.getReader(),dec=new TextDecoder();
   const rEl=liveEl('liveReason'),aEl=liveEl('liveAnswer');
-  let buf='',usage=null,chars=0,firstByte=0,reasonText='';
+  let buf='',usage=null,chars=0,firstByte=0,reasonText='',answerText='';
+  const MARK='VERDICT_JSON:';
+  const showAnswer=()=>{
+    /* VERDICT_JSON 那行是给机器读的，不进入观众看到的答案正文 */
+    const i=answerText.indexOf(MARK);
+    aEl.textContent=(i>=0?answerText.slice(0,i):answerText).trimEnd();
+    aEl.parentElement.scrollTop=aEl.parentElement.scrollHeight;
+  };
   while(true){
     const {done,value}=await reader.read();if(done)break;
     if(!firstByte)firstByte=performance.now();
@@ -3153,10 +4205,18 @@ async function liveStream(q,id){
         rEl.innerHTML=liveHl(reasonText);
         rEl.parentElement.scrollTop=rEl.parentElement.scrollHeight;
       }
-      if(d.content){aEl.textContent+=d.content;chars+=d.content.length;aEl.parentElement.scrollTop=aEl.parentElement.scrollHeight}
+      if(d.content){answerText+=d.content;chars+=d.content.length;showAnswer()}
     }
   }
   const ms=Math.round(performance.now()-t0);
+  /* 建议、置信度、风险全部取自模型自己输出的 VERDICT_JSON，前端不再计算 */
+  let verdict=null;
+  const vi=answerText.indexOf(MARK);
+  if(vi>=0){
+    const m=answerText.slice(vi+MARK.length).match(/\{[\s\S]*?\}/);
+    if(m){try{verdict=JSON.parse(m[0])}catch(e){verdict=null}}
+  }
+  LIVE.verdict=verdict;LIVE.verdictSource='model';
   LIVE.lastReason=reasonText;LIVE.lastAnswer=aEl.textContent;
   const tk=usage?(usage.total_tokens||0):Math.round(chars/3.2);
   liveLedger({mode:'LIVE',ms:ms,tk:tk,exact:!!usage,id:id});
@@ -3172,6 +4232,8 @@ async function liveRun(){
   const btn=liveEl('liveRun');
   if(btn){btn.disabled=true;btn.style.opacity=.5;btn.textContent=lang==='en'?'Thinking…':'思考中…'}
   liveClear();
+  LIVE.verdict=null;LIVE.verdictSource='';   /* 每轮先清空上一轮裁决，绝不残留旧数字 */
+  const rwrap=liveEl('reasonWrap');if(rwrap)rwrap.classList.add('beam');   /* 思考卡片光流常亮 */
   const dots=liveEl('liveDots');if(dots)dots.classList.add('on');
   const id=Math.random().toString(36).slice(2,7).toUpperCase();
   try{
@@ -3183,19 +4245,20 @@ async function liveRun(){
                                     :'端点不可用 · 回落到预录轨迹（'+err.message+'）');
     try{SND.err()}catch(e){}
     await liveReplay(q,id);
-    /* 面板内显式声明：这是预录，不是真实模型——透明性原则不允许任何混淆 */
-    const pane=document.querySelector('.scene.active .live-pane.answer');
-    if(pane&&!pane.querySelector('.live-note')){
+    /* 面板内显式声明：这是预录，不是真实模型——透明性原则不允许任何混淆。
+       放在顶栏徽标旁边（不放答案卡里，免得把答案挤出去） */
+    const head=document.querySelector('.scene.active .live-head');
+    if(head&&!head.querySelector('.live-note')){
       const n=document.createElement('div');n.className='live-note';
-      n.textContent=lang==='en'?'RECORDED · the live model was unreachable — the trace above is pre-recorded, not generated now':'预录内容 · 当前未连上真实模型——以上轨迹为预录示例，不是现在生成的';
-      const v=pane.querySelector('.lp-v');pane.insertBefore(n,v||pane.firstChild);
+      n.textContent=lang==='en'?'RECORDED · model unreachable: the trace, verdict and risks are pre-recorded examples; no confidence number is shown':'预录内容 · 未连上真实模型：轨迹、裁决与风险均为预录示例，不显示置信度数值';
+      head.appendChild(n);
     }
   }finally{
     LIVE.busy=false;
     /* 思考点不在 finally 里立刻摘掉——合体编排 420ms 后才开始，需要它们还在原位。
        合体吸收时 ltFly 自己会摘；这里只做 1.6s 后的兜底清理（防止编排异常残留） */
     setTimeout(()=>{const d2=liveEl('liveDots');if(d2)d2.classList.remove('on')},1600);
-    if(btn){btn.disabled=false;btn.style.opacity=1;btn.textContent=lang==='en'?'Run':'提问'}
+    if(btn){btn.disabled=false;btn.style.opacity=1;btn.textContent=lang==='en'?'Run ↵':'提问 ↵'}
   }
 }
 function liveAsk(btn){
@@ -3205,8 +4268,16 @@ function liveAsk(btn){
 }
 (function(){
   const inp=liveEl('liveQ');
-  /* results are triggered ONLY by clicking Run; typing (incl. IME composition) never submits */
-  if(inp)inp.addEventListener('keydown',e=>e.stopPropagation());
+  /* 回车即运行——和真实对话一样，打完字直接敲 Enter；
+     中文输入法组合期间（isComposing / keyCode 229）不误触，避免把选字当提交；
+     继续 stopPropagation，防止打字时触发全局翻页快捷键 */
+  if(inp)inp.addEventListener('keydown',e=>{
+    e.stopPropagation();
+    if(e.key==='Enter'&&!e.isComposing&&e.keyCode!==229){
+      e.preventDefault();
+      try{liveRun()}catch(err){}
+    }
+  });
   /* the badge tells the truth from the moment the slide loads */
   setTimeout(()=>{
     if(!liveEl('liveMode'))return;
@@ -3216,6 +4287,28 @@ function liveAsk(btn){
 })();
 
 /* ============ BOOT ============ */
+/* 液态玻璃交互：鼠标位置驱动高光角度——hover 时是「光影在移动」，
+   不是把胶囊刷成实心蓝。@property 注册过的 --mx/--my 会平滑过渡。 */
+(function(){
+  const G='.demo-stage,.cd-panel,.wb-invite,.hyp,.fact,.verdict,.choice-btn,.tool-btn,.predict-btn,'
+    +'.hud-btn,.badge,.chip,.live-stage,.live-pane,.live-verdict,.live-chips .chip,.live-input input,.live-note';
+  let pending=null,raf=0;
+  addEventListener('pointermove',e=>{
+    const t=e.target;if(!t||!t.closest)return;
+    const el=t.closest(G);if(!el)return;
+    pending={el,x:e.clientX,y:e.clientY};
+    if(raf)return;
+    raf=requestAnimationFrame(()=>{
+      raf=0;if(!pending)return;
+      const r=pending.el.getBoundingClientRect();
+      if(r.width&&r.height){
+        pending.el.style.setProperty('--mx',((pending.x-r.left)/r.width*100).toFixed(1)+'%');
+        pending.el.style.setProperty('--my',((pending.y-r.top)/r.height*100).toFixed(1)+'%');
+      }
+      pending=null;
+    });
+  },{passive:true});
+})();
 applyLang();
 go(idx);
 </script>
