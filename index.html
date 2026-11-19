@@ -2711,6 +2711,14 @@ body.dark .choice-btn.picked,body.dark .predict-btn.picked{
 /* 默认不指向任何占位代理：没有端点就说没有端点。
    填了 key（或部署了代理）才会真正发起调用。 */
 window.LIVE_URL = window.LIVE_URL || '';
+/* 同源代理：页面与 /api/chat 同一个域时自动接线，不用把地址写死、也不用跨域。
+   适用于 Vercel、WorkBuddy 发布链接、自定义域名等任何提供 /api/chat 的托管。
+   file:// 本机文件与 GitHub Pages 不自动开启（前者用 config.local.js 的 key，
+   后者粘一次 key 或填 window.LIVE_URL）。想强制开关可设 window.LIVE_SAME_ORIGIN。 */
+window.LIVE_SAME_ORIGIN = window.LIVE_SAME_ORIGIN ||
+  (/^https?:$/.test(location.protocol)
+   && !/^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)$/.test(location.hostname)
+   && !/\.github\.io$/.test(location.hostname));
 /* 备选：直连模式。key 的来源有三处，优先级从高到低：
    1) window.DS_KEY —— 由上面的 config.local.js 注入（本地开发，最省事）
    2) 浏览器里输入过、已存进 localStorage 的 ds_key
@@ -4032,7 +4040,7 @@ function readStoredKey(){
   return '';
 }
 const LIVE={
-  proxy:(window.LIVE_URL||'').replace(/\/+$/,''),
+  proxy:(window.LIVE_URL||(window.LIVE_SAME_ORIGIN?'/api/chat':'')).replace(/\/+$/,''),
   key:(window.DS_KEY||readStoredKey()||'').trim(),
   model:'deepseek-reasoner',
   busy:false,
@@ -4096,9 +4104,22 @@ function liveConnectBar(){
   if(!stage||stage.querySelector('.live-connect'))return;
   const bar=document.createElement('div');
   bar.className='live-connect';
-  bar.innerHTML='<span class="lc-k">'+(lang==='en'
+  /* 线上版和本地版说清楚区别：key 文件不在仓库里，所以发布版必须单独粘一次。
+     不写这句，用户会以为「key 又被删了」。 */
+  const online=/^https?:$/.test(location.protocol)
+    && !/^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)$/.test(location.hostname);
+  const lead=LIVE.proxy
+    ?(lang==='en'
+      ?'The proxy endpoint did not answer. Check that the Vercel deployment is live and DEEPSEEK_API_KEY is set — or paste a key here to call DeepSeek directly.'
+      :'代理端点没有应答：检查 Vercel 部署是否在跑、DEEPSEEK_API_KEY 是否已设置。也可以在这里粘 key 直连。')
+    :online
+    ?(lang==='en'
+      ?'This is the published copy — the key file stays on your own machine and is never uploaded, so paste the key once here. This browser will remember it.'
+      :'这是线上发布版：key 文件只在你本机，不会上传到仓库，所以这里要单独粘一次。粘过之后这个浏览器会记住。')
+    :(lang==='en'
       ?'Paste a DeepSeek API key to run a real call. It stays in this browser. To keep it across reloads, put it in config.local.js.'
-      :'填入 DeepSeek API key 即可真实调用。key 只留在本机浏览器；想重开页面也不丢，就写进同目录的 config.local.js。')+'</span>'
+      :'填入 DeepSeek API key 即可真实调用。key 只留在本机浏览器；想重开页面也不丢，就写进同目录的 config.local.js。');
+  bar.innerHTML='<span class="lc-k">'+lead+'</span>'
     +'<input class="lc-in" type="password" placeholder="sk-..." autocomplete="off" spellcheck="false">'
     +'<button class="lc-go" type="button">'+(lang==='en'?'Connect':'连接')+'</button>';
   stage.appendChild(bar);
@@ -4829,16 +4850,18 @@ async function liveStream(q,id){
     ?{prompt:q,model:LIVE.model}
     :{model:LIVE.model,stream:true,stream_options:{include_usage:true},temperature:0.7,
       messages:[{role:'system',content:SYS_PROMPT},{role:'user',content:q}]};
-  /* 6s hard timeout: if the proxy is unreachable (e.g. no network / no proxy),
-     fail fast and honestly fall back to REPLAY instead of hanging forever. */
+  /* Fail fast when an endpoint is unreachable, but give the proxy enough time
+     to receive the FIRST reasoning token from deepseek-reasoner (often >6s).
+     The timer is cleared as soon as response headers arrive; it does not cut a live stream. */
   const ctrl=('AbortController' in window)?new AbortController():null;
-  const timer=ctrl?setTimeout(()=>ctrl.abort(),6000):null;
+  const timeoutMs=isProxy?30000:12000;
+  const timer=ctrl?setTimeout(()=>ctrl.abort(),timeoutMs):null;
   let res;
   try{
     res=await fetch(url,{method:'POST',headers:headers,body:JSON.stringify(body),signal:ctrl?ctrl.signal:undefined});
   }catch(e){
     if(timer)clearTimeout(timer);
-    throw new Error(e.name==='AbortError'?'timeout after 12s':'network error');
+    throw new Error(e.name==='AbortError'?('timeout after '+Math.round(timeoutMs/1000)+'s'):'network error');
   }
   if(timer)clearTimeout(timer);
   if(!res.ok)throw new Error('HTTP '+res.status);
