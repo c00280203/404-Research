@@ -3560,6 +3560,34 @@ const SND={on:true,ctx:null,out:null,__act:false,
     v.gain.exponentialRampToValueAtTime(.0001,t+.06);
     o.start(t);o.stop(t+.08);
     })},
+  /* 每次导航前同步唤醒：wheel / 程序化跳转没有 pointerdown，
+     Safari 会趁机把上下文挂到 interrupted，之后每次翻页都哑。 */
+  wake(){
+    if(!this.on||!this.__act)return;
+    const c=this.ac();if(c&&!this.out)this.bus();
+  },
+  /* 翻页音：旧的 sceneFX 用 .10 gain / 60ms 的单音，环境噪声下几乎听不见，
+     会被当成"翻页没声音"。这里给一个明确可听的双音，音高随页码起伏。 */
+  nav(i){
+    if(!this.on)return;
+    const base=520+(((i||0)%6)*70);
+    this._go('tick',()=>{
+      const s=this.bus();if(!s)return;const c=s.c,t=c.currentTime+.005;
+      const hit=(f,st,dur,g)=>{
+        const o=c.createOscillator(),v=c.createGain(),hp=c.createBiquadFilter();
+        o.type='triangle';o.frequency.setValueAtTime(f,st);
+        o.frequency.exponentialRampToValueAtTime(f*.86,st+dur);
+        hp.type='highpass';hp.frequency.value=300;
+        o.connect(hp);hp.connect(v);v.connect(s.out);
+        v.gain.setValueAtTime(.0001,st);
+        v.gain.linearRampToValueAtTime(g,st+.006);
+        v.gain.exponentialRampToValueAtTime(.0001,st+dur);
+        o.start(st);o.stop(st+dur+.02);
+      };
+      hit(base,t,.075,.24);
+      hit(base*1.5,t+.055,.10,.13);
+    });
+  },
   sweep(){
     if(!this.on)return;this._go('sweep',()=>{
     const s=this.bus();if(!s)return;const c=s.c;
@@ -3639,6 +3667,42 @@ addEventListener('pointerdown',e=>{
   if(!b||b.closest('.choice-btn'))return;
   try{SND.tick()}catch(err){}
 },{capture:true});
+
+/* 开场一次性引导：浏览器要求先有一次真实手势才允许出声。
+   如果观众用滚轮/触摸滑动直接翻页，AudioContext 会一直停在 suspended，
+   表现为"只有第一页有声音、后面全哑"。给一个 9 秒自动消失的小胶囊，
+   点一下就彻底解锁；任何 pointerdown / keydown / touchstart 也能解锁。 */
+(function(){
+  if(location.hash.indexOf('audiotest')>=0)return;
+  let tip=null,done=false;
+  const kill=()=>{if(tip){tip.remove();tip=null}};
+  const unlock=()=>{
+    if(done)return;done=true;
+    try{
+      SND.__act=true;SND._arm();SND.ac();
+      if(!SND.out)SND.bus();
+      SND.nav(typeof idx!=='undefined'?idx:0);
+    }catch(e){}
+    kill();
+  };
+  ['pointerdown','keydown','touchstart'].forEach(ev=>
+    addEventListener(ev,unlock,{capture:true,passive:true}));
+  setTimeout(()=>{
+    if(done||SND.__act)return;
+    tip=document.createElement('button');
+    tip.type='button';
+    tip.textContent=(typeof lang!=='undefined'&&lang==='en')
+      ?'Tap once to enable sound':'点一下开启音效';
+    tip.style.cssText='position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:98;'
+      +'padding:9px 18px;border-radius:999px;cursor:pointer;font:600 12px/1.2 var(--sans,system-ui);'
+      +'letter-spacing:.06em;color:var(--ink);background:rgba(255,255,255,.72);'
+      +'border:1px solid '+inkA(.22)+';backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);'
+      +'box-shadow:0 8px 26px -14px rgba(20,36,70,.5)';
+    tip.addEventListener('pointerdown',e=>{e.stopPropagation();unlock()},{capture:true});
+    document.body.appendChild(tip);
+    setTimeout(kill,9000);
+  },1400);
+})();
 
 /* 音频自检（仅在 URL 带 #audiotest 时出现，平时完全不影响界面）：
    点按钮播 1 秒 660Hz，并用 AnalyserNode 实测输出电平——
@@ -3729,12 +3793,12 @@ function sceneFX(){
   s.querySelectorAll('.giant,h2.title,.end-big').forEach(el=>{
     el.classList.remove('wipe');void el.offsetWidth;el.classList.add('wipe');
   });
-  SND.tone(idx%2?640:780,.06,.10);
+  SND.nav(idx);
   document.querySelectorAll('.demo-stage').forEach(d=>{d.style.transform=''});
   tele();
 }
 const _go=go;
-go=function(i){_go(i);sceneFX();};
+go=function(i){SND.wake();_go(i);sceneFX();};
 
 /* 6 · demo aggregates */
 function addAgg(host,en,zh){
