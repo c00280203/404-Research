@@ -778,22 +778,45 @@ body.dark .live-meta{color:rgba(226,236,250,.48)}
 /* 玻璃球已移除，树图不再有可视内容——隐藏它，消除中间的大留白。
    DOM 仍保留，ltFly 的点亮编排照常跑，只是不再占用版面。 */
 .live-tree,.live-tree.on{display:none!important}
-/* 高光划过玻璃：结果亮相时一道冷白斜光贴着卡面从左掠到右，一次即止。
-   不是横切硬条——窄光带 + 大 blur + 渐变两端透明，像光在玻璃上滑过。 */
-.vd-sheen{position:absolute;top:-30%;left:-60%;width:38%;height:160%;pointer-events:none;z-index:4;
-  transform:skewX(-18deg);
-  background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.06) 24%,
-    rgba(255,255,255,.46) 50%,rgba(214,235,255,.30) 62%,rgba(255,255,255,.05) 82%,transparent 100%);
-  filter:blur(7px);opacity:0;
-  animation:vdSheen 1.35s cubic-bezier(.32,0,.2,1) .12s 1 forwards}
+/* 高光划过玻璃（白金）：高亮靠对比度——先整体压暗卡面，再让一道白金亮带扫过，
+   亮带前后还各带一圈暗晕。白底上叠白光等于看不见，压暗才是这次的关键。 */
+.vd-dim{position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:3;
+  background:rgba(12,18,34,.32);opacity:0;
+  animation:vdDim 1.55s cubic-bezier(.36,0,.2,1) .1s 1 forwards}
+@keyframes vdDim{0%{opacity:0}14%{opacity:1}76%{opacity:1}100%{opacity:0}}
+body.dark .vd-dim{background:rgba(2,6,16,.42)}
+.vd-sheen{position:absolute;top:-34%;left:-72%;width:56%;height:168%;pointer-events:none;z-index:4;
+  transform:skewX(-19deg);
+  background:linear-gradient(90deg,
+    transparent 0%,
+    rgba(22,26,44,.30) 16%,
+    rgba(255,250,232,.30) 30%,
+    rgba(255,252,242,.94) 44%,
+    #fffdf6 50%,
+    rgba(244,218,160,.78) 56%,
+    rgba(255,250,232,.26) 68%,
+    rgba(22,26,44,.26) 82%,
+    transparent 100%);
+  box-shadow:0 0 38px 8px rgba(255,238,196,.55),0 0 14px 2px rgba(255,250,230,.45);
+  filter:blur(3px);opacity:0;
+  animation:vdSheen 1.55s cubic-bezier(.36,0,.2,1) .1s 1 forwards}
 @keyframes vdSheen{
-  0%{left:-60%;opacity:0}
-  14%{opacity:.9}
-  78%{opacity:.75}
-  100%{left:118%;opacity:0}}
+  0%{left:-72%;opacity:0}
+  12%{opacity:1}
+  80%{opacity:.92}
+  100%{left:124%;opacity:0}}
 body.dark .vd-sheen{
-  background:linear-gradient(90deg,transparent 0%,rgba(150,195,255,.05) 24%,
-    rgba(205,230,255,.34) 50%,rgba(150,195,255,.22) 62%,rgba(150,195,255,.04) 82%,transparent 100%)}
+  background:linear-gradient(90deg,
+    transparent 0%,
+    rgba(4,8,20,.46) 16%,
+    rgba(255,244,214,.24) 30%,
+    rgba(255,250,236,.88) 44%,
+    #fffdf2 50%,
+    rgba(238,205,138,.70) 56%,
+    rgba(255,244,214,.20) 68%,
+    rgba(4,8,20,.40) 82%,
+    transparent 100%);
+  box-shadow:0 0 42px 10px rgba(255,226,160,.42),0 0 16px 3px rgba(255,245,220,.4)}
 /* 三段式：上方思考 → 中间结果 → 底部建议。分段标签让视线有落点 */
 .vd-sec-k{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;color:var(--faint);
   text-transform:uppercase;padding:14px 18px 0}
@@ -1060,7 +1083,7 @@ body.dark .cf-track{background:linear-gradient(180deg,rgba(120,160,225,.10),rgba
 @media (prefers-reduced-motion:reduce){
   .reason-wrap::before,.reason-wrap::after,
   .reason-wrap.beam::before,.reason-wrap.beam::after,
-  .live-verdict.on.breathe::before,#liveRun.breathe,.vd-sheen{animation:none;opacity:0}
+  .live-verdict.on.breathe::before,#liveRun.breathe,.vd-dim,.vd-sheen{animation:none;opacity:0}
 }
 /* 五色色卡：红敏感 · 橙警告 · 黄预警 · 绿健康 · 蓝正常 */
 .live-ledger{margin-top:14px;padding-top:12px;border-top:1px solid var(--hair2);font-family:var(--mono);
@@ -4871,11 +4894,12 @@ function liveDone(){
     if(!vb)return;
     vb.classList.remove('vd-hold');
     vb.classList.add('breathe');       /* 结果就绪后，左侧色条开始苹果式缓慢呼吸 */
-    /* 高光划过玻璃：结果亮相那一刻，一道冷白斜光贴着卡面从左掠到右。
+    /* 高光划过玻璃（白金）：先压暗卡面，再让一道白金亮带从左掠到右。
        每次运行都重新插入节点，保证动画从头播（class 复用不会重启动画）。 */
-    const oldSheen=vb.querySelector('.vd-sheen');if(oldSheen)oldSheen.remove();
+    vb.querySelectorAll('.vd-dim,.vd-sheen').forEach(n=>n.remove());
+    const dim=document.createElement('span');dim.className='vd-dim';dim.setAttribute('aria-hidden','true');
     const sheen=document.createElement('span');sheen.className='vd-sheen';sheen.setAttribute('aria-hidden','true');
-    vb.appendChild(sheen);
+    vb.appendChild(dim);vb.appendChild(sheen);
     focusStage('verdict');
     try{fitLiveStage()}catch(e){}
   };
