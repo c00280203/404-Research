@@ -715,20 +715,25 @@ body.dark .live-meta{color:rgba(226,236,250,.48)}
 .live-head .live-note{margin:0 0 0 4px;flex:1;min-width:0;font-size:9.5px;letter-spacing:.04em;
   padding:4px 9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* 类别计数控柱图已移除：与网络图节点标签重复，且挤压裁决条出视口 */
-/* —— 思考卡片光流动效：一道蓝光沿边框巡游（思考中常亮） —— */
-/* —— 光追（边框巡游光）：一道彗尾，浅蓝头 → 深蓝身 → 淡蓝尾 —— */
+/* —— 思考卡片彩色呼吸灯：一道多色极光沿边框巡游 + 明暗呼吸 ——
+   loading 是忍受，thinking 是期待：颜色像活的一样绕圈流转、明暗起伏，
+   眼睛能跟着它走十遍。青 → 靛 → 紫 → 粉 → 橙 → 绿 → 青，柔和不刺眼。 */
 @property --bv{syntax:'<angle>';inherits:false;initial-value:0deg}
 .reason-wrap{position:relative;display:flex;flex-direction:column;min-width:0}
 .reason-wrap .live-pane{flex:1}
 .reason-wrap::before{content:'';position:absolute;inset:-1px;border-radius:17px;padding:1.5px;
-  background:conic-gradient(from var(--bv),transparent 0turn .5turn,
-    rgba(173,214,255,.5) .6turn,rgba(122,196,255,.8) .68turn,rgba(10,132,255,.95) .76turn,
-    rgba(6,83,179,.9) .82turn,rgba(94,168,255,.75) .88turn,rgba(173,214,255,.35) .93turn,transparent .97turn 1turn);
+  background:conic-gradient(from var(--bv),transparent 0turn .40turn,
+    #38bdf8 .47turn,#6366f1 .55turn,#a855f7 .63turn,
+    #ec4899 .71turn,#fb923c .79turn,#22c55e .87turn,#38bdf8 .94turn,transparent .99turn 1turn);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
   -webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;
-  animation:bvSpin 3.4s linear infinite;opacity:0;transition:opacity .7s;pointer-events:none}
-.reason-wrap.beam::before{opacity:1}
+  animation:bvSpin 3.4s linear infinite;opacity:0;transition:opacity .7s;pointer-events:none;
+  filter:saturate(1.15) blur(.4px)}
+.reason-wrap.beam::before{opacity:1;animation:bvSpin 3.6s linear infinite,bvBreathe 3.6s ease-in-out infinite}
 @keyframes bvSpin{to{--bv:1turn}}
+/* 明暗呼吸：整圈极光一起轻轻变亮变暗，像静置设备的呼吸灯，不碰背景 */
+@keyframes bvBreathe{0%,100%{opacity:.55;filter:saturate(1.05) blur(.6px)}
+  50%{opacity:1;filter:saturate(1.4) blur(.3px)}}
 /* —— AirDrop 碰撞：两台设备碰一碰——白热核心闪一下，柔光晕荡开，
    两道冲击环向外、一道吸收环向 Q 收拢（能量传进接收方），火花四溅 ——
    整段按「缓入缓出」重调：没有一帧硬切，环/晕/火花都带羽化，出现和消失都是渐变的 */
@@ -787,6 +792,17 @@ body.dark .live-meta{color:rgba(226,236,250,.48)}
   18%{transform:rotate(-14deg)}36%{transform:rotate(12deg)}
   54%{transform:rotate(-8deg)}72%{transform:rotate(5deg)}90%{transform:rotate(-2deg)}}
 .vd-txt{flex:1;min-width:0}
+/* 置信度分数：模型自报，醒目放大；口径摊开为「仅供展示、不参与裁决」 */
+.vd-score{flex:0 0 auto;min-width:96px;text-align:right;padding-left:14px;
+  border-left:1px solid rgba(8,13,24,.08)}
+.vd-score-v{font-family:var(--mono);font-size:30px;font-weight:800;line-height:1;color:var(--sc,#2b4c86);
+  font-variant-numeric:tabular-nums;letter-spacing:-.04em}
+.vd-score-v small{font-size:.4em;opacity:.5;font-weight:600;margin-left:1px}
+.vd-score-k{font-family:var(--mono);font-size:8px;letter-spacing:.1em;color:var(--dim);margin-top:4px;text-transform:uppercase}
+.vd-score-n{font-size:8.5px;color:var(--faint);margin-top:2px;white-space:nowrap}
+.vd-score-na .vd-score-v{color:var(--faint)}
+body.dark .vd-score{border-left-color:rgba(232,238,250,.1)}
+body.dark .vd-score-v{color:var(--sc,#cfe0ff)}
 .vd-k{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;color:var(--faint);text-transform:uppercase;margin-bottom:4px}
 .vd-l{font-weight:700;font-size:17px;letter-spacing:-.01em}
 .vd-conf{display:flex;align-items:center;gap:11px;flex-shrink:0}
@@ -811,15 +827,23 @@ body.dark .vd-reason{color:rgba(232,238,250,.78)}
 /* 「模型说采纳，但自报信心只有 X%」——把矛盾摊开，不藏着 */
 .vd-contra{padding:0 18px 7px;font-size:10px;line-height:1.5;letter-spacing:.02em;color:#8a4c4a}
 body.dark .vd-contra{color:#e0a8a5}
-.vd-risks{display:flex;flex-direction:column;gap:3px;border-top:1px solid rgba(8,13,24,.07);padding:8px 18px 8px}
-.vd-rk{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;color:var(--faint);text-transform:uppercase;margin-bottom:2px}
-.vd-chip{font-size:12.5px;color:var(--dim);display:flex;align-items:baseline;gap:8px;line-height:1.5}
-.vd-chip i{width:7px;height:7px;border-radius:50%;background:var(--c,#dd2b2b);flex-shrink:0;transform:translateY(-1px)}
+.vd-risks{display:flex;flex-direction:column;gap:5px;border-top:1px solid rgba(8,13,24,.07);padding:9px 18px 10px}
+.vd-rk{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;color:var(--faint);text-transform:uppercase;margin-bottom:3px}
+/* 风险逐条高亮：暖色胶囊 + 左侧竖条 + 加粗文字，一眼扫到每条警告 */
+.vd-chip{display:flex;align-items:stretch;gap:0;font-size:12.5px;font-weight:600;line-height:1.5;
+  color:#9a4a1e;border-radius:8px;overflow:hidden;
+  background:linear-gradient(180deg,rgba(255,244,224,.96),rgba(255,236,206,.92));
+  border:1px solid rgba(214,138,60,.30);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 1px 2px rgba(150,90,30,.05)}
+.vd-chip i{flex:0 0 3px;background:linear-gradient(180deg,#f5a623,#e8801c);border-radius:0}
+.vd-chip>span{padding:6px 10px;min-width:0}
 body.dark .live-verdict{background:#0d1422;border-color:rgba(232,238,250,.12)}
 body.dark .vd-cb{background:rgba(232,238,250,.1)}
 body.dark .vd-pct{color:#f4f7ff}
 body.dark .vd-risks{border-top-color:rgba(232,238,250,.08)}
-body.dark .vd-chip{color:rgba(232,238,250,.72)}
+body.dark .vd-chip{color:#ffcf9a;
+  background:linear-gradient(180deg,rgba(120,72,28,.42),rgba(96,56,22,.38));
+  border-color:rgba(240,160,70,.28);box-shadow:inset 0 1px 0 rgba(255,220,170,.12)}
 body.dark .vd-calc{color:rgba(232,238,250,.42)}
 body.dark .vd-calc b{color:rgba(232,238,250,.72)}
 /* —— 生成完成：光从卡片顶部「漫」下来 ——
@@ -964,18 +988,19 @@ body.dark .fly-spin::after{background:rgba(22,34,58,.18)}
 .cf-bars{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;height:92px}
 .cf-col{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%}
 .cf-num{font-family:var(--mono);font-size:19px;font-weight:800;color:var(--bc);
-  font-variant-numeric:tabular-nums;letter-spacing:-.03em;line-height:1}
+  font-variant-numeric:tabular-nums;letter-spacing:-.03em;line-height:1;
+  text-shadow:0 0 14px color-mix(in srgb,var(--bc) 45%,transparent)}
 .cf-track{position:relative;width:100%;max-width:46px;flex:1;min-height:0;border-radius:8px;
   background:linear-gradient(180deg,rgba(235,243,252,.30),rgba(200,218,238,.28));
   border:1px solid rgba(160,188,222,.40);
   box-shadow:inset 0 2px 6px rgba(40,70,120,.09),inset 0 -1px 0 rgba(255,255,255,.7);
   display:flex;align-items:flex-end;overflow:hidden}
 .cf-fill{position:relative;display:block;width:100%;height:0;border-radius:7px 7px 6px 6px;
-  background:linear-gradient(180deg,rgba(255,255,255,.5) 0%,var(--bc) 20%,var(--bc) 100%);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.9),inset 1px 0 0 rgba(255,255,255,.4),
-    inset -1px 0 0 rgba(0,0,0,.14);
-  -webkit-backdrop-filter:blur(2px) saturate(1.1);backdrop-filter:blur(2px) saturate(1.1)}
-.cf-fill::before{content:'';position:absolute;left:12%;right:12%;top:0;height:1.5px;border-radius:2px;background:rgba(255,255,255,.9)}
+  background:linear-gradient(180deg,rgba(255,255,255,.30) 0%,var(--bc) 16%,var(--bc) 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 1px 0 0 rgba(255,255,255,.45),
+    inset -1px 0 0 rgba(0,0,0,.10),0 -2px 12px -3px var(--bc);
+  -webkit-backdrop-filter:blur(2px) saturate(1.25);backdrop-filter:blur(2px) saturate(1.25)}
+.cf-fill::before{content:'';position:absolute;left:12%;right:12%;top:0;height:2px;border-radius:2px;background:rgba(255,255,255,.95)}
 .cf-cap{font-family:var(--mono);font-size:9px;letter-spacing:.06em;color:var(--faint);
   text-transform:uppercase;white-space:nowrap}
 body.dark .cf-chart{border-bottom-color:rgba(232,238,250,.1)}
@@ -990,15 +1015,17 @@ body.dark .cf-track{background:linear-gradient(180deg,rgba(120,160,225,.10),rgba
   50%{opacity:1;filter:brightness(1.18)}
 }
 @keyframes breatheHalo{
-  0%,100%{box-shadow:0 6px 16px -6px rgba(10,132,255,.32),inset 0 1px 0 rgba(255,255,255,.25)}
-  50%{box-shadow:0 6px 20px -5px rgba(10,132,255,.52),0 0 0 2px rgba(10,132,255,.07),inset 0 1px 0 rgba(255,255,255,.32)}
+  0%,100%{box-shadow:0 6px 16px -6px rgba(99,102,241,.34),inset 0 1px 0 rgba(255,255,255,.25)}
+  50%{box-shadow:0 6px 22px -5px rgba(168,85,247,.55),0 0 0 2px rgba(236,72,153,.10),inset 0 1px 0 rgba(255,255,255,.32)}
 }
-/* 裁决条：结果就绪（.on）后左侧色条缓慢呼吸 */
+/* 裁决条：结果就绪（.on）后左侧色条缓慢呼吸（保持绿/红语义色，不改彩色） */
 .live-verdict.on.breathe::before{animation:breatheGlow 3.6s ease-in-out infinite}
-/* Run 按钮：空闲待命时呼吸；运行中（busy）立刻停 */
+/* Run 按钮：空闲待命时彩色呼吸；运行中（busy）立刻停 */
 #liveRun.breathe{animation:breatheHalo 3.6s ease-in-out infinite}
 /* 系统减少动效：不开呼吸灯（苹果也这么做） */
 @media (prefers-reduced-motion:reduce){
+  .reason-wrap::before,.reason-wrap::after,
+  .reason-wrap.beam::before,.reason-wrap.beam::after,
   .live-verdict.on.breathe::before,#liveRun.breathe{animation:none}
 }
 /* 五色色卡：红敏感 · 橙警告 · 黄预警 · 绿健康 · 蓝正常 */
@@ -1037,6 +1064,11 @@ body.dark .cf-track{background:linear-gradient(180deg,rgba(120,160,225,.10),rgba
   .vd-txt{grid-column:2;min-width:0}
   .vd-k{font-size:9px;margin-bottom:2px}
   .vd-l{font-size:15.5px;line-height:1.25}
+  .vd-score{grid-column:1/-1;display:flex;align-items:baseline;gap:8px;justify-content:flex-start;
+    min-width:0;text-align:left;padding:6px 0 0;border-left:0;border-top:1px solid rgba(8,13,24,.07)}
+  .vd-score-v{font-size:22px}
+  .vd-score-k{margin-top:0}
+  .vd-score-n{margin-top:0;margin-left:auto}
   .cf-chart{padding:11px 14px 9px}
   .cf-bars{height:84px;gap:8px}
   .vd-reason{padding:6px 14px 4px;font-size:12.5px}
@@ -1351,19 +1383,20 @@ body.dark .demo-stage:hover{
   filter:none}
 body.dark .tool-btn.primary:hover{background:linear-gradient(135deg,#6489d4,#4468b6)}
 
-/* ---- 思考时：玻璃边框的光追巡游 + 表面一道柔光缓缓流过 ----
-   光不是「亮一下」，而是持续在玻璃上流动，眼睛能跟着它走 */
+/* ---- 思考时：玻璃边框的彩色极光巡游 + 表面一道彩色柔光缓缓流过 ----
+   光不是「亮一下」，而是持续在玻璃上流动、换色、呼吸，眼睛能跟着它走 */
 .reason-wrap{isolation:isolate}
-.reason-wrap::before{z-index:3;padding:2px;filter:blur(.35px)}
-.reason-wrap.beam::before{opacity:1;animation:bvSpin 2.8s linear infinite}
+.reason-wrap::before{z-index:3;padding:2px}
+/* 不再用单色 spin 覆盖上面的彩色双动画；保持 bvBreathe 呼吸活着 */
 .reason-wrap::after{
   content:'';position:absolute;inset:1px;border-radius:17px;pointer-events:none;z-index:0;
-  background:linear-gradient(104deg,transparent 34%,rgba(255,255,255,.40) 46%,
-    rgba(205,228,255,.28) 52%,transparent 65%);
-  background-size:280% 100%;background-position:170% 0;opacity:0;
-  transition:opacity .6s ease}
-.reason-wrap.beam::after{opacity:.6;animation:glassFlow 3.4s cubic-bezier(.45,0,.45,1) infinite}
-@keyframes glassFlow{0%{background-position:170% 0}100%{background-position:-70% 0}}
+  background:linear-gradient(104deg,transparent 30%,
+    rgba(99,102,241,.16) 40%,rgba(168,85,247,.20) 47%,
+    rgba(236,72,153,.16) 54%,rgba(34,197,94,.14) 61%,transparent 72%);
+  background-size:260% 100%;background-position:170% 0;opacity:0;
+  transition:opacity .6s ease;filter:blur(2px)}
+.reason-wrap.beam::after{opacity:.85;animation:glassFlow 4.6s cubic-bezier(.45,0,.45,1) infinite}
+@keyframes glassFlow{0%{background-position:180% 0}100%{background-position:-80% 0}}
 .reason-wrap .live-pane{position:relative;z-index:1}
 
 /* ============================================================
@@ -1585,9 +1618,10 @@ body.dark .live-chips .chip:hover{border-color:rgba(170,200,244,.34);color:rgba(
 /* 思考卡的流光在深色下必须减弱：同一道 40% 白在浅色里是「光」，
    在深色里就是一团白雾——这是上一版深色翻车的真正原因 */
 body.dark .reason-wrap::after{
-  background:linear-gradient(104deg,transparent 34%,rgba(150,195,255,.16) 46%,
-    rgba(110,160,230,.10) 52%,transparent 65%)}
-body.dark .reason-wrap.beam::after{opacity:.55}
+  background:linear-gradient(104deg,transparent 30%,
+    rgba(99,102,241,.17) 40%,rgba(168,85,247,.20) 47%,
+    rgba(236,72,153,.17) 54%,rgba(34,197,94,.15) 61%,transparent 72%)}
+body.dark .reason-wrap.beam::after{opacity:.7}
 
 /* ④ 3px 渐变描边环：教程原文 #D9E4F2（左上）→ #FEF9FD（右下），
    右下几乎纯白——这就是真实玻璃「边缘被光打亮」的样子 */
@@ -2046,6 +2080,11 @@ body.dark .cd-panel::after,body.dark .fact::after{
   .vd-txt{grid-column:2;min-width:0}
   .vd-k{font-size:8.5px;margin-bottom:2px}
   .vd-l{font-size:15px;line-height:1.24}
+  .vd-score{grid-column:1/-1;display:flex;align-items:baseline;gap:7px;justify-content:flex-start;
+    min-width:0;text-align:left;padding:6px 0 0;border-left:0;border-top:1px solid rgba(8,13,24,.07)}
+  .vd-score-v{font-size:20px}
+  .vd-score-k{margin-top:0}
+  .vd-score-n{margin-top:0;margin-left:auto}
   .cf-chart{padding:10px 13px 9px}
   .cf-hd{margin-bottom:8px}
   .cf-t{font-size:8px;letter-spacing:.12em}
@@ -2056,7 +2095,8 @@ body.dark .cd-panel::after,body.dark .fact::after{
   .vd-reason{padding:6px 13px 3px;font-size:11.5px;line-height:1.5}
   .vd-calc{padding:0 13px 6px;font-size:8.5px;gap:7px;line-height:1.4}
   .vd-risks{padding:7px 13px;gap:4px}
-  .vd-chip{font-size:10px;padding:4px 7px}
+  .vd-chip{font-size:10.5px}
+  .vd-chip>span{padding:5px 8px}
 
   /* 装饰层：小屏一律不画（会整块盖住内容） */
   .ad-core,.ad-halo,.ad-ring,.ad-absorb,.ad-spark,.fly-dot,.fly-mist{display:none!important}
@@ -4192,12 +4232,13 @@ const SYS_PROMPT='You are a careful assistant inside a research demo about AI tr
  +'Think first, then answer the question in under 90 words. For medical, legal or attribution questions, '
  +'say plainly what you cannot know and what the user should check, instead of sounding certain.\n\n'
  +'After the answer, output ONE extra line in exactly this format (the page parses it and never shows it):\n'
- +'VERDICT_JSON: {"levels":{"severe":N,"moderate":N,"mild":N,"ok":N},"adopt":true|false,"reason":"<one question-specific sentence>","risks":["<specific caveat>","<specific caveat>"]}\n'
+ +'VERDICT_JSON: {"levels":{"severe":N,"moderate":N,"mild":N,"ok":N},"confidence":<integer 0-100>,"adopt":true|false,"reason":"<one question-specific sentence>","risks":["<specific caveat>","<specific caveat>"]}\n'
  +'Rules for that line:\n'
  +'- Break YOUR answer into its distinct checkable claims. Give each claim exactly one level, then count them:\n'
  +'  severe = wrong or unsafe — acting on it could cause real harm; moderate = plausible but uncertain or dependent on missing context;\n'
  +'  mild = a minor caveat, low impact even if wrong; ok = well-supported, low-stakes and checkable.\n'
  +'  The four counts must sum to the number of claims you made (at least 1).\n'
+ +'- confidence = YOUR honest, calibrated confidence that the answer is correct and safe to use, an integer 0-100. High only when claims are well-supported and checkable, low when context or evidence is missing. Never default to a round number. The page shows this score to the viewer but does NOT use it to decide — the fixed one-strike rule on levels decides adoption.\n'
  +'- reason = ONE short sentence specific to THIS question explaining why those ratings lead to the advice. No generic statements.\n'
  +'- adopt = your own judgement of whether the answer is safe to act on as-is. Shown for comparison only.\n'
  +'- The PAGE applies a fixed rule: severe > 0 OR moderate > 0 means DO NOT ADOPT; only severe = 0 AND moderate = 0 means adopt. Rate honestly — never tune the counts to force an outcome.\n'
@@ -4225,19 +4266,19 @@ const LIVE_REC=[
    计数是人工对这条预录答案的评级（共四条主张），不是模型实时输出；
    页面照常按固定一票否决规则下结论，并把理由与来源摊开。 */
 [
- {levels:{severe:1,moderate:2,mild:1,ok:1},adopt:false,
+ {levels:{severe:1,moderate:2,mild:1,ok:1},confidence:34,adopt:false,
   reason:'One claim would set a personal dose — that is unsafe — and two more depend on facts I cannot see.',
   risks:['No personal dose can be set without age, conditions and other medication.','Pregnancy, ulcers and kidney function change the safe limit.']},
- {levels:{severe:0,moderate:2,mild:1,ok:1},adopt:false,
+ {levels:{severe:0,moderate:2,mild:1,ok:1},confidence:58,adopt:false,
   reason:'Two claims hinge on context the excerpt never provides, so the answer cannot be trusted as-is.',
   risks:['Whether the clause is mutual is unknown.','Notice period and jurisdiction are not visible in the excerpt.']},
- {levels:{severe:1,moderate:1,mild:1,ok:1},adopt:false,
+ {levels:{severe:1,moderate:1,mild:1,ok:1},confidence:41,adopt:false,
   reason:'One claim would guess an author — that is unsafe — and the evidence supplied is far too thin.',
   risks:['One paragraph is too little signal for style attribution.','No provenance (drafts, timestamps) is available.']},
- {levels:{severe:0,moderate:1,mild:1,ok:2},adopt:false,
+ {levels:{severe:0,moderate:1,mild:1,ok:2},confidence:72,adopt:false,
   reason:'Most claims are checkable, but one depends on missing medical history, so one strike blocks adoption.',
   risks:['Age, activity level and medical history are unknown.','Going below about 1,500 kcal a day needs supervision.']},
- {levels:{severe:1,moderate:1,mild:1,ok:1},adopt:false,
+ {levels:{severe:1,moderate:1,mild:1,ok:1},confidence:28,adopt:false,
   reason:'A specific answer would be a guess with no facts to check it against — unsafe to act on.',
   risks:['No verifiable facts were supplied with the question.','Any specific answer would be a guess.']}
 ].forEach((v,i)=>{if(LIVE_REC[i])LIVE_REC[i].v=v});
@@ -4457,18 +4498,16 @@ function liveTree(){
         const arr=byCat[c],col=LT_COL[c];
         const y=off+rowH/2;
         e+='<path class="lt-edge lt-wait" data-n="'+ci+'" d="M'+(xQ+20)+' '+yQ+' C '+(xQ+120)+' '+yQ+', '+(xC-110)+' '+y+', '+(xC-16)+' '+y+'" fill="none" stroke="'+col+'" stroke-opacity=".5" stroke-width="2"/>';
-        v+='<circle class="lt-wait" data-n="'+ci+'" cx="'+xC+'" cy="'+y+'" r="22" fill="'+col+'" fill-opacity=".14"/>'
-          +'<circle class="lt-node lt-wait" data-n="'+ci+'" data-c="'+c+'" cx="'+xC+'" cy="'+y+'" r="13" fill="url(#sg-'+c+')" filter="url(#ltSh)"/>'
-          +'<text class="lt-wait" data-n="'+ci+'" x="'+(xC+30)+'" y="'+(y+4.5)+'" font-size="13" font-weight="700" fill="'+LT_TXT[c]+'" font-family="ui-monospace,Menlo,monospace">'+esc(en?labEn:LT_CATS.find(x=>x[0]===c)[1])+' ×'+arr.length+'</text>';
+        /* 去掉玻璃球：类别只剩一根极简色签 + 文字，点亮顺序仍靠 .lt-node/data-n */
+        v+='<rect class="lt-node lt-wait" data-n="'+ci+'" data-c="'+c+'" x="'+xC+'" y="'+(y-9)+'" width="3" height="18" rx="1.5" fill="'+col+'"/>'
+          +'<text class="lt-wait" data-n="'+ci+'" x="'+(xC+14)+'" y="'+(y+4.5)+'" font-size="13" font-weight="700" fill="'+LT_TXT[c]+'" font-family="ui-monospace,Menlo,monospace">'+esc(en?labEn:LT_CATS.find(x=>x[0]===c)[1])+' ×'+arr.length+'</text>';
         const best=arr[0];
         e+='<path class="lt-edge lt-wait" data-n="'+ci+'" d="M'+(xC+15)+' '+y+' C '+(xC+120)+' '+y+', '+(xL-120)+' '+y+', '+(xL-9)+' '+y+'" fill="none" stroke="'+col+'" stroke-opacity=".34" stroke-width="1.4"/>';
-        v+='<circle class="lt-wait lt-leafdot" data-n="'+ci+'" cx="'+xL+'" cy="'+y+'" r="5.5" fill="url(#sg-'+c+')"/>'
-          +'<text class="lt-wait lt-leaftx" data-n="'+ci+'" x="'+(xL+15)+'" y="'+(y+4)+'" font-size="12" fill="'+inkA(.62)+'" font-family="ui-monospace,Menlo,monospace">'+esc(kw(best[0]))+'</text>';
+        v+='<text class="lt-wait lt-leaftx" data-n="'+ci+'" x="'+(xL)+'" y="'+(y+4)+'" font-size="12" fill="'+inkA(.62)+'" font-family="ui-monospace,Menlo,monospace">'+esc(kw(best[0]))+'</text>';
         off+=rowH;
       });
-      /* Q 不再画玻璃球：一个极简文字锚点即可，减少视觉元素、保持极简 */
-      v+='<circle class="lt-q lt-wait" data-n="q" cx="'+xQ+'" cy="'+yQ+'" r="15" fill="rgba(90,127,190,.08)"/>'
-        +'<text class="lt-q lt-wait" data-n="q" x="'+xQ+'" y="'+(yQ+4.5)+'" text-anchor="middle" font-size="12" font-weight="700" fill="#3f5f96" font-family="ui-monospace,Menlo,monospace">Q</text>';
+      /* Q 极简文字锚点：不画任何球 */
+      v+='<text class="lt-q lt-wait" data-n="q" x="'+xQ+'" y="'+(yQ+4.5)+'" text-anchor="middle" font-size="12" font-weight="700" fill="#3f5f96" font-family="ui-monospace,Menlo,monospace">Q</text>';
       svg='<svg class="lt-net" viewBox="0 0 '+W+' '+H+'">'+LT_DEFS+e+v+'</svg>';
     }else{
       /* 手机折叠层：Q → 类别(带计数) */
@@ -4477,12 +4516,10 @@ function liveTree(){
       active.forEach(([c,,labEn],ci)=>{
         const y=gap/2+18+ci*gap,col=LT_COL[c];
         e+='<path class="lt-edge lt-wait" data-n="'+ci+'" d="M'+(xQ+19)+' '+yQ+' C '+(xQ+70)+' '+yQ+', '+(xC-70)+' '+y+', '+(xC-15)+' '+y+'" fill="none" stroke="'+col+'" stroke-opacity=".5" stroke-width="2"/>';
-        v+='<circle class="lt-wait" data-n="'+ci+'" cx="'+xC+'" cy="'+y+'" r="19" fill="'+col+'" fill-opacity=".14"/>'
-          +'<circle class="lt-node lt-wait" data-n="'+ci+'" data-c="'+c+'" cx="'+xC+'" cy="'+y+'" r="11.5" fill="url(#sg-'+c+')" filter="url(#ltSh)"/>'
-          +'<text class="lt-wait" data-n="'+ci+'" x="'+(xC+26)+'" y="'+(y+4)+'" font-size="12" font-weight="700" fill="'+LT_TXT[c]+'" font-family="ui-monospace,Menlo,monospace">'+esc(en?labEn:LT_CATS.find(x=>x[0]===c)[1])+' ×'+byCat[c].length+'</text>';
+        v+='<rect class="lt-node lt-wait" data-n="'+ci+'" data-c="'+c+'" x="'+xC+'" y="'+(y-8)+'" width="3" height="16" rx="1.5" fill="'+col+'"/>'
+          +'<text class="lt-wait" data-n="'+ci+'" x="'+(xC+12)+'" y="'+(y+4)+'" font-size="12" font-weight="700" fill="'+LT_TXT[c]+'" font-family="ui-monospace,Menlo,monospace">'+esc(en?labEn:LT_CATS.find(x=>x[0]===c)[1])+' ×'+byCat[c].length+'</text>';
       });
-      v+='<circle class="lt-q lt-wait" data-n="q" cx="'+xQ+'" cy="'+yQ+'" r="14" fill="rgba(90,127,190,.08)"/>'
-        +'<text class="lt-q lt-wait" data-n="q" x="'+xQ+'" y="'+(yQ+4.5)+'" text-anchor="middle" font-size="11.5" font-weight="700" fill="#3f5f96" font-family="ui-monospace,Menlo,monospace">Q</text>';
+      v+='<text class="lt-q lt-wait" data-n="q" x="'+xQ+'" y="'+(yQ+4.5)+'" text-anchor="middle" font-size="11.5" font-weight="700" fill="#3f5f96" font-family="ui-monospace,Menlo,monospace">Q</text>';
       svg='<svg class="lt-net" viewBox="0 0 '+W+' '+H+'">'+LT_DEFS+e+v+'</svg>';
     }
   }else{
@@ -4525,10 +4562,10 @@ function ltFly(onDone){
   const hasLv=!!lv;
   const yes=hasLv?vdRule(lv):!!(LIVE.verdict&&LIVE.verdict.adopt);
   const cols=[
-    {k:'severe',  c:'#c8443c', en:'severe',   zh:'严重'},
-    {k:'moderate',c:'#d98a2b', en:'moderate', zh:'中度'},
-    {k:'mild',    c:'#b9a028', en:'mild',     zh:'轻度'},
-    {k:'ok',      c:'#3f8f75', en:'ok',       zh:'正常'}
+    {k:'severe',  c:'#e5484d', en:'severe',   zh:'严重'},
+    {k:'moderate',c:'#ff8a3d', en:'moderate', zh:'中度'},
+    {k:'mild',    c:'#f5bf17', en:'mild',     zh:'轻度'},
+    {k:'ok',      c:'#1fc48a', en:'ok',       zh:'正常'}
   ];
   const counts=cols.map(o=>hasLv?lv[o.k]:0);
   const total=counts.reduce((a,b)=>a+b,0);
@@ -4624,6 +4661,12 @@ function vdLevels(v){
 /* 固定裁决规则（一票否决）：出现任何 severe 或 moderate → 不采纳；只有 mild/ok → 采纳。
    模型的 adopt 字段只作对照，不参与判定——同一个计数分布永远得到同一个结论。 */
 function vdRule(lv){return lv.severe===0&&lv.moderate===0}
+/* 模型自报置信度：严格校验整数 0-100。
+   null/字符串/越界一律返回 null —— 绝不把缺失显示成假的 0 分。它只作展示，不参与裁决。 */
+function vdConfidence(v){
+  const c=v&&v.confidence;
+  return (typeof c==='number'&&Number.isFinite(c)&&c>=0&&c<=100)?Math.round(c):null;
+}
 
 /* 采纳建议裁决条：四档计数由模型逐条评级自报；页面用固定一票否决规则下结论，
    并把模型针对本题写的理由（reason）完整摆出来，让「为什么」可核对。 */
@@ -4645,9 +4688,11 @@ function liveVerdict(){
   }
 
   const yes=vdRule(lv);                                   /* 唯一判据：固定一票否决 */
+  const conf=vdConfidence(v);                             /* 模型自报置信度：只展示，不裁决 */
   const modelAdopt=(typeof v.adopt==='boolean')?v.adopt:null;
   const contradiction=modelAdopt!==null&&modelAdopt!==yes; /* 模型意见与固定规则相左 */
-  const risks=(Array.isArray(v.risks)?v.risks:[]).filter(r=>typeof r==='string'&&r.trim()).slice(0,2);
+  /* 所有风险逐条列出并高亮——一条都不省略，让观众逐字核对 */
+  const risks=(Array.isArray(v.risks)?v.risks:[]).filter(r=>typeof r==='string'&&r.trim());
   const reason=(typeof v.reason==='string'&&v.reason.trim())?v.reason.trim():'';
   const cc=yes?'#4f8f75':'#b06a68';
   const face=yes
@@ -4659,7 +4704,7 @@ function liveVerdict(){
     :yes?(en?'Recommend adopting':'建议采纳'):(en?'Do not adopt as-is':'不建议直接采纳');
   const riskHtml=risks.length
     ?'<div class="vd-risks"><span class="vd-rk">'+(en?'Specific risks · named by the model':'具体风险 · 模型列出')+'</span>'
-      +risks.map(r=>'<span class="vd-chip" style="--c:#bd8f61"><i></i>'+esc(r.trim())+'</span>').join('')+'</div>'
+      +risks.map(r=>'<span class="vd-chip"><i></i><span>'+esc(r.trim())+'</span></span>').join('')+'</div>'
     :'';
   /* 模型针对本题写下的一句理由——这是「为什么采纳/不采纳」的核心，单独成行放大 */
   const reasonHtml=reason
@@ -4677,10 +4722,20 @@ function liveVerdict(){
   const countsTxt=en
     ?'severe '+lv.severe+' · moderate '+lv.moderate+' · mild '+lv.mild+' · ok '+lv.ok
     :'严重 '+lv.severe+' · 中度 '+lv.moderate+' · 轻度 '+lv.mild+' · 正常 '+lv.ok;
+  /* 置信度分数：模型给了几分就列出几分，醒目放大、口径摊开；
+     明确标注「模型自报、仅供参考」，因为结论由四档一票否决决定，不看这个数。 */
+  const confHtml=conf!==null
+    ?'<div class="vd-score" style="--sc:'+cc+'">'
+      +'<div class="vd-score-v">'+conf+'<small>/100</small></div>'
+      +'<div class="vd-score-k">'+(en?'self-reported confidence':'置信度 · 模型自报')+'</div>'
+      +'<div class="vd-score-n">'+(en?'display only — does not decide':'仅供展示 · 不参与裁决')+'</div></div>'
+    :'<div class="vd-score vd-score-na"><div class="vd-score-v">—</div>'
+      +'<div class="vd-score-k">'+(en?'no score reported':'未给出分数')+'</div></div>';
   box.style.setProperty('--vc',cc);
   box.innerHTML='<div class="vd-main">'+face
     +'<div class="vd-txt"><div class="vd-k">'+(en?'Verdict · advice to you':'裁决 · 给你的建议')+'</div>'
-    +'<div class="vd-l" style="color:'+cc+'">'+label+'</div></div></div>'
+    +'<div class="vd-l" style="color:'+cc+'">'+label+'</div></div>'
+    +confHtml+'</div>'
     +'<div class="vd-calc"><span>'+source+'</span>'
     +'<b>'+countsTxt+'</b>'
     +'<span class="vd-rule">'+(en?'one-strike · severe or moderate > 0 ⇒ no':'一票否决 · 严重或中度 > 0 则不采纳')+'</span></div>'
