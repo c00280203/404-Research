@@ -778,6 +778,22 @@ body.dark .live-meta{color:rgba(226,236,250,.48)}
 /* 玻璃球已移除，树图不再有可视内容——隐藏它，消除中间的大留白。
    DOM 仍保留，ltFly 的点亮编排照常跑，只是不再占用版面。 */
 .live-tree,.live-tree.on{display:none!important}
+/* 高光划过玻璃：结果亮相时一道冷白斜光贴着卡面从左掠到右，一次即止。
+   不是横切硬条——窄光带 + 大 blur + 渐变两端透明，像光在玻璃上滑过。 */
+.vd-sheen{position:absolute;top:-30%;left:-60%;width:38%;height:160%;pointer-events:none;z-index:4;
+  transform:skewX(-18deg);
+  background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.06) 24%,
+    rgba(255,255,255,.46) 50%,rgba(214,235,255,.30) 62%,rgba(255,255,255,.05) 82%,transparent 100%);
+  filter:blur(7px);opacity:0;
+  animation:vdSheen 1.35s cubic-bezier(.32,0,.2,1) .12s 1 forwards}
+@keyframes vdSheen{
+  0%{left:-60%;opacity:0}
+  14%{opacity:.9}
+  78%{opacity:.75}
+  100%{left:118%;opacity:0}}
+body.dark .vd-sheen{
+  background:linear-gradient(90deg,transparent 0%,rgba(150,195,255,.05) 24%,
+    rgba(205,230,255,.34) 50%,rgba(150,195,255,.22) 62%,rgba(150,195,255,.04) 82%,transparent 100%)}
 /* 三段式：上方思考 → 中间结果 → 底部建议。分段标签让视线有落点 */
 .vd-sec-k{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;color:var(--faint);
   text-transform:uppercase;padding:14px 18px 0}
@@ -1044,7 +1060,7 @@ body.dark .cf-track{background:linear-gradient(180deg,rgba(120,160,225,.10),rgba
 @media (prefers-reduced-motion:reduce){
   .reason-wrap::before,.reason-wrap::after,
   .reason-wrap.beam::before,.reason-wrap.beam::after,
-  .live-verdict.on.breathe::before,#liveRun.breathe{animation:none}
+  .live-verdict.on.breathe::before,#liveRun.breathe,.vd-sheen{animation:none;opacity:0}
 }
 /* 五色色卡：红敏感 · 橙警告 · 黄预警 · 绿健康 · 蓝正常 */
 .live-ledger{margin-top:14px;padding-top:12px;border-top:1px solid var(--hair2);font-family:var(--mono);
@@ -4855,6 +4871,11 @@ function liveDone(){
     if(!vb)return;
     vb.classList.remove('vd-hold');
     vb.classList.add('breathe');       /* 结果就绪后，左侧色条开始苹果式缓慢呼吸 */
+    /* 高光划过玻璃：结果亮相那一刻，一道冷白斜光贴着卡面从左掠到右。
+       每次运行都重新插入节点，保证动画从头播（class 复用不会重启动画）。 */
+    const oldSheen=vb.querySelector('.vd-sheen');if(oldSheen)oldSheen.remove();
+    const sheen=document.createElement('span');sheen.className='vd-sheen';sheen.setAttribute('aria-hidden','true');
+    vb.appendChild(sheen);
     focusStage('verdict');
     try{fitLiveStage()}catch(e){}
   };
