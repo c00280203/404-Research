@@ -323,6 +323,31 @@ h2.title{font-size:clamp(30px,4.6vw,56px);font-weight:800;letter-spacing:-.02em;
 .app-row .a-t{font-size:clamp(16px,2vw,21px);font-weight:700;letter-spacing:-.01em;min-width:230px}
 .app-row .a-d{color:var(--dim);font-size:14px;flex:1;line-height:1.6}
 .app-row .a-d b{color:var(--ink)}
+/* D 点：脱离 A–C 列表，作为整页结论放在最底部，独立精致玻璃总结卡 */
+.app-summary{position:relative;margin-top:26px;padding:20px 24px 21px;border-radius:14px;
+  border:1px solid rgba(255,255,255,.78);
+  background:linear-gradient(135deg,rgba(255,255,255,.78) 0%,rgba(238,245,255,.58) 55%,rgba(247,250,255,.42) 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.92),inset 0 0 0 1px rgba(180,205,240,.18),
+    0 14px 34px -22px rgba(16,52,120,.42);
+  backdrop-filter:blur(16px) saturate(1.12);-webkit-backdrop-filter:blur(16px) saturate(1.12);
+  display:flex;gap:22px;align-items:baseline;overflow:hidden}
+.app-summary::before{content:'';position:absolute;inset:0 0 auto 0;height:1px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.95) 18%,rgba(255,255,255,.55) 60%,transparent)}
+.app-summary::after{content:'';position:absolute;left:-18%;top:-120%;width:34%;height:340%;
+  transform:rotate(18deg);pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.32),transparent);filter:blur(12px)}
+.app-summary .as-k{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--faint);min-width:112px;position:relative;z-index:1}
+.app-summary .as-body{display:flex;gap:26px;flex:1;align-items:baseline;position:relative;z-index:1}
+.app-summary .as-t{font-size:clamp(16px,2vw,21px);font-weight:700;letter-spacing:-.01em;min-width:230px;color:var(--ink)}
+.app-summary .as-d{color:var(--dim);font-size:14px;line-height:1.6;flex:1}
+.app-summary .as-d b{color:var(--ink)}
+body.dark .app-summary{border-color:rgba(190,215,255,.16);
+  background:linear-gradient(135deg,rgba(28,40,64,.62),rgba(20,30,52,.42) 55%,rgba(34,48,76,.30));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),inset 0 0 0 1px rgba(150,190,250,.10),
+    0 16px 36px -22px rgba(0,0,0,.7)}
+body.dark .app-summary::before{background:linear-gradient(90deg,transparent,rgba(255,255,255,.28) 18%,rgba(255,255,255,.10) 60%,transparent)}
+body.dark .app-summary::after{background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent)}
 
 /* ---------- quote ---------- */
 .quote{border-left:2px solid var(--hair);padding-left:22px;margin-top:30px;color:var(--dim);font-size:15px;line-height:1.7;font-style:italic}
@@ -365,6 +390,11 @@ h2.title{font-size:clamp(30px,4.6vw,56px);font-weight:800;letter-spacing:-.02em;
   .app-row{flex-wrap:wrap;gap:6px 12px;align-items:baseline}
   .app-row .a-t{min-width:0}
   .app-row .a-d{flex:1 1 100%}
+  .app-summary{flex-direction:column;gap:10px;margin-top:18px;padding:16px 16px 17px;border-radius:12px}
+  .app-summary .as-k{min-width:0}
+  .app-summary .as-body{flex-direction:column;gap:6px}
+  .app-summary .as-t{min-width:0}
+  .app-summary .as-d{font-size:13px;line-height:1.55}
   .hook-row{display:flex;flex-wrap:wrap;gap:6px 14px}
   .hook-row .risk{white-space:normal;text-align:left}
   .hook-row .arrow{text-align:left}
@@ -783,36 +813,44 @@ body.dark .live-meta{color:rgba(226,236,250,.48)}
    头部微微淡入、尾部淡出，观感是「光照过来又离开」，而不是元素出现又消失。
    白为主、金为辅：芯接近纯白，两侧是很淡的香槟金，靠 screen 叠在内容之上。 */
 .page-sheen{position:absolute;inset:0;z-index:6;pointer-events:none;overflow:hidden;
-  opacity:0;mix-blend-mode:screen}
+  opacity:0}
 .scene-live.active .page-sheen{animation:pageSheen 2.4s cubic-bezier(.42,0,.24,1) .28s 1}
-.scene-live.active .page-sheen::before{animation:pageSheenBand 2.4s cubic-bezier(.42,0,.24,1) .28s 1}
-.scene-live.active .page-sheen::after{animation:pageSheenBand 2.4s cubic-bezier(.42,0,.24,1) .28s 1}
-.page-sheen::before{content:'';position:absolute;top:-20%;left:-58%;width:42%;height:140%;
-  transform:skewX(-16deg);
+.scene-live.active .page-sheen::before{animation:pageSheenBandWide 2.4s cubic-bezier(.42,0,.24,1) .28s 1}
+.scene-live.active .page-sheen::after{animation:pageSheenBandCore 2.4s cubic-bezier(.42,0,.24,1) .28s 1}
+/* 宽光幕：整页 100% 宽，从左侧完全在场外走到右侧完全离场。
+   不用 screen 混合——浅色页底接近白，screen 白光会「白上加白」看不见；
+   改用正常混合的半透明香槟金/冷蓝微边，既覆盖整页又能被看见，且不压暗任何地方。 */
+.page-sheen::before{content:'';position:absolute;top:-20%;left:-100%;width:100%;height:140%;
+  transform:skewX(-12deg);
   background:linear-gradient(90deg,
-    transparent 0%,rgba(255,252,244,.05) 22%,
-    rgba(255,250,236,.34) 38%,rgba(255,253,247,.72) 48%,
-    #ffffff 52%,rgba(255,247,224,.48) 58%,
-    rgba(246,226,182,.20) 72%,transparent 100%);
-  filter:blur(16px)}
-.page-sheen::after{content:'';position:absolute;top:-10%;left:-58%;width:42%;height:120%;
-  transform:skewX(-16deg);
-  background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.10) 42%,
-    rgba(255,255,255,.62) 51%,rgba(255,248,228,.30) 60%,transparent 100%);
-  filter:blur(3px)}
+    transparent 0%,rgba(235,243,255,.08) 12%,
+    rgba(255,251,238,.24) 30%,rgba(255,253,247,.74) 45%,
+    rgba(255,255,255,.94) 52%,rgba(255,252,242,.50) 60%,
+    rgba(238,245,255,.10) 82%,transparent 100%);
+  filter:blur(26px)}
+/* 亮芯：72% 宽，跟着宽光幕扫过，白芯 + 淡金边，给一个可读但不刺眼的高光焦点 */
+.page-sheen::after{content:'';position:absolute;top:-10%;left:-72%;width:72%;height:120%;
+  transform:skewX(-12deg);
+  background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.24) 42%,
+    rgba(255,255,255,.84) 50%,rgba(255,252,244,.20) 58%,transparent 100%);
+  filter:blur(5px)}
 @keyframes pageSheen{
   0%{opacity:0}
   6%{opacity:1}
   84%{opacity:1}
   100%{opacity:0}}
-/* 光带本体：-58% 起步，走到 240% 覆盖整页宽度后离场 */
-@keyframes pageSheenBand{
-  0%{transform:skewX(-16deg) translateX(0)}
-  100%{transform:skewX(-16deg) translateX(240%)}}
-body.dark .page-sheen{opacity:0;mix-blend-mode:screen}
-body.dark .page-sheen::before{filter:blur(18px)}
+/* 100% 宽光幕：位移 200% 自身宽＝从完全离场左到完全离场右，中途整页都被覆盖 */
+@keyframes pageSheenBandWide{
+  0%{transform:skewX(-12deg) translateX(0)}
+  100%{transform:skewX(-12deg) translateX(200%)}}
+/* 72% 宽亮芯：位移 322% 自身宽，终点 left≈160%，完整扫出页面右侧 */
+@keyframes pageSheenBandCore{
+  0%{transform:skewX(-12deg) translateX(0)}
+  100%{transform:skewX(-12deg) translateX(322%)}}
+body.dark .page-sheen{mix-blend-mode:screen}
+body.dark .page-sheen::before{filter:blur(28px)}
 body.dark .page-sheen::after{background:linear-gradient(90deg,transparent 0%,
-  rgba(255,255,255,.06) 42%,rgba(255,252,240,.42) 51%,rgba(255,240,205,.20) 60%,transparent 100%)}
+  rgba(255,255,255,.18) 42%,rgba(255,255,255,.72) 50%,rgba(255,248,230,.18) 58%,transparent 100%)}
 /* 三段式：上方思考 → 中间结果 → 底部建议。分段标签让视线有落点 */
 .vd-sec-k{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;color:var(--faint);
   text-transform:uppercase;padding:14px 18px 0}
@@ -1028,55 +1066,45 @@ body.dark .fly-spin::before{background:rgba(22,34,58,.3)}
 body.dark .fly-spin::after{background:rgba(22,34,58,.18)}
 @keyframes flyRipple{0%{transform:scale(.3);opacity:0}20%{opacity:.7}100%{transform:scale(2.9);opacity:0}}
 
-/* —— 四档分类柱状图：模型逐条评级的可量化分布，作为裁决卡内独立一行 ——
-   四根玻璃柱（严重/中度/轻度/正常），柱高按各自条数、数字标注真实计数；
-   四档共用一条比例轴，一眼看出分布。走正常文档流，不悬浮、不遮挡。 */
-/* —— 四档「光柱」图：不是实心色块，而是四根会发光的细柱——
-   每根是一条极淡的玻璃导轨 + 从底部升起的光束 + 顶端一颗灯头光点，
-   数字悬在光点上方。像仪表台上的指示灯，精致、有光感、和极简玻璃卡同调。 */
-.cf-chart{pointer-events:none;padding:13px 18px 9px;border-bottom:1px solid rgba(8,13,24,.07);
+/* —— 四档柱状图：干净的数据看板柱形 ——
+   数字贴在每个柱顶正上方（随柱高升降），不再固定在列顶；
+   柱体用柔和同色渐变 + 水平参考线 + 干净基线，去掉白帽与发光反射。 */
+.cf-chart{pointer-events:none;padding:13px 18px 11px;border-bottom:1px solid var(--hair2);
   opacity:0;transform:translateY(6px)}
 .cf-chart.on{animation:cfIn .5s cubic-bezier(.22,1,.36,1) forwards}
 @keyframes cfIn{to{opacity:1;transform:none}}
-.cf-hd{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:12px}
+.cf-hd{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px}
 .cf-t{font-family:var(--mono);font-size:9px;letter-spacing:.18em;color:var(--faint);text-transform:uppercase}
 .cf-tot{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:var(--dim);font-weight:600}
-.cf-bars{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;height:104px;
-  padding-top:4px;border-bottom:1px solid rgba(8,13,24,.06)}
-.cf-col{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%}
-/* 悬空数字：颜色取光柱本色，带一圈柔和辉光 */
-.cf-num{font-family:var(--mono);font-size:18px;font-weight:800;color:var(--bc);
-  font-variant-numeric:tabular-nums;letter-spacing:-.03em;line-height:1;
-  text-shadow:0 0 6px rgba(255,255,255,.9),0 0 16px color-mix(in srgb,var(--bc) 55%,transparent);
-  transition:color .3s}
-/* 玻璃导轨：一根极细的竖向轨道，托住光束，不是色块容器 */
-.cf-track{position:relative;width:12px;flex:1;min-height:0;border-radius:999px;
-  background:linear-gradient(180deg,rgba(238,244,252,.35),rgba(206,220,238,.42));
-  box-shadow:inset 0 1px 3px rgba(40,70,120,.10),0 0 0 1px rgba(160,188,222,.16);
-  display:flex;align-items:flex-end;overflow:visible}
-/* 光束：从底部升起，本体半透明、顶端最亮，外圈一层本色辉光 */
-.cf-fill{position:relative;display:block;width:100%;height:0;border-radius:999px;
-  background:linear-gradient(180deg,#fff 0%,var(--bc) 26%,var(--bc) 100%);
-  box-shadow:0 0 10px 1px color-mix(in srgb,var(--bc) 60%,transparent),
-    0 0 22px -2px color-mix(in srgb,var(--bc) 45%,transparent),
-    inset 0 1px 0 rgba(255,255,255,.95)}
-/* 灯头：光束顶端一颗发亮的圆点，静止时也像指示灯亮着 */
-.cf-fill::before{content:'';position:absolute;left:50%;top:-2px;transform:translateX(-50%);
-  width:9px;height:9px;border-radius:50%;
-  background:radial-gradient(circle at 38% 32%,#fff 0%,#fff 34%,var(--bc) 70%,var(--bc) 100%);
-  box-shadow:0 0 8px 2px color-mix(in srgb,var(--bc) 75%,transparent),
-    0 0 18px 4px color-mix(in srgb,var(--bc) 35%,transparent)}
-/* 灯柱根部的一点地面反光 */
-.cf-fill::after{content:'';position:absolute;left:50%;bottom:-3px;transform:translateX(-50%);
-  width:20px;height:5px;border-radius:50%;
-  background:radial-gradient(ellipse,color-mix(in srgb,var(--bc) 40%,transparent) 0%,transparent 70%);
-  filter:blur(2px)}
+.cf-bars{position:relative;display:flex;align-items:flex-end;justify-content:space-between;gap:14px;
+  height:110px;padding-top:24px;border-bottom:1px solid var(--hair2)}
+/* 三条水平参考线，只在柱槽区域，像图表刻度网格 */
+.cf-bars::before{content:'';position:absolute;left:0;right:0;top:24px;bottom:0;pointer-events:none;
+  background:repeating-linear-gradient(to top,
+    transparent 0,transparent calc(33.333% - 1px),
+    var(--hair2) calc(33.333% - 1px),var(--hair2) 33.333%)}
+.cf-col{position:relative;flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%}
+.cf-track{position:relative;width:clamp(22px,2.8vw,30px);flex:1;min-height:0;
+  display:flex;align-items:flex-end}
+/* 柱体：柔和同色渐变，顶部略亮底部略深，小圆角，像图表而不是药丸 */
+.cf-fill{position:relative;display:block;width:100%;height:0;border-radius:4px 4px 2px 2px;
+  background:linear-gradient(180deg,
+    color-mix(in srgb,var(--bc) 94%,#fff) 0%,
+    var(--bc) 30%,
+    color-mix(in srgb,var(--bc) 96%,#0a1020) 100%)}
+/* 柱顶内侧一道细高光：静态、克制，替代原来突兀的白帽 */
+.cf-fill::before{content:'';position:absolute;left:0;right:0;top:0;height:3px;
+  border-radius:4px 4px 0 0;background:rgba(255,255,255,.18)}
+/* 数字贴在柱顶正上方，随柱子一起升降；矮柱不再有大片留白 */
+.cf-num{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);
+  margin-bottom:5px;font-family:var(--mono);font-size:16px;font-weight:700;color:var(--ink);
+  font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1;white-space:nowrap}
 .cf-cap{font-family:var(--mono);font-size:9px;letter-spacing:.06em;color:var(--faint);
   text-transform:uppercase;white-space:nowrap;margin-top:1px}
-body.dark .cf-bars{border-bottom-color:rgba(232,238,250,.08)}
-body.dark .cf-track{background:linear-gradient(180deg,rgba(120,160,225,.10),rgba(80,120,190,.16));
-  box-shadow:inset 0 1px 3px rgba(0,0,0,.3),0 0 0 1px rgba(150,190,250,.14)}
-body.dark .cf-num{text-shadow:0 0 8px rgba(255,255,255,.14),0 0 18px color-mix(in srgb,var(--bc) 65%,transparent)}
+body.dark .cf-fill{background:linear-gradient(180deg,
+    color-mix(in srgb,var(--bc) 92%,#fff) 0%,
+    var(--bc) 30%,
+    color-mix(in srgb,var(--bc) 94%,#04070f) 100%)}
 
 /* —— 苹果式呼吸灯：3.6s 一个明暗周期，幅度极克制，像静置设备的电源灯 ——
    只加在「需要引导注意」的两处：裁决条左侧色条、Run 按钮。
@@ -2766,10 +2794,12 @@ body.dark .choice-btn.picked,body.dark .predict-btn.picked{
       <span class="a-t" data-en="AI grading in education" data-zh="教育中的 AI 评分">AI grading in education</span>
       <span class="a-d" data-en="Breakdowns make scores acceptable — but pair them with <b>checkable evidence</b>, or they only persuade." data-zh="分项解释让评分更易被接受——但必须配上<b>可核对的依据</b>，否则只是说服。">Breakdowns make scores acceptable — but pair them with <b>checkable evidence</b>, or they only persuade.</span>
     </div>
-    <div class="app-row reveal-item d5">
-      <span class="a-no">D</span>
-      <span class="a-t" data-en="For builders & regulators" data-zh="对开发者与监管者">For builders & regulators</span>
-      <span class="a-d" data-en="Three concrete, testable design rules: <b>when to show uncertainty, when to confirm, when to explain</b> — each with a measurable behavioural effect." data-zh="三条具体、可测的设计准则：<b>何时展示不确定性、何时请求确认、何时给出解释</b>——每条都有可测量的行为效应。">Three concrete, testable design rules: <b>when to show uncertainty, when to confirm, when to explain</b> — each with a measurable behavioural effect.</span>
+    <div class="app-summary reveal-item d5">
+      <div class="as-k" data-en="Summary · three rules" data-zh="总结 · 三条准则">Summary · three rules</div>
+      <div class="as-body">
+        <span class="as-t" data-en="For builders &amp; regulators" data-zh="对开发者与监管者">For builders &amp; regulators</span>
+        <span class="as-d" data-en="Three concrete, testable design rules: <b>when to show uncertainty, when to confirm, when to explain</b> — each with a measurable behavioural effect." data-zh="三条具体、可测的设计准则：<b>何时展示不确定性、何时请求确认、何时给出解释</b>——每条都有可测量的行为效应。">Three concrete, testable design rules: <b>when to show uncertainty, when to confirm, when to explain</b> — each with a measurable behavioural effect.</span>
+      </div>
     </div>
   </div>
 </section>
@@ -4677,10 +4707,9 @@ function ltFly(onDone){
     chart.innerHTML='<div class="cf-hd"><span class="cf-t">'
       +(en?'Claim ratings · four levels':'逐条评级 · 四档')
       +'</span><span class="cf-tot">'+(en?total+' claims':total+' 条主张')+'</span></div>'
-      +'<div class="cf-bars">'+cols.map(o=>
-        '<div class="cf-col" style="--bc:'+o.c+'">'
-        +'<span class="cf-num">0</span>'
-        +'<div class="cf-track"><span class="cf-fill"></span></div>'
+      +'<div class="cf-bars">'+cols.map((o,i)=>
+        '<div class="cf-col" style="--bc:'+o.c+';--i:'+i+'">'
+        +'<div class="cf-track"><span class="cf-fill"><span class="cf-num">0</span></span></div>'
         +'<span class="cf-cap">'+(en?o.en:o.zh)+'</span></div>').join('')+'</div>';
     /* 插在「结果」小标题之后、结论之前——走正常文档流，不悬浮、不遮挡 */
     const sec=vb&&vb.querySelector('.vd-sec-k');
@@ -4711,10 +4740,9 @@ function ltFly(onDone){
     setTimeout(()=>{if(dots)dots.classList.remove('on');try{onDone&&onDone()}catch(e){}},life);
   };
 
-  const H=58;
   const setFinal=()=>{counts.forEach((n,i)=>{
     if(!hasLv)return;
-    fills[i].style.height=(n/maxN*H)+'px';
+    fills[i].style.height=(n/maxN*100).toFixed(2)+'%';
     nums[i].textContent=String(n);
   })};
 
@@ -4736,7 +4764,7 @@ function ltFly(onDone){
     counts.forEach((n,i)=>{
       const p=Math.min(1,Math.max(0,(el-i*STAG)/DUR));
       const e=1-Math.pow(1-p,3);
-      fills[i].style.height=(n/maxN*H*e).toFixed(1)+'px';
+      fills[i].style.height=(n/maxN*100*e).toFixed(2)+'%';
       nums[i].textContent=String(Math.round(n*e));
     });
     if(el<ALL){requestAnimationFrame(tick);return}
