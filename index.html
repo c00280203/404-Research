@@ -769,7 +769,7 @@ body.dark .live-meta{color:rgba(226,236,250,.48)}
   box-shadow:0 1px 2px rgba(8,13,24,.03);position:relative;overflow:hidden}
 .live-verdict::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--vc,#71717a)}
 .live-verdict.on{display:flex;opacity:1;transform:none}
-.vd-main{display:flex;align-items:center;gap:16px;padding:11px 18px 7px}
+.vd-main{display:flex;align-items:center;gap:16px;padding:20px 18px 7px}
 .vd-face{width:44px;height:44px;flex-shrink:0}
 .vd-face circle:first-child{fill:none;stroke:currentColor;stroke-width:1.6}
 .vd-face .e{fill:currentColor}
@@ -799,6 +799,10 @@ body.dark .live-meta{color:rgba(226,236,250,.48)}
 .vd-calc{font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:var(--faint);
   padding:0 18px 6px;display:flex;gap:12px;flex-wrap:wrap}
 .vd-calc b{color:var(--dim);font-weight:600}
+/* 固定阈值规则标签：用极淡的胶囊和计算行区分，让「为什么是这个结论」可复现 */
+.vd-rule{color:#88795c;background:rgba(180,150,90,.10);border-radius:999px;padding:1px 8px;
+  letter-spacing:.02em;white-space:nowrap}
+body.dark .vd-rule{color:#c4a878;background:rgba(190,160,100,.14)}
 /* 「模型说采纳，但自报信心只有 X%」——把矛盾摊开，不藏着 */
 .vd-contra{padding:0 18px 7px;font-size:10px;line-height:1.5;letter-spacing:.02em;color:#8a4c4a}
 body.dark .vd-contra{color:#e0a8a5}
@@ -941,13 +945,64 @@ body.dark .fly-dot{
 body.dark .fly-spin::before{background:rgba(22,34,58,.3)}
 body.dark .fly-spin::after{background:rgba(22,34,58,.18)}
 @keyframes flyRipple{0%{transform:scale(.3);opacity:0}20%{opacity:.7}100%{transform:scale(2.9);opacity:0}}
-/* resize 等重建场景直接呈现，不再走飞入编排 */
-.lt-instant .lt-wait{opacity:1!important}
-.lt-instant .lt-pop{animation:none!important;opacity:1!important}
-.lt-instant .lt-qroll{animation:none!important;opacity:1!important}
-@keyframes ltFlow{to{stroke-dashoffset:-20}}
-@keyframes edgeIn{from{opacity:0}to{opacity:1}}
-@media (prefers-reduced-motion:reduce){.lt-edge{animation:none}.lt-pop{animation:none;opacity:1}.lt-qroll{animation:none;opacity:1}.lt-bar-fill{animation:none}.lt-wait{opacity:1}.fly-dot{display:none}}
+
+/* —— 置信度柱状图：取代原落球，思考结束后在此凝结成一个可读的数字 ——
+   一根玻璃柱（近透明蓝、贯穿高光）+ 一条 80% 固定阈值线。整页只有这一个焦点。 */
+/* —— 置信度柱状图：取代原落球，作为裁决条左侧的一个紧凑模块 ——
+   一根玻璃柱（近透明蓝、贯穿高光）+ 一条 80% 固定阈值线 + 一个大数字。
+   它和结论脸、文字同处一张玻璃卡里，整页只有这一个视觉焦点，不悬浮、不遮挡。 */
+.cf-chart{flex:0 0 auto;display:flex;align-items:center;gap:10px;pointer-events:none;
+  padding:2px 16px 2px 2px;border-right:1px solid rgba(8,13,24,.07);
+  opacity:0;transform:translateY(6px);transform-origin:left center}
+.cf-chart.on{animation:cfIn .5s cubic-bezier(.22,1,.36,1) forwards}
+@keyframes cfIn{to{opacity:1;transform:none}}
+.cf-track{position:relative;width:40px;height:66px;border-radius:9px;flex:0 0 auto;
+  background:linear-gradient(180deg,rgba(235,243,252,.34),rgba(200,218,238,.30));
+  border:1px solid rgba(160,188,222,.42);
+  box-shadow:inset 0 2px 6px rgba(40,70,120,.10),inset 0 -1px 0 rgba(255,255,255,.7)}
+.cf-fill{position:absolute;left:0;right:0;bottom:0;height:0;border-radius:8px 8px 7px 7px;
+  background:linear-gradient(180deg,rgba(255,255,255,.58) 0%,rgba(150,190,238,.34) 12%,var(--cfc,#5b93da) 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 1px 0 0 rgba(255,255,255,.45),
+    inset -1px 0 0 rgba(40,80,140,.16);
+  -webkit-backdrop-filter:blur(2px) saturate(1.1);backdrop-filter:blur(2px) saturate(1.1)}
+.cf-fill::before{content:'';position:absolute;left:8%;right:8%;top:0;height:1.5px;border-radius:2px;background:rgba(255,255,255,.9)}
+/* 80% 固定阈值线，跨过柱体延伸到右侧，一眼看出过没过线 */
+.cf-thr{position:absolute;left:-3px;right:-5px;bottom:80%;height:0;
+  border-top:1.5px dashed rgba(120,95,60,.6);z-index:2}
+.cf-thr b{position:absolute;left:-1px;top:-13px;font-family:var(--mono);font-size:8px;
+  font-weight:700;color:#88795c;background:rgba(255,255,255,.9);border-radius:3px;
+  padding:0 3px;white-space:nowrap;box-shadow:0 1px 2px rgba(60,50,30,.10)}
+.cf-meta{display:flex;flex-direction:column;gap:2px;min-width:0}
+.cf-num{font-family:var(--mono);font-size:24px;font-weight:800;color:var(--cfc,#2b4c86);
+  font-variant-numeric:tabular-nums;letter-spacing:-.04em;line-height:1}
+.cf-num small{font-size:.5em;opacity:.6;font-weight:600;margin-left:1px}
+.cf-cap{font-family:var(--mono);font-size:8px;letter-spacing:.14em;color:var(--faint);text-transform:uppercase;white-space:nowrap}
+body.dark .cf-chart{border-right-color:rgba(232,238,250,.1)}
+body.dark .cf-track{background:linear-gradient(180deg,rgba(120,160,225,.10),rgba(80,120,190,.14));
+  border-color:rgba(150,190,250,.24)}
+body.dark .cf-thr{border-color:rgba(210,180,120,.6)}
+body.dark .cf-thr b{color:#d8bd8a;background:rgba(18,26,45,.9)}
+body.dark .cf-num{color:var(--cfc,#cfe0ff)}
+
+/* —— 苹果式呼吸灯：3.6s 一个明暗周期，幅度极克制，像静置设备的电源灯 ——
+   只加在「需要引导注意」的两处：裁决条左侧色条、Run 按钮。
+   用 opacity/box-shadow 呼吸，不碰背景色，所以玻璃质感不受影响。 */
+@keyframes breatheGlow{
+  0%,100%{opacity:.55;filter:brightness(1)}
+  50%{opacity:1;filter:brightness(1.18)}
+}
+@keyframes breatheHalo{
+  0%,100%{box-shadow:0 6px 16px -6px rgba(10,132,255,.32),inset 0 1px 0 rgba(255,255,255,.25)}
+  50%{box-shadow:0 6px 20px -5px rgba(10,132,255,.52),0 0 0 2px rgba(10,132,255,.07),inset 0 1px 0 rgba(255,255,255,.32)}
+}
+/* 裁决条：结果就绪（.on）后左侧色条缓慢呼吸 */
+.live-verdict.on.breathe::before{animation:breatheGlow 3.6s ease-in-out infinite}
+/* Run 按钮：空闲待命时呼吸；运行中（busy）立刻停 */
+#liveRun.breathe{animation:breatheHalo 3.6s ease-in-out infinite}
+/* 系统减少动效：不开呼吸灯（苹果也这么做） */
+@media (prefers-reduced-motion:reduce){
+  .live-verdict.on.breathe::before,#liveRun.breathe{animation:none}
+}
 /* 五色色卡：红敏感 · 橙警告 · 黄预警 · 绿健康 · 蓝正常 */
 .live-ledger{margin-top:14px;padding-top:12px;border-top:1px solid var(--hair2);font-family:var(--mono);
   font-size:9.5px;letter-spacing:.1em;color:var(--faint);text-transform:uppercase;line-height:1.7}
@@ -1091,8 +1146,9 @@ body.dark .live-pane .hl-safe{color:#8ee8c5}
      ③ 3px 渐变描边环（左上 #D6E4F2 → 右下 #FEF0FD）由伪元素实现
      ④ 两团彩色模糊投影（蓝 #EDF8FC / 粉 #FCF5FD）+ 双层柔阴影
      —— 关键：不靠大 backdrop blur，靠精确光影堆叠，才不会「贴塑料片」 */
-  --glass-1:linear-gradient(135deg,#EBF2FA 0%,#F8F3FF 72%,#FFFFFF 100%);
-  --glass-2:linear-gradient(135deg,#EDF4FB 0%,#F9F5FE 72%,#FFFFFF 100%);
+  /* 近透明表面：让藏在背后的蓝/粉彩光真的透过来——这是「玻璃」而不是「白卡」的关键 */
+  --glass-1:linear-gradient(135deg,rgba(226,239,252,.82) 0%,rgba(244,235,253,.78) 72%,rgba(255,255,255,.86) 100%);
+  --glass-2:linear-gradient(135deg,rgba(231,243,253,.80) 0%,rgba(246,238,254,.76) 72%,rgba(255,255,255,.84) 100%);
   --glass-brd:rgba(216,229,243,.92);
   --glass-in:
     inset 1px 1px 1px rgba(255,255,255,1),
@@ -1100,11 +1156,13 @@ body.dark .live-pane .hl-safe{color:#8ee8c5}
     inset 0 1px 1px rgba(0,0,0,.055);
   /* 阴影全部「无横向偏移」：教程里的彩色模糊圆是藏在玻璃背后的，
      带偏移的 box-shadow 硬模拟会变成两块脏斑——改成均匀光晕 + 居中柔阴影 */
+  /* 背后两团彩光（蓝/粉）+ 居中柔阴影：纯色底上也能透出玻璃该有的环境色 */
   --glass-sh:
-    0 0 0 1px rgba(190,205,225,.16),
-    0 1px 3px rgba(35,48,80,.045),
-    0 16px 38px -22px rgba(35,48,80,.20),
-    0 0 40px -18px rgba(180,205,235,.22);
+    -22px -14px 40px -30px rgba(112,178,240,.62),
+    22px 16px 40px -30px rgba(214,162,228,.50),
+    0 0 0 1px rgba(170,196,226,.20),
+    0 1px 3px rgba(35,48,80,.04),
+    0 18px 42px -24px rgba(35,48,80,.22);
   --glass-blur:blur(8px) saturate(1.05);
   /* hover：不换颜色，只「迎光」——高光更强、内阴影更立体、彩晕更亮 */
   --glass-in-h:
@@ -1156,7 +1214,7 @@ body.dark{
   -webkit-mask-composite:xor;
   mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
   mask-composite:exclude;
-  pointer-events:none;opacity:.78}
+  pointer-events:none;opacity:.92;filter:drop-shadow(0 1px 0 rgba(255,255,255,.5))}
 body.dark .demo-stage::after,body.dark .live-stage::after,body.dark .live-verdict::after,
 body.dark .cd-panel::after,body.dark .fact::after{
   background:linear-gradient(135deg,rgba(150,195,255,.55) 0%,rgba(190,170,230,.35) 46%,rgba(255,205,235,.45) 100%);
@@ -1193,7 +1251,13 @@ body.dark{background-color:#0A0E18;
 }
 .demo-stage,.live-stage,#wb{
   background:
-    radial-gradient(300px 215px at var(--mx) var(--my),rgba(255,255,255,.48),transparent 74%),
+    /* 贯穿对角光：左上入、右下出，教程里「一道光穿过玻璃」的质感 */
+    linear-gradient(118deg,transparent 8%,rgba(255,255,255,.44) 26%,rgba(255,255,255,.06) 42%,
+      transparent 58%,rgba(214,228,248,.22) 78%,transparent 94%),
+    radial-gradient(300px 215px at var(--mx) var(--my),rgba(255,255,255,.52),transparent 74%),
+    /* 背景彩光池：透出来的蓝/粉，让近透明表面有内容可透 */
+    radial-gradient(520px 360px at 4% 0%,rgba(150,200,248,.16),transparent 66%),
+    radial-gradient(560px 400px at 100% 100%,rgba(226,178,232,.13),transparent 68%),
     var(--glass-1);
 }
 /* .mech 用 background 画 1px 分隔线，不能整体换底 → 只玻璃化它的格子 */
@@ -3797,8 +3861,18 @@ function sceneFX(){
   document.querySelectorAll('.demo-stage').forEach(d=>{d.style.transform=''});
   tele();
 }
+/* 呼吸灯开关：只在最后一页、且不在运行/未出结果时亮。
+   裁决条由 .on 控制（干净），这里只管 Run 按钮的「待命呼吸」。 */
+function syncBreathe(){
+  const btn=liveEl('liveRun');
+  if(!btn)return;
+  const onLast=(typeof idx!=='undefined'&&typeof scenes!=='undefined'&&scenes[idx]
+    &&scenes[idx].classList.contains('scene-live'));
+  if(onLast&&!LIVE.busy)btn.classList.add('breathe');
+  else btn.classList.remove('breathe');
+}
 const _go=go;
-go=function(i){SND.wake();_go(i);sceneFX();};
+go=function(i){SND.wake();_go(i);sceneFX();syncBreathe();};
 
 /* 6 · demo aggregates */
 function addAgg(host,en,zh){
@@ -4117,10 +4191,11 @@ const SYS_PROMPT='You are a careful assistant inside a research demo about AI tr
  +'After the answer, output ONE extra line in exactly this format (the page parses it and never shows it):\n'
  +'VERDICT_JSON: {"adopt":true|false,"confidence":<integer 0-100>,"risks":["<specific caveat>","<specific caveat>"]}\n'
  +'Rules for that line:\n'
- +'- adopt = whether the user should act on or trust the answer as-is.\n'
- +'- confidence = YOUR honest, calibrated confidence in that recommendation. It must genuinely depend on THIS question: '
+ +'- adopt = whether you judge the answer safe to act on as-is. This is shown for comparison only; the page separately applies a fixed rule.\n'
+ +'- confidence = YOUR honest, calibrated confidence that the answer is correct and safe to use. It must genuinely depend on THIS question: '
  +'hedge when context or evidence is missing, be high only for well-supported, low-stakes, checkable answers. '
  +'Never default to a round number and never reuse a value from another question.\n'
+ +'- The page decides the final advice purely by this confidence: >= 80 means adopt, below 80 means do not adopt. So set confidence to reflect real trustworthiness, not to force a preferred outcome.\n'
  +'- risks = 1 to 3 concrete, question-specific caveats, not generic advice.\n'
  +'- Valid single-line JSON only. No markdown fences, no text after it. Output nothing after that line.';
 const LIVE_REC=[
@@ -4265,7 +4340,7 @@ function liveClear(){
   const cbar=document.querySelector('.scene.active .live-connect');if(cbar)cbar.remove();
   const chk=liveEl('liveCheck');if(chk)chk.classList.remove('on');
   const d3=liveEl('liveDots');if(d3)d3.classList.remove('on');
-  const vd=liveEl('liveVerdict');if(vd){vd.classList.remove('on');vd.classList.remove('vd-hold');vd.innerHTML=''}
+  const vd=liveEl('liveVerdict');if(vd){vd.classList.remove('on');vd.classList.remove('vd-hold');vd.classList.remove('breathe');vd.innerHTML=''}
   const lg=liveEl('liveLedger');if(lg)lg.textContent='READY · PRESS RUN';
   const wrap=document.querySelector('.scene.active .wrap');
   if(wrap&&wrap.querySelector('.live-stage'))wrap.style.transform='';
@@ -4376,9 +4451,9 @@ function liveTree(){
           +'<text class="lt-wait lt-leaftx" data-n="'+ci+'" x="'+(xL+15)+'" y="'+(y+4)+'" font-size="12" fill="'+inkA(.62)+'" font-family="ui-monospace,Menlo,monospace">'+esc(kw(best[0]))+'</text>';
         off+=rowH;
       });
-      v+='<circle class="lt-q lt-wait" data-n="q" cx="'+xQ+'" cy="'+yQ+'" r="26" fill="'+ink+'" fill-opacity=".10"/>'
-        +'<circle class="lt-q lt-wait" data-n="q" cx="'+xQ+'" cy="'+yQ+'" r="17" fill="url(#sg-ink)" stroke="rgba(150,180,215,.55)" stroke-width="1" filter="url(#ltSh)"/>'
-        +'<text class="lt-q lt-wait" data-n="q" x="'+xQ+'" y="'+(yQ+4.5)+'" text-anchor="middle" font-size="13" font-weight="700" fill="#3a5a86">Q</text>';
+      /* Q 不再画玻璃球：一个极简文字锚点即可，减少视觉元素、保持极简 */
+      v+='<circle class="lt-q lt-wait" data-n="q" cx="'+xQ+'" cy="'+yQ+'" r="15" fill="rgba(90,127,190,.08)"/>'
+        +'<text class="lt-q lt-wait" data-n="q" x="'+xQ+'" y="'+(yQ+4.5)+'" text-anchor="middle" font-size="12" font-weight="700" fill="#3f5f96" font-family="ui-monospace,Menlo,monospace">Q</text>';
       svg='<svg class="lt-net" viewBox="0 0 '+W+' '+H+'">'+LT_DEFS+e+v+'</svg>';
     }else{
       /* 手机折叠层：Q → 类别(带计数) */
@@ -4391,9 +4466,8 @@ function liveTree(){
           +'<circle class="lt-node lt-wait" data-n="'+ci+'" data-c="'+c+'" cx="'+xC+'" cy="'+y+'" r="11.5" fill="url(#sg-'+c+')" filter="url(#ltSh)"/>'
           +'<text class="lt-wait" data-n="'+ci+'" x="'+(xC+26)+'" y="'+(y+4)+'" font-size="12" font-weight="700" fill="'+LT_TXT[c]+'" font-family="ui-monospace,Menlo,monospace">'+esc(en?labEn:LT_CATS.find(x=>x[0]===c)[1])+' ×'+byCat[c].length+'</text>';
       });
-      v+='<circle class="lt-q lt-wait" data-n="q" cx="'+xQ+'" cy="'+yQ+'" r="24" fill="'+ink+'" fill-opacity=".10"/>'
-        +'<circle class="lt-q lt-wait" data-n="q" cx="'+xQ+'" cy="'+yQ+'" r="16" fill="url(#sg-ink)" stroke="rgba(150,180,215,.55)" stroke-width="1" filter="url(#ltSh)"/>'
-        +'<text class="lt-q lt-wait" data-n="q" x="'+xQ+'" y="'+(yQ+4.5)+'" text-anchor="middle" font-size="12.5" font-weight="700" fill="#3a5a86">Q</text>';
+      v+='<circle class="lt-q lt-wait" data-n="q" cx="'+xQ+'" cy="'+yQ+'" r="14" fill="rgba(90,127,190,.08)"/>'
+        +'<text class="lt-q lt-wait" data-n="q" x="'+xQ+'" y="'+(yQ+4.5)+'" text-anchor="middle" font-size="11.5" font-weight="700" fill="#3f5f96" font-family="ui-monospace,Menlo,monospace">Q</text>';
       svg='<svg class="lt-net" viewBox="0 0 '+W+' '+H+'">'+LT_DEFS+e+v+'</svg>';
     }
   }else{
@@ -4423,262 +4497,85 @@ function ltRevealAll(instant){
 /* 编排：三颗跳跃点合一成一颗大点 → 坠落到 Q 节点 → 涟漪扩散 →
    Q 弹出，随后各类 neuron 节点与连线自 Q 依次级联点亮 */
 function ltFly(onDone){
-  const box=liveEl('liveTree');if(!box){try{onDone&&onDone()}catch(e){};return}
-  const net=box.querySelector('.lt-net');
-  const qEl=net?net.querySelector('.lt-q'):[];
+  const box=liveEl('liveTree');
+  if(!box){try{onDone&&onDone()}catch(e){};return}
+  const en=lang==='en';
   const dots=document.getElementById('liveDots');
-  const dotEls=dots?[...dots.querySelectorAll('i')]:[];
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(!net||reduced){ltRevealAll(true);if(dots)dots.classList.remove('on');try{onDone&&onDone()}catch(e){};return}
-  /* 立即抢拍思考点屏幕位置——此刻它们还可见；liveRun 的 finally 马上会摘掉 'on'，
-     等编排延时开始时再读就全是 0 宽 rect 了 */
-  const snap=dotEls.map(el=>el.getBoundingClientRect()).filter(r=>r.width>0);
-  setTimeout(()=>{
-    const sr=net.getBoundingClientRect();
-    /* 合成中心：优先用刚抢拍到的思考点真实位置（用户亲眼看到"那三个点"合一）；
-       抢拍失败（点不可见/被 HUD 遮挡）才退到网络图上方锚点 */
-    let sx=sr.left+sr.width*.18,sy=sr.top-42;
-    let dotsVisible=false;
-    if(snap.length){
-      const cx=snap.reduce((a,r)=>a+r.left+r.width/2,0)/snap.length;
-      const cy=snap.reduce((a,r)=>a+r.top+r.height/2,0)/snap.length;
-      if(cy>24&&cy<innerHeight-60){sx=cx;sy=cy;dotsVisible=true}
-    }
-    const layer=document.createElement('div');layer.id='flyLayer';document.body.appendChild(layer);
-    /* —— 出场重做：先凝一团柔光，再从光里析出微点与玻璃球 ——
-       之前球是「凭空出现在锚点」，没有来源、没有铺垫，所以突兀。
-       现在顺序：柔光渐显 → 三颗微点从光里淡出并缓缓吸聚 → 玻璃球由模糊到清晰凝聚 →
-       停一拍 → 才开始自由落体。一条缓入曲线贯穿，全程没有硬切。 */
-    const mist=document.createElement('span');mist.className='fly-mist';
-    mist.style.left=(sx-75)+'px';mist.style.top=(sy-75)+'px';layer.appendChild(mist);
-    /* 视觉小点：起点完全透明，靠动画从光里「长」出来（不再 append 就可见） */
-    let srcEls=dotEls;
-    if(!dotsVisible){
-      srcEls=[];
-      [[-26,-16],[26,-12],[0,-30]].forEach(o=>{
-        const s=document.createElement('span');
-        s.className='fly-dot';
-        s.style.left=(sx+o[0]-5)+'px';s.style.top=(sy+o[1]-5)+'px';
-        s.style.width='10px';s.style.height='10px';s.style.opacity='0';
-        layer.appendChild(s);srcEls.push(s);
-      });
-      if(dots)dots.classList.remove('on');
-    }
-    /* 外层 w 管横向漂移、内层 d 管纵跳压扁——两轴缓动互不污染 */
-    const w=document.createElement('span');
-    w.style.cssText='position:fixed;left:'+(sx-9)+'px;top:'+(sy-9)+'px;pointer-events:none;will-change:transform';
-    const d=document.createElement('span');
-    d.className='fly-dot';d.style.position='absolute';d.style.left='0px';d.style.top='0px';
-    d.style.width='18px';d.style.height='18px';d.style.opacity='0';
-    /* 滚动自转的视觉标记：球在滚动时必须看得出「在转」，否则像贴着地面滑 */
-    const sp=document.createElement('span');sp.className='fly-spin';d.appendChild(sp);
-    w.appendChild(d);layer.appendChild(w);
-    /* 微点：透明 → 析出（淡入+放大）→ 吸聚 → 被吞没，一条曲线走完 */
-    const FLIGHT=560,STAG=85,MERGE=FLIGHT+STAG*2;   /* 最后 arrival ≈ 730ms */
-    srcEls.forEach((el,i)=>{
-      const r=el.getBoundingClientRect();if(!r.width)return;
-      const dx=sx-(r.left+r.width/2),dy=sy-(r.top+r.height/2);
-      el.animate([
-        {transform:'translate(0,0) scale(.3)',opacity:0,offset:0},
-        {transform:'translate(0,0) scale(1)',opacity:.8,offset:.26},
-        {transform:'translate('+(dx*.55).toFixed(1)+'px,'+(dy*.55).toFixed(1)+'px) scale(.8)',opacity:.72,offset:.68},
-        {transform:'translate('+dx.toFixed(1)+'px,'+dy.toFixed(1)+'px) scale(.4)',opacity:0,offset:1}
-      ],{duration:FLIGHT,delay:i*STAG,easing:'cubic-bezier(.36,.06,.3,1)',fill:'both'});
-    });
-    /* 玻璃球凝聚：从光团里由模糊（blur 8px）逐渐聚焦成形，末尾两档极轻的过冲回弹 */
-    const grow=d.animate([
-      {transform:'scale(.32)',opacity:0,filter:'blur(8px)',offset:0},
-      {transform:'scale(.52)',opacity:.32,filter:'blur(5px)',offset:.24},
-      {transform:'scale(.72)',opacity:.78,filter:'blur(2px)',offset:.52},
-      {transform:'scale(.88)',opacity:1,filter:'blur(0px)',offset:.72},
-      {transform:'scale(.96)',opacity:1,filter:'blur(0px)',offset:.84},
-      {transform:'scale(1.09)',opacity:1,filter:'blur(0px)',offset:.92},
-      {transform:'scale(1)',opacity:1,filter:'blur(0px)'}
-    ],{duration:MERGE,easing:'cubic-bezier(.32,.08,.3,1)',fill:'both'});
-    setTimeout(()=>{
-      /* 柔光退场（渐隐+扩散，不是硬删）；吸收涟漪也放软 */
-      mist.classList.add('out');setTimeout(()=>{if(mist.parentElement)mist.remove()},820);
-      const rp=document.createElement('span');rp.className='fly-ripple';
-      rp.style.left=(sx-13)+'px';rp.style.top=(sy-13)+'px';layer.appendChild(rp);
-      setTimeout(()=>rp.remove(),600);
-      if(dots)dots.classList.remove('on');
-      /* 视觉小点（锚点重生成的）完成吸聚后移除；真实思考点由 'on' 摘除隐藏 */
-      srcEls.forEach(el=>{if(el.parentElement===layer)el.remove()});
-      /* 交棒给物理：先把凝聚结果落到 inline，再取消动画——
-         否则 fill:'both' 的 animation 一直压着 inline transform，帧内压扁会失效 */
-      d.style.opacity='1';d.style.filter='';
-      try{grow.cancel()}catch(e){}
-      try{SND.tone(880,.05,.06,'sine')}catch(e){}
-    },MERGE);
-    /* 合体完成：只有在内容确实超出视口（小屏）时才滚动到网络图；
-       正常桌面这一页整页放得下，滚动反而会把裁决条推出屏幕 */
-    setTimeout(()=>{
-      const wrp=document.querySelector('.scene.active .wrap');
-      if(wrp&&wrp.scrollHeight>innerHeight-8){
-        try{net.scrollIntoView({behavior:'smooth',block:'center'})}catch(e){}
-      }
-      /* 等滚动真正停稳（rect 连续两帧不动）再量 Q 的位置并坠落，
-         避免平滑滚动未结束时量到漂移中的坐标 */
-      let prev=-1,stable=0,tries=0;
-      const wait=setInterval(()=>{
-        const top=net.getBoundingClientRect().top;
-        tries++;
-        stable=(prev>=0&&Math.abs(top-prev)<1)?stable+1:0;
-        prev=top;
-        if(!(stable>=2||tries>16))return;
-        clearInterval(wait);
-      const qc=qEl.getBoundingClientRect();
-      const qx=qc.left+qc.width/2,qy=qc.top+qc.height/2;
-      /* 真实物理：requestAnimationFrame 逐帧积分——重力加速、恢复系数反弹、摩擦损耗、
-         滚动停位，全部由三个物理常数推出，无手排关键帧：
-         抛物线投掷 → 弹跳高度按 e² 递减、滞空按 e 递减 → 滚动滑停到 Q 位置 */
-      const br=d.getBoundingClientRect();
-      const bx=br.left+br.width/2,by=br.top+br.height/2;
-      const GY=qy-qc.height/2-7;               /* 地面：Q 节点上缘（球心静置位） */
-      /* 真实物理，四件事都由常数推出，没有手排关键帧：
-         ① 初速为 0 的自由落体（不向上抛——之前"先抛再落"是看着怪的根源）
-         ② 触地反弹：竖向速度 ×e（高度按 e² 递减，第一弹最大，逐次衰减到停）
-         ③ 触地同时损失水平速度，弹跳耗尽后转入滚动，受恒定滚动摩擦减速
-         ④ 水平初速用数值预演反解——让球正好停在 Q 上，而不是最后硬"滑"过去 */
-      const GRAV=2400,REST=.62,BOUNCE_F=.82,MU=.16;
-      const VY0=0;
-      const sim=(vx0)=>{                        /* 预演一次完整轨迹，返回静止时的 x */
-        let x=bx,y=by,vx=vx0,vy=VY0,mode='fall';
-        const h=1/240;
-        for(let n=0;n<4000;n++){
-          if(mode==='roll'){
-            const dec=MU*GRAV*h;
-            vx=Math.sign(vx)*Math.max(0,Math.abs(vx)-dec);
-            x+=vx*h;
-            if(Math.abs(vx)<.4)break;
-            continue;
-          }
-          vy+=GRAV*h;x+=vx*h;y+=vy*h;
-          if(y>=GY&&vy>0){
-            y=GY;const imp=vy;vy=-imp*REST;vx*=BOUNCE_F;
-            if(-vy<40){mode='roll';vy=0}
-          }
-        }
-        return x;
-      };
-      let VX0=(qx-bx)/.62;                      /* 割线法：位移对初速单调，几次即收敛到 1px 内 */
-      let sx0=sim(0),sx1=sim(VX0);
-      for(let i=0;i<6;i++){
-        if(Math.abs(sx1-qx)<.5)break;
-        const v2=VX0+(qx-sx1)*(VX0-0)/(sx1-sx0);
-        sx0=sx1;VX0=v2;sx1=sim(VX0);
-      }
-      /* 逐帧积分：自由落体+弹跳(fly)→滚动摩擦(roll)→停驻(rest)→交棒(sink) */
-      let px=bx,py=by,pvx=VX0,pvy=VY0,psq=0,spin=0,phase='fly',lastT=performance.now(),markT=0;
-      const impactFx=(imp)=>{
-        const rs=Math.max(10,Math.min(30,10+imp*.017));
-        const rp=document.createElement('span');rp.className='fly-ripple';
-        rp.style.width=rs+'px';rp.style.height=rs+'px';
-        rp.style.left=(px-rs/2)+'px';rp.style.top=(GY-rs/2)+'px';
-        rp.style.opacity=Math.min(.6,.3+imp*.0003).toFixed(2);
-        layer.appendChild(rp);setTimeout(()=>rp.remove(),560);
-        if(imp>600)try{SND.tone(520,.05,.08,'sine')}catch(e2){}
-        else if(imp>250)try{SND.tone(520,.03,.05,'sine')}catch(e2){}
-      };
-      const finishBall=()=>{
-        w.remove();
-        /* Q 已经滚出来站稳，接下来才让 Risk / Hedged / Reassuring 这些节点
-           自 Q 依次点亮——先有问题，再有它想到的类别，顺序不能反 */
-        const cats=box.querySelectorAll('.lt-node');
-        cats.forEach((nd,i)=>{
-          setTimeout(()=>{
-            box.querySelectorAll('[data-n="'+i+'"]').forEach(el=>{
-              el.classList.remove('lt-wait');
-              if(el.tagName==='path')return;
-              el.classList.add('lt-pop');
-            });
-            try{SND.tone(640+i*150,.05,.08,'sine')}catch(e2){}
-          },180+i*230);
-        });
-        const total=180+Math.max(1,cats.length)*230+780;
-        setTimeout(()=>{
-          layer.remove();if(dots)dots.classList.remove('on');
-          try{onDone&&onDone()}catch(e2){}
-        },total);
-      };
-      /* AirDrop 式碰撞：白热核心在接触点亮起 → 柔光晕荡开 → 两道冲击环向外、
-         一道吸收环向 Q 收拢（能量交付给接收方）→ 火花向四周溅射后减速熄灭 */
-      let restBurst=false;
-      const airdropBurst=()=>{
-        const S=Math.max(.9,qc.width/40);                 /* 随 Q 尺寸整体缩放 */
-        const mk=(cls,sz,extra,delay)=>{
-          const el=document.createElement('span');el.className=cls;
-          el.style.cssText='width:'+sz.toFixed(0)+'px;height:'+sz.toFixed(0)+'px;left:'+qx+'px;top:'+GY+'px;'
-            +(extra||'')+(delay?';animation-delay:'+delay+'ms':'');
-          layer.appendChild(el);setTimeout(()=>el.remove(),1400+(delay||0));
-          return el;
-        };
-        mk('ad-core',Math.max(130,qc.width*3.4)*S);
-        mk('ad-halo',Math.max(180,qc.width*4.8)*S);
-        mk('ad-ring',Math.max(150,qc.width*3.6)*S);
-        mk('ad-ring',Math.max(210,qc.width*4.9)*S,null,130);
-        mk('ad-absorb',Math.max(110,qc.width*2.9)*S,null,40);
-        /* 火花：16 颗，核心亮白+蓝色辉光，随机方向偏上方扇形，距离/大小/时长/延迟都带随机，
-           cubic-bezier 减速曲线让它们像真实溅射一样先快后慢地熄灭 */
-        for(let i=0;i<16;i++){
-          const ang=-Math.PI*(.08+Math.random()*.84);     /* 上方 170° 扇形溅射 */
-          const dist=(30+Math.random()*78)*S;
-          const sz=(5.5+Math.random()*4.5)*S;
-          const sp=mk('ad-spark',sz,'--dx:'+(Math.cos(ang)*dist).toFixed(0)+'px;--dy:'+(Math.sin(ang)*dist).toFixed(0)+'px;',
-            40+((Math.random()*110)|0));
-          sp.style.animationDuration=(620+Math.random()*360)+'ms';
-        }
-        try{SND.tone(740,.06,.09,'sine')}catch(e2){}
-        setTimeout(()=>{try{SND.tone(988,.07,.08,'sine')}catch(e2){}},120);
-      };
-      const frame=(now)=>{
-        let dt=(now-lastT)/1000;lastT=now;
-        if(dt>.034)dt=.034;                    /* 切后台回来防大步长穿地（秒） */
-        if(phase==='fly'){
-          pvy+=GRAV*dt;px+=pvx*dt;py+=pvy*dt;
-          spin+=pvx*dt/9*57.2958;              /* 无滑动滚动：ω=v/r */
-          if(py>=GY&&pvy>0){
-            const imp=pvy;py=GY;pvy=-pvy*REST;pvx*=BOUNCE_F;
-            psq=Math.min(.18,imp*.00013);      /* 压扁量 ∝ 撞击速率 */
-            impactFx(imp);                     /* 涟漪+落地音 ∝ 撞击速率 */
-            if(-pvy<40){phase='roll';pvy=0}    /* 弹跳耗尽 → 转入滚动 */
-          }
-        }else if(phase==='roll'){
-          /* 滚动摩擦：恒定减速度把水平速度磨到 0——球自己停下来，
-             不是缓动补间滑到指定坐标 */
-          const dec=MU*GRAV*dt;
-          pvx=Math.sign(pvx)*Math.max(0,Math.abs(pvx)-dec);
-          px+=pvx*dt;
-          spin+=pvx*dt/9*57.2958;
-          if(Math.abs(pvx)<.4){phase='rest';markT=now}
-        }else if(phase==='rest'){
-          /* 碰撞瞬间：AirDrop 式爆发（只放一次），短暂停驻让环荡开；
-             球在同一时间融进白热核心——它的能量交给了 Q */
-          if(!restBurst){restBurst=true;airdropBurst()}
-          const rp=Math.min(1,(now-markT)/420);
-          d.style.opacity=String(1-.96*rp);   /* 球融进白热核心（transform 由下方公共块管，别碰） */
-          if(now-markT>520){
-            phase='sink';markT=now;
-            /* 球已落定在 Q 上缘——Q 从球的落位滚出来接棒 */
-            box.querySelectorAll('[data-n="q"]').forEach(el=>{el.classList.remove('lt-wait');if(el.tagName!=='path')el.classList.add('lt-qroll')});
-            try{SND.tone(520,.07,.10,'sine')}catch(e2){}
-          }
-        }else if(phase==='sink'){
-          /* 球已在停驻期融进光里，这里只等 Q 滚出接棒 */
-          if(now-markT>640){finishBall();return}
-          requestAnimationFrame(frame);return;
-        }
-        psq*=Math.exp(-dt*14);                 /* 形变恢复（约 50ms 半衰期） */
-        w.style.transform='translate('+(px-sx).toFixed(1)+'px,'+(py-sy).toFixed(1)+'px)';
-        d.style.transform='scale('+(1+psq).toFixed(3)+','+(1-psq).toFixed(3)+')';
-        sp.style.transform='rotate('+spin.toFixed(1)+'deg)';
-        requestAnimationFrame(frame);
-      };
-      requestAnimationFrame(frame);
-      },80);
-    },MERGE+260);
-  },420);
   if(dots)dots.classList.remove('drop');
+
+  /* 读真实置信度——与裁决条用同一套校验，绝不用 Number(null) 造出假的 0%。
+     柱高就是这个数，阈值固定 80%，两次运行同一个数字永远画同一根柱。 */
+  const rawV=LIVE.verdict,raw=rawV&&rawV.confidence;
+  const conf=(typeof raw==='number'&&Number.isFinite(raw)&&raw>=0&&raw<=100)?Math.round(raw):null;
+  const THR=80;
+  const hasConf=conf!==null;
+  const pass=hasConf&&conf>=THR;
+  const yes=hasConf?pass:!!(rawV&&rawV.adopt);        /* 回放无数值时沿用预录 adopt 着色 */
+  const cfc=yes?'#4f8f75':(hasConf?'#b06a68':'#7a6644');
+
+  /* 柱状图挂到 live-stage（手机端网络图 display:none，柱子不能跟着消失），
+     DOM 放在裁决条之前：手机上走正常文档流，正好落在裁决条上方。
+     桌面绝对定位到网络图区左上角，柱体完全落在图内，不遮住上面的答案。 */
+  const vb=liveEl('liveVerdict');
+  const old=document.getElementById('cfChart');if(old&&old.parentElement)old.remove();
+  const chart=document.createElement('div');
+  chart.className='cf-chart';chart.id='cfChart';
+  chart.style.setProperty('--cfc',cfc);
+  chart.innerHTML='<div class="cf-track"><span class="cf-thr"><b>'+THR+'%</b></span><span class="cf-fill"></span></div>'
+    +'<div class="cf-meta"><span class="cf-num">'+(hasConf?'0<small>%</small>':'—')
+    +'</span><span class="cf-cap">'+(en?'confidence':'置信度')+'</span></div>';
+  /* 插进裁决条第一行的开头，和结论脸/文字并排——一个焦点、零遮挡 */
+  const firstRow=vb&&vb.querySelector('.vd-main');
+  if(firstRow)firstRow.insertBefore(chart,firstRow.firstChild);
+  else if(vb)vb.insertBefore(chart,vb.firstChild);
+
+  const fill=chart.querySelector('.cf-fill'),num=chart.querySelector('.cf-num'),H=66;
+  chart.classList.add('on');
+
+  /* 柱立稳之后：Q 滚出 → 类别节点自 Q 依次点亮 → 最后才回调裁决条。
+     这段编排保留用户原本要的顺序，只是把「玻璃球落地爆开」换成「柱到顶落定」。 */
+  const finish=()=>{
+    box.querySelectorAll('[data-n="q"]').forEach(el=>{
+      el.classList.remove('lt-wait');
+      if(el.tagName!=='path')el.classList.add('lt-qroll');
+    });
+    try{SND.tone(520,.07,.10,'sine')}catch(e){}
+    const cats=box.querySelectorAll('.lt-node');
+    cats.forEach((nd,i)=>{setTimeout(()=>{
+      box.querySelectorAll('[data-n="'+i+'"]').forEach(el=>{
+        el.classList.remove('lt-wait');
+        if(el.tagName==='path')return;
+        el.classList.add('lt-pop');
+      });
+      try{SND.tone(640+i*150,.05,.08,'sine')}catch(e){}
+    },150+i*230)});
+    const total=150+Math.max(1,cats.length)*230+620;
+    setTimeout(()=>{if(dots)dots.classList.remove('on');try{onDone&&onDone()}catch(e){}},total);
+  };
+
+  /* 减少动效：直接给最终态，不生长不滚动 */
+  if(reduced){
+    if(hasConf){fill.style.height=(conf/100*H)+'px';num.innerHTML=conf+'<small>%</small>'}
+    ltRevealAll(true);
+    setTimeout(()=>{if(dots)dots.classList.remove('on');try{onDone&&onDone()}catch(e){}},120);
+    return;
+  }
+  /* 回放没有模型置信度：不画假柱、不滚假数字，短暂停驻后照旧点亮节点 */
+  if(!hasConf){setTimeout(finish,520);return}
+
+  /* 柱高按真实 confidence 生长，数字同步滚动（ease-out cubic） */
+  const t0=performance.now(),DUR=820;
+  try{SND.tone(600,.05,.06,'sine')}catch(e){}
+  (function tick(now){
+    const p=Math.min(1,((now||performance.now())-t0)/DUR);
+    const e=1-Math.pow(1-p,3);
+    fill.style.height=(conf/100*H*e).toFixed(1)+'px';
+    num.innerHTML=Math.round(conf*e)+'<small>%</small>';
+    if(p<1){requestAnimationFrame(tick);return}
+    try{SND.tone(pass?880:660,.06,.08,'sine')}catch(err){}
+    setTimeout(finish,420);
+  })(performance.now());
 }
 /* 采纳建议裁决条：从分类计数推导置信度——≥60% 绿色笑脸=建议采纳，否则红脸摇头=不建议；
    并点名具体风险（红线/橙线句子）。透明原则：置信度是启发式，不是模型自报的数字 */
@@ -4705,21 +4602,22 @@ function liveVerdict(){
      必须先判断类型，只接受模型真的给出的数字。 */
   const raw=v.confidence;
   const conf=(typeof raw==='number'&&Number.isFinite(raw)&&raw>=0&&raw<=100)?Math.round(raw):null;
-  /* 自洽性检查：模型可能一边说 adopt=true、一边自报很低的信心。
-     「0% 却建议采纳」是自相矛盾的，观众一眼就会觉得这是假的。
-     这时以它自己的数字为准，改成「信心不足，不建议采纳」，并在来源行
-     里如实写明模型原本说的是 adopt=true——不隐瞒，也不跟着它自相矛盾。 */
-  const weak=conf!==null&&conf<50;
-  const contradiction=!!v.adopt&&weak;
-  const yes=!!v.adopt&&!weak;
+  /* 采纳规则：唯一判据、固定、可复现——置信度 ≥80% 建议采纳，<80% 不建议采纳。
+     模型的 adopt 字段不再决定结论，只留作对照，彻底消除「同为 72% 却一次采纳、
+     一次不采纳」的乱象。模型说采纳但置信度 <80 时，如实摊开这个矛盾。
+     回放没有置信度（conf===null）：不套用规则，沿用预录结论并标注来源。 */
+  const THR=80;
+  const hasConf=conf!==null;
+  const yes=hasConf?(conf>=THR):!!v.adopt;        /* live 只看数字；回放沿用预录 adopt */
+  const contradiction=hasConf&&!!v.adopt&&!yes;   /* 模型说采纳，但按规则不采纳 */
   const risks=v.risks.filter(r=>typeof r==='string'&&r.trim()).slice(0,2);
   const cc=yes?'#4f8f75':'#b06a68';
   const face=yes
     ?'<svg class="vd-face yes" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2"/><circle class="e" cx="9" cy="10" r="1.15"/><circle class="e" cx="15" cy="10" r="1.15"/><path class="m" d="M8.4 13.6c1.1 1.5 2.3 2.2 3.6 2.2s2.5-.7 3.6-2.2"/></svg>'
     :'<svg class="vd-face no" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2"/><circle class="e" cx="9" cy="10.4" r="1.15"/><circle class="e" cx="15" cy="10.4" r="1.15"/><path class="m" d="M8.6 14.6h6.8"/></svg>';
   const label=contradiction
-    ?(en?'Not enough confidence to adopt':'信心不足，不建议采纳')
-    :yes?(en?'Recommend adopting':'建议采纳'):(en?'Do not adopt as-is':'不建议直接采纳');
+    ?(en?'Below '+THR+'% — do not adopt':'低于 '+THR+'% — 不建议采纳')
+    :yes?(en?'Recommend adopting':'建议采纳'):(en?'Do not adopt as-is ('+THR+'% rule)':'不建议直接采纳（'+THR+'% 规则）');
   const riskHtml=risks.length
     ?'<div class="vd-risks"><span class="vd-rk">'+(en?'Specific risks · named by the model':'具体风险 · 模型列出')+'</span>'
       +risks.map(r=>'<span class="vd-chip" style="--c:#bd8f61"><i></i>'+esc(r.trim())+'</span>').join('')+'</div>'
@@ -4728,30 +4626,21 @@ function liveVerdict(){
   const source=fromModel
     ?(en?'model-reported · deepseek-reasoner · this run':'模型自报 · deepseek-reasoner · 本次生成')
     :(en?'RECORDED EXAMPLE · a replay has no model confidence':'预录示例 · 回放没有模型置信度');
-  /* 自相矛盾时把「模型原话」摊开：它说 adopt，但它自己给的信心只有 X% */
+  /* 自相矛盾时把「模型原话」摊开：它说 adopt，但置信度没到阈值 */
   const contraNote=contradiction
-    ?(en?'the model proposed adopting, but its own confidence is only '+conf+'% — we would not act on that'
-      :'模型原本建议采纳，但它自报的信心只有 '+conf+'%——这个数字不足以支撑采纳，因此不采纳')
+    ?(en?'the model proposed adopting, but its confidence is only '+conf+'% (< '+THR+'%) — the fixed rule says do not adopt'
+      :'模型原本建议采纳，但置信度只有 '+conf+'%（低于 '+THR+'%）——按固定规则不采纳')
     :'';
   box.style.setProperty('--vc',cc);
   box.innerHTML='<div class="vd-main">'+face
     +'<div class="vd-txt"><div class="vd-k">'+(en?'Verdict · advice to you':'裁决 · 给你的建议')+'</div>'
-    +'<div class="vd-l" style="color:'+cc+'">'+label+'</div></div>'
-    +'<div class="vd-conf"><div class="vd-cb"><i style="background:'+cc+'"></i></div>'
-    +'<b class="vd-pct">'+(conf==null?'—':'0%')+'</b></div></div>'
+    +'<div class="vd-l" style="color:'+cc+'">'+label+'</div></div></div>'
     +'<div class="vd-calc"><span>'+source+'</span>'
-    +'<b>'+(conf==null?(en?'no number':'无数值'):'confidence '+conf+'%')+'</b></div>'
+    +'<b>'+(conf==null?(en?'no number':'无数值'):'confidence '+conf+'%')+'</b>'
+    +'<span class="vd-rule">'+(en?'decided by confidence ≥ '+THR+'%':'按置信度 ≥ '+THR+'% 判定')+'</span></div>'
     +(contraNote?'<div class="vd-contra">'+contraNote+'</div>':'')+riskHtml;
   box.classList.add('on');
-  if(conf==null)return;
-  const bar=box.querySelector('.vd-cb i'),pct=box.querySelector('.vd-pct'),t0=performance.now();
-  (function tick(){
-    const p=Math.min(1,(performance.now()-t0)/900);
-    const n=Math.round(conf*(1-Math.pow(1-p,3)));
-    if(bar)bar.style.width=n+'%';
-    if(pct)pct.textContent=n+'%';
-    if(p<1)requestAnimationFrame(tick);
-  })();
+  /* 置信度数字的滚动已由 ltFly 的柱状图承担；这里不再重复一套进度条/数字 */
 }
 function liveDone(){
   const ans=document.querySelector('.scene.active .live-pane.answer');
@@ -4818,6 +4707,7 @@ function liveDone(){
     const vb=liveEl('liveVerdict');
     if(!vb)return;
     vb.classList.remove('vd-hold');
+    vb.classList.add('breathe');       /* 结果就绪后，左侧色条开始苹果式缓慢呼吸 */
     focusStage('verdict');
     try{fitLiveStage()}catch(e){}
   };
@@ -4868,7 +4758,7 @@ async function liveReplay(q,id){
       :(lang==='en'
         ?'I cannot answer this without a model: the page has no endpoint and no key. Paste a DeepSeek API key below to run this question for real.'
         :'这个问题在没有模型的情况下我无法回答：页面没有端点也没有密钥。在下面填入 DeepSeek API key，就能真实运行这一次提问。');
-    const vd=liveEl('liveVerdict');if(vd){vd.classList.remove('on');vd.innerHTML=''}
+    const vd=liveEl('liveVerdict');if(vd){vd.classList.remove('on');vd.classList.remove('breathe');vd.innerHTML=''}
     liveSetMode('OFFLINE',lang==='en'
       ?'No endpoint · nothing is staged, and no number is invented'
       :'未连接 · 不摆预录、不编数字');
@@ -4983,6 +4873,7 @@ async function liveRun(){
   const chk=liveEl('liveCheck');if(chk)chk.classList.remove('on');
   const btn=liveEl('liveRun');
   if(btn){btn.disabled=true;btn.style.opacity=.5;btn.textContent=lang==='en'?'Thinking…':'思考中…'}
+  try{syncBreathe()}catch(e){}
   liveClear();
   LIVE.verdict=null;LIVE.verdictSource='';   /* 每轮先清空上一轮裁决，绝不残留旧数字 */
   const rwrap=liveEl('reasonWrap');if(rwrap)rwrap.classList.add('beam');   /* 思考卡片光流常亮 */
@@ -5007,6 +4898,7 @@ async function liveRun(){
        合体吸收时 ltFly 自己会摘；这里只做 1.6s 后的兜底清理（防止编排异常残留） */
     setTimeout(()=>{const d2=liveEl('liveDots');if(d2)d2.classList.remove('on')},1600);
     if(btn){btn.disabled=false;btn.style.opacity=1;btn.textContent=lang==='en'?'Run ↵':'提问 ↵'}
+    try{syncBreathe()}catch(e){}
   }
 }
 function liveAsk(btn){
