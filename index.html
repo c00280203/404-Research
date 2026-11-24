@@ -692,6 +692,14 @@ body.dragging .scene.active{transition:none!important}
   border-radius:3px;padding:0 3px;color:#6e5305}
 .live-pane .hl-safe{background:rgba(16,185,129,.13);box-shadow:inset 0 -2px 0 rgba(16,185,129,.55);
   border-radius:3px;padding:0 3px;color:#065f46}
+/* 思考里偶发的 VERDICT_JSON 试写：明示为草稿，和下方最终裁决区分开 */
+.live-pane .hl-draft{display:block;margin:5px 0;padding:5px 9px;border-radius:7px;
+  border:1px dashed rgba(120,95,60,.34);background:rgba(180,150,90,.07);
+  color:var(--faint);font-size:.95em;line-height:1.5}
+.live-pane .hl-draft b{display:block;margin-top:3px;font-size:9px;font-weight:700;
+  letter-spacing:.08em;color:#8a6a35}
+body.dark .live-pane .hl-draft{border-color:rgba(210,180,120,.3);background:rgba(190,160,100,.08)}
+body.dark .live-pane .hl-draft b{color:#d8bd8a}
 .live-legend{display:none;margin-top:14px;gap:16px;font-family:var(--mono);font-size:9px;
   letter-spacing:.1em;color:var(--faint);text-transform:uppercase}
 .live-legend.on{display:flex;flex-wrap:wrap}
@@ -767,6 +775,16 @@ body.dark .live-meta{color:rgba(226,236,250,.48)}
   100%{transform:translate(calc(-50% + var(--dx,0px)),calc(-50% + var(--dy,0px))) scale(.2);opacity:0}}
 /* 树的高度上限：宽度撑满卡片，高度按比例收，保证这一页整页不用滚动 */
 .lt-net{display:block;width:100%;height:auto;max-height:214px}
+/* 玻璃球已移除，树图不再有可视内容——隐藏它，消除中间的大留白。
+   DOM 仍保留，ltFly 的点亮编排照常跑，只是不再占用版面。 */
+.live-tree,.live-tree.on{display:none!important}
+/* 三段式：上方思考 → 中间结果 → 底部建议。分段标签让视线有落点 */
+.vd-sec-k{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;color:var(--faint);
+  text-transform:uppercase;padding:14px 18px 0}
+.vd-advice{border-top:1px solid rgba(8,13,24,.08);margin-top:10px;
+  background:linear-gradient(180deg,rgba(10,132,255,.025),rgba(10,132,255,0))}
+body.dark .vd-advice{border-top-color:rgba(232,238,250,.09);
+  background:linear-gradient(180deg,rgba(10,132,255,.05),rgba(10,132,255,0))}
 /* —— 采纳建议裁决条：一次读三层——结论（脸+字）· 数字（%=怎么算出来的）· 风险在哪 —— */
 .live-verdict{display:none;flex-direction:column;gap:0;margin-top:12px;opacity:0;transform:translateY(8px);
   transition:opacity .5s cubic-bezier(.22,1,.36,1),transform .5s cubic-bezier(.22,1,.36,1);
@@ -4243,6 +4261,7 @@ const SYS_PROMPT='You are a careful assistant inside a research demo about AI tr
  +'- adopt = your own judgement of whether the answer is safe to act on as-is. Shown for comparison only.\n'
  +'- The PAGE applies a fixed rule: severe > 0 OR moderate > 0 means DO NOT ADOPT; only severe = 0 AND moderate = 0 means adopt. Rate honestly — never tune the counts to force an outcome.\n'
  +'- risks = 1 to 3 concrete, question-specific caveats, not generic advice.\n'
+ +'- Never mention, quote, draft or compute VERDICT_JSON in your thinking. Output that line exactly once, only in the final answer.\n'
  +'- Valid single-line JSON only. No markdown fences, no text after it. Output nothing after that line.';
 const LIVE_REC=[
  {re:/ibuprofen|headache|pain|painkill|pill|medicine|medication|medical|doctor|pharmac|hospital|symptom|fever|flu|cough|dose|dosage|drug|health|头疼|止痛|药|医|病|发烧|咳嗽|剂|健康/i,
@@ -4436,9 +4455,30 @@ function liveClass(p){
 }
 function liveHl(text){
   const esc=String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const parts=esc.split(/(?<=[.!?;:\n。！？；：])\s*/);
+  /* 模型偶尔会在思考里自己试写一条 VERDICT_JSON——那是过程草稿，数字可能和
+     最终输出不同。把它单独摘出来标成「草稿」，避免观众误读成页面的裁决数据。
+     裁决始终只从最终 content 解析（见 liveStream），这里不改任何数值。 */
+  const MARK='VERDICT_JSON:';
+  const di=esc.indexOf(MARK);
+  let draft='',src=esc;
+  if(di>=0){
+    const a=esc.indexOf('{',di+MARK.length);
+    if(a>=0){
+      let d=0,e=a;
+      for(;e<esc.length;e++){
+        if(esc[e]==='{')d++;
+        else if(esc[e]==='}'){d--;if(!d){e++;break}}
+      }
+      if(d===0&&e>a){
+        draft='<span class="hl-draft">'+esc.slice(di,e)
+          +'<b>'+(lang==='en'?'thinking draft · final verdict below':'思考草稿 · 以最终裁决为准')+'</b></span>';
+        src=esc.slice(0,di)+'\u0001'+esc.slice(e);
+      }
+    }
+  }
+  const parts=src.split(/(?<=[.!?;:\n。！？；：])\s*/);
   const last=parts.length-1;
-  return parts.map((p,i)=>{
+  const html=parts.map((p,i)=>{
     if(!p.trim())return p;
     const complete=i<last||/[.!?;:\n。！？；：]\s*$/.test(p);
     if(!complete)return p;                       /* 半句先不上色，等它写完 */
@@ -4446,6 +4486,7 @@ function liveHl(text){
     if(c==='blue')return p;                      /* 正常句不上色，保持素净 */
     return '<span class="hl-'+(c==='red'?'risk':c==='orange'?'warn':c)+'">'+p+'</span>';
   }).join('');
+  return draft?html.replace('\u0001',draft):html;
 }
 /* 思考树（神经网络风）：Q(提问) → 类别节点(五色：红敏感/橙警告/黄预警/绿健康/蓝正常)
    → 句子叶子，逐级展开；虚线流动=信号在算。桌面三层全展开，手机折叠到类别层。 */
@@ -4585,8 +4626,10 @@ function ltFly(onDone){
         +'<span class="cf-num">0</span>'
         +'<div class="cf-track"><span class="cf-fill"></span></div>'
         +'<span class="cf-cap">'+(en?o.en:o.zh)+'</span></div>').join('')+'</div>';
-    /* 作为裁决卡内独立一行，插在脸/文字之前——走正常文档流，不悬浮、不遮挡 */
-    if(vb)vb.insertBefore(chart,vb.firstChild);
+    /* 插在「结果」小标题之后、结论之前——走正常文档流，不悬浮、不遮挡 */
+    const sec=vb&&vb.querySelector('.vd-sec-k');
+    if(sec&&sec.nextSibling)vb.insertBefore(chart,sec.nextSibling);
+    else if(vb)vb.insertBefore(chart,vb.firstChild);
     fills=[].slice.call(chart.querySelectorAll('.cf-fill'));
     nums=[].slice.call(chart.querySelectorAll('.cf-num'));
     chart.classList.add('on');
@@ -4711,9 +4754,9 @@ function liveVerdict(){
     ?'<div class="vd-reason"><span class="vd-rk">'+(en?'Why · the model explains':'理由 · 模型给出的解释')+'</span>'
       +'<p>'+esc(reason)+'</p></div>'
     :'';
-  /* 来源摊开写：这批计数到底是「模型自报」还是「预录示例」，观众一眼能核对 */
+  /* 来源摊开写：明示这是「最终输出」，不是思考中偶发的试写草稿 */
   const source=fromModel
-    ?(en?'model-rated · deepseek-reasoner · this run':'模型自评 · deepseek-reasoner · 本次生成')
+    ?(en?'final output · deepseek-reasoner · this run':'最终输出 · deepseek-reasoner · 本次生成')
     :(en?'RECORDED EXAMPLE · a replay has no live model rating':'预录示例 · 回放没有模型实时评级');
   const contraNote=contradiction
     ?(en?'the fixed rule overrides the model here: '+(yes?'no severe or moderate claim, so adopt':'a severe or moderate claim exists, so do not adopt')+'; the model itself voted '+(modelAdopt?'adopt':'do not adopt')
@@ -4732,14 +4775,17 @@ function liveVerdict(){
     :'<div class="vd-score vd-score-na"><div class="vd-score-v">—</div>'
       +'<div class="vd-score-k">'+(en?'no score reported':'未给出分数')+'</div></div>';
   box.style.setProperty('--vc',cc);
-  box.innerHTML='<div class="vd-main">'+face
+  /* 三段式：结果（柱图+结论+计数）在上，建议（理由+风险）在下，视觉上分开 */
+  box.innerHTML='<div class="vd-sec-k">'+(en?'Result · what the ratings say':'结果 · 评级说明了什么')+'</div>'
+    +'<div class="vd-main">'+face
     +'<div class="vd-txt"><div class="vd-k">'+(en?'Verdict · advice to you':'裁决 · 给你的建议')+'</div>'
     +'<div class="vd-l" style="color:'+cc+'">'+label+'</div></div>'
     +confHtml+'</div>'
     +'<div class="vd-calc"><span>'+source+'</span>'
     +'<b>'+countsTxt+'</b>'
     +'<span class="vd-rule">'+(en?'one-strike · severe or moderate > 0 ⇒ no':'一票否决 · 严重或中度 > 0 则不采纳')+'</span></div>'
-    +(reasonHtml)+(contraNote?'<div class="vd-contra">'+contraNote+'</div>':'')+riskHtml;
+    +'<div class="vd-advice"><div class="vd-sec-k">'+(en?'Advice · why and what to watch':'建议 · 为什么与要注意什么')+'</div>'
+    +(reasonHtml)+(contraNote?'<div class="vd-contra">'+contraNote+'</div>':'')+riskHtml+'</div>';
   box.classList.add('on');
   /* 四档柱子的生长与数字滚动由 ltFly 承担；这里不再重复一套进度条 */
 }
