@@ -799,10 +799,15 @@ body.dark .live-meta{color:rgba(226,236,250,.48)}
 .vd-calc{font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:var(--faint);
   padding:0 18px 6px;display:flex;gap:12px;flex-wrap:wrap}
 .vd-calc b{color:var(--dim);font-weight:600}
-/* 固定阈值规则标签：用极淡的胶囊和计算行区分，让「为什么是这个结论」可复现 */
+/* 固定规则标签：用极淡的胶囊和计算行区分，让「为什么是这个结论」可复现 */
 .vd-rule{color:#88795c;background:rgba(180,150,90,.10);border-radius:999px;padding:1px 8px;
   letter-spacing:.02em;white-space:nowrap}
 body.dark .vd-rule{color:#c4a878;background:rgba(190,160,100,.14)}
+/* 模型针对本题写下的理由——「为什么采纳/不采纳」，单独成行，轻微强调，可逐字核对 */
+.vd-reason{padding:7px 18px 4px;font-size:13px;line-height:1.6;color:var(--dim)}
+.vd-reason .vd-rk{display:block;margin-bottom:3px}
+.vd-reason p{margin:0}
+body.dark .vd-reason{color:rgba(232,238,250,.78)}
 /* 「模型说采纳，但自报信心只有 X%」——把矛盾摊开，不藏着 */
 .vd-contra{padding:0 18px 7px;font-size:10px;line-height:1.5;letter-spacing:.02em;color:#8a4c4a}
 body.dark .vd-contra{color:#e0a8a5}
@@ -946,43 +951,36 @@ body.dark .fly-spin::before{background:rgba(22,34,58,.3)}
 body.dark .fly-spin::after{background:rgba(22,34,58,.18)}
 @keyframes flyRipple{0%{transform:scale(.3);opacity:0}20%{opacity:.7}100%{transform:scale(2.9);opacity:0}}
 
-/* —— 置信度柱状图：取代原落球，思考结束后在此凝结成一个可读的数字 ——
-   一根玻璃柱（近透明蓝、贯穿高光）+ 一条 80% 固定阈值线。整页只有这一个焦点。 */
-/* —— 置信度柱状图：取代原落球，作为裁决条左侧的一个紧凑模块 ——
-   一根玻璃柱（近透明蓝、贯穿高光）+ 一条 80% 固定阈值线 + 一个大数字。
-   它和结论脸、文字同处一张玻璃卡里，整页只有这一个视觉焦点，不悬浮、不遮挡。 */
-.cf-chart{flex:0 0 auto;display:flex;align-items:center;gap:10px;pointer-events:none;
-  padding:2px 16px 2px 2px;border-right:1px solid rgba(8,13,24,.07);
-  opacity:0;transform:translateY(6px);transform-origin:left center}
+/* —— 四档分类柱状图：模型逐条评级的可量化分布，作为裁决卡内独立一行 ——
+   四根玻璃柱（严重/中度/轻度/正常），柱高按各自条数、数字标注真实计数；
+   四档共用一条比例轴，一眼看出分布。走正常文档流，不悬浮、不遮挡。 */
+.cf-chart{pointer-events:none;padding:12px 18px 10px;border-bottom:1px solid rgba(8,13,24,.07);
+  opacity:0;transform:translateY(6px)}
 .cf-chart.on{animation:cfIn .5s cubic-bezier(.22,1,.36,1) forwards}
 @keyframes cfIn{to{opacity:1;transform:none}}
-.cf-track{position:relative;width:40px;height:66px;border-radius:9px;flex:0 0 auto;
-  background:linear-gradient(180deg,rgba(235,243,252,.34),rgba(200,218,238,.30));
-  border:1px solid rgba(160,188,222,.42);
-  box-shadow:inset 0 2px 6px rgba(40,70,120,.10),inset 0 -1px 0 rgba(255,255,255,.7)}
-.cf-fill{position:absolute;left:0;right:0;bottom:0;height:0;border-radius:8px 8px 7px 7px;
-  background:linear-gradient(180deg,rgba(255,255,255,.58) 0%,rgba(150,190,238,.34) 12%,var(--cfc,#5b93da) 100%);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 1px 0 0 rgba(255,255,255,.45),
-    inset -1px 0 0 rgba(40,80,140,.16);
+.cf-hd{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px}
+.cf-t{font-family:var(--mono);font-size:9px;letter-spacing:.18em;color:var(--faint);text-transform:uppercase}
+.cf-tot{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--dim);font-weight:600}
+.cf-bars{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;height:92px}
+.cf-col{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%}
+.cf-num{font-family:var(--mono);font-size:19px;font-weight:800;color:var(--bc);
+  font-variant-numeric:tabular-nums;letter-spacing:-.03em;line-height:1}
+.cf-track{position:relative;width:100%;max-width:46px;flex:1;min-height:0;border-radius:8px;
+  background:linear-gradient(180deg,rgba(235,243,252,.30),rgba(200,218,238,.28));
+  border:1px solid rgba(160,188,222,.40);
+  box-shadow:inset 0 2px 6px rgba(40,70,120,.09),inset 0 -1px 0 rgba(255,255,255,.7);
+  display:flex;align-items:flex-end;overflow:hidden}
+.cf-fill{position:relative;display:block;width:100%;height:0;border-radius:7px 7px 6px 6px;
+  background:linear-gradient(180deg,rgba(255,255,255,.5) 0%,var(--bc) 20%,var(--bc) 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9),inset 1px 0 0 rgba(255,255,255,.4),
+    inset -1px 0 0 rgba(0,0,0,.14);
   -webkit-backdrop-filter:blur(2px) saturate(1.1);backdrop-filter:blur(2px) saturate(1.1)}
-.cf-fill::before{content:'';position:absolute;left:8%;right:8%;top:0;height:1.5px;border-radius:2px;background:rgba(255,255,255,.9)}
-/* 80% 固定阈值线，跨过柱体延伸到右侧，一眼看出过没过线 */
-.cf-thr{position:absolute;left:-3px;right:-5px;bottom:80%;height:0;
-  border-top:1.5px dashed rgba(120,95,60,.6);z-index:2}
-.cf-thr b{position:absolute;left:-1px;top:-13px;font-family:var(--mono);font-size:8px;
-  font-weight:700;color:#88795c;background:rgba(255,255,255,.9);border-radius:3px;
-  padding:0 3px;white-space:nowrap;box-shadow:0 1px 2px rgba(60,50,30,.10)}
-.cf-meta{display:flex;flex-direction:column;gap:2px;min-width:0}
-.cf-num{font-family:var(--mono);font-size:24px;font-weight:800;color:var(--cfc,#2b4c86);
-  font-variant-numeric:tabular-nums;letter-spacing:-.04em;line-height:1}
-.cf-num small{font-size:.5em;opacity:.6;font-weight:600;margin-left:1px}
-.cf-cap{font-family:var(--mono);font-size:8px;letter-spacing:.14em;color:var(--faint);text-transform:uppercase;white-space:nowrap}
-body.dark .cf-chart{border-right-color:rgba(232,238,250,.1)}
+.cf-fill::before{content:'';position:absolute;left:12%;right:12%;top:0;height:1.5px;border-radius:2px;background:rgba(255,255,255,.9)}
+.cf-cap{font-family:var(--mono);font-size:9px;letter-spacing:.06em;color:var(--faint);
+  text-transform:uppercase;white-space:nowrap}
+body.dark .cf-chart{border-bottom-color:rgba(232,238,250,.1)}
 body.dark .cf-track{background:linear-gradient(180deg,rgba(120,160,225,.10),rgba(80,120,190,.14));
   border-color:rgba(150,190,250,.24)}
-body.dark .cf-thr{border-color:rgba(210,180,120,.6)}
-body.dark .cf-thr b{color:#d8bd8a;background:rgba(18,26,45,.9)}
-body.dark .cf-num{color:var(--cfc,#cfe0ff)}
 
 /* —— 苹果式呼吸灯：3.6s 一个明暗周期，幅度极克制，像静置设备的电源灯 ——
    只加在「需要引导注意」的两处：裁决条左侧色条、Run 按钮。
@@ -1039,9 +1037,9 @@ body.dark .cf-num{color:var(--cfc,#cfe0ff)}
   .vd-txt{grid-column:2;min-width:0}
   .vd-k{font-size:9px;margin-bottom:2px}
   .vd-l{font-size:15.5px;line-height:1.25}
-  .vd-conf{grid-column:1/-1;display:flex;align-items:center;gap:10px;margin-top:2px}
-  .vd-cb{flex:1 1 auto;width:auto}
-  .vd-pct{min-width:auto;font-size:19px}
+  .cf-chart{padding:11px 14px 9px}
+  .cf-bars{height:84px;gap:8px}
+  .vd-reason{padding:6px 14px 4px;font-size:12.5px}
   .vd-calc{padding:0 14px 6px;font-size:9px;gap:8px}
   .vd-risks{padding:7px 14px}
 
@@ -2048,9 +2046,14 @@ body.dark .cd-panel::after,body.dark .fact::after{
   .vd-txt{grid-column:2;min-width:0}
   .vd-k{font-size:8.5px;margin-bottom:2px}
   .vd-l{font-size:15px;line-height:1.24}
-  .vd-conf{grid-column:1/-1;display:flex;align-items:center;gap:9px;margin-top:2px}
-  .vd-cb{flex:1 1 auto;width:auto}
-  .vd-pct{min-width:auto;font-size:18px}
+  .cf-chart{padding:10px 13px 9px}
+  .cf-hd{margin-bottom:8px}
+  .cf-t{font-size:8px;letter-spacing:.12em}
+  .cf-tot{font-size:10px}
+  .cf-bars{height:76px;gap:7px}
+  .cf-num{font-size:16px}
+  .cf-cap{font-size:8px;letter-spacing:0}
+  .vd-reason{padding:6px 13px 3px;font-size:11.5px;line-height:1.5}
   .vd-calc{padding:0 13px 6px;font-size:8.5px;gap:7px;line-height:1.4}
   .vd-risks{padding:7px 13px;gap:4px}
   .vd-chip{font-size:10px;padding:4px 7px}
@@ -3099,7 +3102,7 @@ const AUDIT={
  24:{e:{en:'Behaviour moved where a cue added friction or a checkable signal. Attitudes barely moved.',zh:'在有摩擦或可核对信号的地方，行为改变了；态度几乎没有。'},
     o:{en:'One 34-person pilot, one session, no follow-up. The effect sizes need replication.',zh:'一次 34 人的 pilot，单次实验，没有追踪。效应量需要重复验证。'},
     a:{en:'If you take one thing: transparency changes what people do, not what they say.',zh:'如果只带走一件事：透明化改变的是人做什么，而不是人说什么。'}},
- 25:{e:{en:'When the proxy is online this is a real call: deepseek-reasoner streams its own reasoning, answer, recommendation and confidence. When it is offline the badge says REPLAY and every panel is labelled pre-recorded — we never present a script as a live answer.',zh:'代理在线时这是一次真实调用：deepseek-reasoner 流式输出它自己的推理、答案、建议与置信度。离线时徽标显示 REPLAY，且每个面板都标注为预录——我们绝不把脚本冒充实时回答。'},
+ 25:{e:{en:'When the proxy is online this is a real call: deepseek-reasoner streams its own reasoning and answer, then rates each claim severe, moderate, mild or ok — the bar chart is that distribution, and the fixed one-strike rule turns it into advice. When it is offline the badge says REPLAY and every panel is labelled pre-recorded — we never present a script as a live answer.',zh:'代理在线时这是一次真实调用：deepseek-reasoner 流式输出它自己的推理与答案，再把每条主张评为严重、中度、轻度或正常——柱状图就是这个分布，固定一票否决规则把它变成建议。离线时徽标显示 REPLAY，且每个面板都标注为预录——我们绝不把脚本冒充实时回答。'},
     o:{en:'Reasoning traces are generated text, not a faithful log of computation — and we only see the ones the model chooses to write.',zh:'推理轨迹是模型生成出来的文字，不是计算过程的忠实日志——而且我们只能看到它选择写出来的部分。'},
     a:{en:'Ask it something it should refuse. The refusal is the most honest white box we can show you.',zh:'问它一件它本该拒绝的事。那个拒绝，是我们能给你看的最诚实的白盒。'}}
 };
@@ -4189,13 +4192,15 @@ const SYS_PROMPT='You are a careful assistant inside a research demo about AI tr
  +'Think first, then answer the question in under 90 words. For medical, legal or attribution questions, '
  +'say plainly what you cannot know and what the user should check, instead of sounding certain.\n\n'
  +'After the answer, output ONE extra line in exactly this format (the page parses it and never shows it):\n'
- +'VERDICT_JSON: {"adopt":true|false,"confidence":<integer 0-100>,"risks":["<specific caveat>","<specific caveat>"]}\n'
+ +'VERDICT_JSON: {"levels":{"severe":N,"moderate":N,"mild":N,"ok":N},"adopt":true|false,"reason":"<one question-specific sentence>","risks":["<specific caveat>","<specific caveat>"]}\n'
  +'Rules for that line:\n'
- +'- adopt = whether you judge the answer safe to act on as-is. This is shown for comparison only; the page separately applies a fixed rule.\n'
- +'- confidence = YOUR honest, calibrated confidence that the answer is correct and safe to use. It must genuinely depend on THIS question: '
- +'hedge when context or evidence is missing, be high only for well-supported, low-stakes, checkable answers. '
- +'Never default to a round number and never reuse a value from another question.\n'
- +'- The page decides the final advice purely by this confidence: >= 80 means adopt, below 80 means do not adopt. So set confidence to reflect real trustworthiness, not to force a preferred outcome.\n'
+ +'- Break YOUR answer into its distinct checkable claims. Give each claim exactly one level, then count them:\n'
+ +'  severe = wrong or unsafe — acting on it could cause real harm; moderate = plausible but uncertain or dependent on missing context;\n'
+ +'  mild = a minor caveat, low impact even if wrong; ok = well-supported, low-stakes and checkable.\n'
+ +'  The four counts must sum to the number of claims you made (at least 1).\n'
+ +'- reason = ONE short sentence specific to THIS question explaining why those ratings lead to the advice. No generic statements.\n'
+ +'- adopt = your own judgement of whether the answer is safe to act on as-is. Shown for comparison only.\n'
+ +'- The PAGE applies a fixed rule: severe > 0 OR moderate > 0 means DO NOT ADOPT; only severe = 0 AND moderate = 0 means adopt. Rate honestly — never tune the counts to force an outcome.\n'
  +'- risks = 1 to 3 concrete, question-specific caveats, not generic advice.\n'
  +'- Valid single-line JSON only. No markdown fences, no text after it. Output nothing after that line.';
 const LIVE_REC=[
@@ -4216,15 +4221,25 @@ const LIVE_REC=[
   reason:"The user’s question does not match anything I can verify from here.\nWhat I can do: give the shape of a good answer, name what I would need to know, and separate checkable facts from guesses.\nWhat I cannot do: produce a specific answer without the facts.\nDecision: state what is checkable, mark the rest unknown.",
   answer:"I can give you the shape of an answer, not a specific one — anything more would be a guess. Tell me the context and what decision you’re making, and I’ll separate what is checkable from what isn’t. What I can’t verify, I’ll mark as unknown rather than fill in."}
 ];
-/* 预录示例的裁决：人工写好的建议与风险，明确标注为「预录示例」。
-   关键：confidence 一律为 null —— 回放没有模型置信度，页面就不显示任何数字，
-   绝不拿一个编造的百分比冒充模型输出。 */
+/* 预录示例的裁决：人工逐条评级的四档计数与理由，明确标注为「预录示例」。
+   计数是人工对这条预录答案的评级（共四条主张），不是模型实时输出；
+   页面照常按固定一票否决规则下结论，并把理由与来源摊开。 */
 [
- {adopt:false,confidence:null,risks:['No personal dose can be set without age, conditions and other medication.','Pregnancy, ulcers and kidney function change the safe limit.']},
- {adopt:false,confidence:null,risks:['Whether the clause is mutual is unknown.','Notice period and jurisdiction are not visible in the excerpt.']},
- {adopt:false,confidence:null,risks:['One paragraph is too little signal for style attribution.','No provenance (drafts, timestamps) is available.']},
- {adopt:true,confidence:null,risks:['Age, activity level and medical history are unknown.','Going below about 1,500 kcal a day needs supervision.']},
- {adopt:false,confidence:null,risks:['No verifiable facts were supplied with the question.','Any specific answer would be a guess.']}
+ {levels:{severe:1,moderate:2,mild:1,ok:1},adopt:false,
+  reason:'One claim would set a personal dose — that is unsafe — and two more depend on facts I cannot see.',
+  risks:['No personal dose can be set without age, conditions and other medication.','Pregnancy, ulcers and kidney function change the safe limit.']},
+ {levels:{severe:0,moderate:2,mild:1,ok:1},adopt:false,
+  reason:'Two claims hinge on context the excerpt never provides, so the answer cannot be trusted as-is.',
+  risks:['Whether the clause is mutual is unknown.','Notice period and jurisdiction are not visible in the excerpt.']},
+ {levels:{severe:1,moderate:1,mild:1,ok:1},adopt:false,
+  reason:'One claim would guess an author — that is unsafe — and the evidence supplied is far too thin.',
+  risks:['One paragraph is too little signal for style attribution.','No provenance (drafts, timestamps) is available.']},
+ {levels:{severe:0,moderate:1,mild:1,ok:2},adopt:false,
+  reason:'Most claims are checkable, but one depends on missing medical history, so one strike blocks adoption.',
+  risks:['Age, activity level and medical history are unknown.','Going below about 1,500 kcal a day needs supervision.']},
+ {levels:{severe:1,moderate:1,mild:1,ok:1},adopt:false,
+  reason:'A specific answer would be a guess with no facts to check it against — unsafe to act on.',
+  risks:['No verifiable facts were supplied with the question.','Any specific answer would be a guess.']}
 ].forEach((v,i)=>{if(LIVE_REC[i])LIVE_REC[i].v=v});
 /* 预录轨迹选择：命中关键词就用对应那条；都不命中时用最后一条「通用兜底」轨迹——
    它只讲"能给形状不能给假答案"，不会把一条不相干的合同答案硬套到你的问题上 */
@@ -4504,37 +4519,43 @@ function ltFly(onDone){
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(dots)dots.classList.remove('drop');
 
-  /* 读真实置信度——与裁决条用同一套校验，绝不用 Number(null) 造出假的 0%。
-     柱高就是这个数，阈值固定 80%，两次运行同一个数字永远画同一根柱。 */
-  const rawV=LIVE.verdict,raw=rawV&&rawV.confidence;
-  const conf=(typeof raw==='number'&&Number.isFinite(raw)&&raw>=0&&raw<=100)?Math.round(raw):null;
-  const THR=80;
-  const hasConf=conf!==null;
-  const pass=hasConf&&conf>=THR;
-  const yes=hasConf?pass:!!(rawV&&rawV.adopt);        /* 回放无数值时沿用预录 adopt 着色 */
-  const cfc=yes?'#4f8f75':(hasConf?'#b06a68':'#7a6644');
+  /* 读模型逐条评级自报的四档计数——与裁决条共用 vdLevels 校验。
+     缺字段/非法值一律不画柱、不造数字；同一组计数永远画同一组柱。 */
+  const lv=vdLevels(LIVE.verdict);
+  const hasLv=!!lv;
+  const yes=hasLv?vdRule(lv):!!(LIVE.verdict&&LIVE.verdict.adopt);
+  const cols=[
+    {k:'severe',  c:'#c8443c', en:'severe',   zh:'严重'},
+    {k:'moderate',c:'#d98a2b', en:'moderate', zh:'中度'},
+    {k:'mild',    c:'#b9a028', en:'mild',     zh:'轻度'},
+    {k:'ok',      c:'#3f8f75', en:'ok',       zh:'正常'}
+  ];
+  const counts=cols.map(o=>hasLv?lv[o.k]:0);
+  const total=counts.reduce((a,b)=>a+b,0);
+  const maxN=Math.max.apply(null,counts.concat([1]));   /* 至少 1，避免全 0 时除零 */
 
-  /* 柱状图挂到 live-stage（手机端网络图 display:none，柱子不能跟着消失），
-     DOM 放在裁决条之前：手机上走正常文档流，正好落在裁决条上方。
-     桌面绝对定位到网络图区左上角，柱体完全落在图内，不遮住上面的答案。 */
   const vb=liveEl('liveVerdict');
   const old=document.getElementById('cfChart');if(old&&old.parentElement)old.remove();
-  const chart=document.createElement('div');
-  chart.className='cf-chart';chart.id='cfChart';
-  chart.style.setProperty('--cfc',cfc);
-  chart.innerHTML='<div class="cf-track"><span class="cf-thr"><b>'+THR+'%</b></span><span class="cf-fill"></span></div>'
-    +'<div class="cf-meta"><span class="cf-num">'+(hasConf?'0<small>%</small>':'—')
-    +'</span><span class="cf-cap">'+(en?'confidence':'置信度')+'</span></div>';
-  /* 插进裁决条第一行的开头，和结论脸/文字并排——一个焦点、零遮挡 */
-  const firstRow=vb&&vb.querySelector('.vd-main');
-  if(firstRow)firstRow.insertBefore(chart,firstRow.firstChild);
-  else if(vb)vb.insertBefore(chart,vb.firstChild);
+  let chart=null,fills=[],nums=[];
+  if(hasLv){
+    chart=document.createElement('div');
+    chart.className='cf-chart';chart.id='cfChart';
+    chart.innerHTML='<div class="cf-hd"><span class="cf-t">'
+      +(en?'Claim ratings · four levels':'逐条评级 · 四档')
+      +'</span><span class="cf-tot">'+(en?total+' claims':total+' 条主张')+'</span></div>'
+      +'<div class="cf-bars">'+cols.map(o=>
+        '<div class="cf-col" style="--bc:'+o.c+'">'
+        +'<span class="cf-num">0</span>'
+        +'<div class="cf-track"><span class="cf-fill"></span></div>'
+        +'<span class="cf-cap">'+(en?o.en:o.zh)+'</span></div>').join('')+'</div>';
+    /* 作为裁决卡内独立一行，插在脸/文字之前——走正常文档流，不悬浮、不遮挡 */
+    if(vb)vb.insertBefore(chart,vb.firstChild);
+    fills=[].slice.call(chart.querySelectorAll('.cf-fill'));
+    nums=[].slice.call(chart.querySelectorAll('.cf-num'));
+    chart.classList.add('on');
+  }
 
-  const fill=chart.querySelector('.cf-fill'),num=chart.querySelector('.cf-num'),H=66;
-  chart.classList.add('on');
-
-  /* 柱立稳之后：Q 滚出 → 类别节点自 Q 依次点亮 → 最后才回调裁决条。
-     这段编排保留用户原本要的顺序，只是把「玻璃球落地爆开」换成「柱到顶落定」。 */
+  /* 柱立稳之后：Q 滚出 → 类别节点自 Q 依次点亮 → 最后才回调裁决条 */
   const finish=()=>{
     box.querySelectorAll('[data-n="q"]').forEach(el=>{
       el.classList.remove('lt-wait');
@@ -4550,97 +4571,122 @@ function ltFly(onDone){
       });
       try{SND.tone(640+i*150,.05,.08,'sine')}catch(e){}
     },150+i*230)});
-    const total=150+Math.max(1,cats.length)*230+620;
-    setTimeout(()=>{if(dots)dots.classList.remove('on');try{onDone&&onDone()}catch(e){}},total);
+    const life=150+Math.max(1,cats.length)*230+620;
+    setTimeout(()=>{if(dots)dots.classList.remove('on');try{onDone&&onDone()}catch(e){}},life);
   };
+
+  const H=58;
+  const setFinal=()=>{counts.forEach((n,i)=>{
+    if(!hasLv)return;
+    fills[i].style.height=(n/maxN*H)+'px';
+    nums[i].textContent=String(n);
+  })};
 
   /* 减少动效：直接给最终态，不生长不滚动 */
   if(reduced){
-    if(hasConf){fill.style.height=(conf/100*H)+'px';num.innerHTML=conf+'<small>%</small>'}
+    setFinal();
     ltRevealAll(true);
     setTimeout(()=>{if(dots)dots.classList.remove('on');try{onDone&&onDone()}catch(e){}},120);
     return;
   }
-  /* 回放没有模型置信度：不画假柱、不滚假数字，短暂停驻后照旧点亮节点 */
-  if(!hasConf){setTimeout(finish,520);return}
+  /* 回放/模型没给四档计数：不画假柱、不滚假数字，短暂停驻后照旧点亮节点 */
+  if(!hasLv){setTimeout(finish,520);return}
 
-  /* 柱高按真实 confidence 生长，数字同步滚动（ease-out cubic） */
-  const t0=performance.now(),DUR=820;
+  /* 四根柱依次生长，数字同步滚动（ease-out cubic） */
+  const STAG=110,DUR=620,t0=performance.now(),ALL=STAG*cols.length+DUR;
   try{SND.tone(600,.05,.06,'sine')}catch(e){}
   (function tick(now){
-    const p=Math.min(1,((now||performance.now())-t0)/DUR);
-    const e=1-Math.pow(1-p,3);
-    fill.style.height=(conf/100*H*e).toFixed(1)+'px';
-    num.innerHTML=Math.round(conf*e)+'<small>%</small>';
-    if(p<1){requestAnimationFrame(tick);return}
-    try{SND.tone(pass?880:660,.06,.08,'sine')}catch(err){}
-    setTimeout(finish,420);
+    const el=(now||performance.now())-t0;
+    counts.forEach((n,i)=>{
+      const p=Math.min(1,Math.max(0,(el-i*STAG)/DUR));
+      const e=1-Math.pow(1-p,3);
+      fills[i].style.height=(n/maxN*H*e).toFixed(1)+'px';
+      nums[i].textContent=String(Math.round(n*e));
+    });
+    if(el<ALL){requestAnimationFrame(tick);return}
+    try{SND.tone(yes?880:660,.06,.08,'sine')}catch(err){}
+    setTimeout(finish,300);
   })(performance.now());
 }
-/* 采纳建议裁决条：从分类计数推导置信度——≥60% 绿色笑脸=建议采纳，否则红脸摇头=不建议；
-   并点名具体风险（红线/橙线句子）。透明原则：置信度是启发式，不是模型自报的数字 */
+/* 解析并校验模型自报的四档计数。
+   注意 Number(null) === 0：必须显式判断类型，缺字段/非法值一律当「没有」，绝不画假数字 */
+function vdLevels(v){
+  const lv=v&&v.levels;
+  if(!lv||typeof lv!=='object')return null;
+  const out={};
+  for(const k of ['severe','moderate','mild','ok']){
+    const n=lv[k];
+    if(typeof n!=='number'||!Number.isFinite(n)||!Number.isInteger(n)||n<0)return null;
+    out[k]=n;
+  }
+  return out;
+}
+/* 固定裁决规则（一票否决）：出现任何 severe 或 moderate → 不采纳；只有 mild/ok → 采纳。
+   模型的 adopt 字段只作对照，不参与判定——同一个计数分布永远得到同一个结论。 */
+function vdRule(lv){return lv.severe===0&&lv.moderate===0}
+
+/* 采纳建议裁决条：四档计数由模型逐条评级自报；页面用固定一票否决规则下结论，
+   并把模型针对本题写的理由（reason）完整摆出来，让「为什么」可核对。 */
 function liveVerdict(){
   const box=liveEl('liveVerdict');if(!box)return;
   const en=lang==='en';
   const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const v=LIVE.verdict, fromModel=LIVE.verdictSource==='model';
+  const lv=vdLevels(v);
 
-  /* 这一行裁决全部来自模型自己输出的 VERDICT_JSON。
-     模型没给出可解析结果时如实说明，绝不编造一个百分比 */
-  if(!v||typeof v.adopt!=='boolean'||!Array.isArray(v.risks)){
+  /* 没有可解析的四档计数：如实说明，绝不编造一个分布或百分比 */
+  if(!lv){
     box.classList.add('on');
     box.innerHTML='<div class="vd-main">'
       +'<div class="vd-txt"><div class="vd-k">'+(en?'Verdict · advice to you':'裁决 · 给你的建议')+'</div>'
-      +'<div class="vd-l" style="color:#7a6644">'+(en?'No machine-readable verdict returned':'模型未返回可解析的裁决')+'</div></div>'
-      +'<div class="vd-conf"><b class="vd-pct">—</b></div></div>'
-      +'<div class="vd-calc"><span>'+(en?'No number is shown because none was generated — we will not invent one.':'没有生成任何数值，因此这里不显示数字——我们不会替模型编一个。')+'</span></div>';
+      +'<div class="vd-l" style="color:#7a6644">'+(en?'No machine-readable rating returned':'模型未返回可解析的分级计数')+'</div></div></div>'
+      +'<div class="vd-calc"><span>'+(en?'No bar chart is drawn because no counts were generated — we will not invent one.':'没有生成分级计数，因此不画柱状图——我们不会替模型编一个。')+'</span></div>';
     return;
   }
 
-  /* 注意：Number(null) === 0。回放里 confidence 是 null（没有模型数值），
-     如果直接 Number() 会把它当成 0%，屏幕上就会出现一个假的「0%」。
-     必须先判断类型，只接受模型真的给出的数字。 */
-  const raw=v.confidence;
-  const conf=(typeof raw==='number'&&Number.isFinite(raw)&&raw>=0&&raw<=100)?Math.round(raw):null;
-  /* 采纳规则：唯一判据、固定、可复现——置信度 ≥80% 建议采纳，<80% 不建议采纳。
-     模型的 adopt 字段不再决定结论，只留作对照，彻底消除「同为 72% 却一次采纳、
-     一次不采纳」的乱象。模型说采纳但置信度 <80 时，如实摊开这个矛盾。
-     回放没有置信度（conf===null）：不套用规则，沿用预录结论并标注来源。 */
-  const THR=80;
-  const hasConf=conf!==null;
-  const yes=hasConf?(conf>=THR):!!v.adopt;        /* live 只看数字；回放沿用预录 adopt */
-  const contradiction=hasConf&&!!v.adopt&&!yes;   /* 模型说采纳，但按规则不采纳 */
-  const risks=v.risks.filter(r=>typeof r==='string'&&r.trim()).slice(0,2);
+  const yes=vdRule(lv);                                   /* 唯一判据：固定一票否决 */
+  const modelAdopt=(typeof v.adopt==='boolean')?v.adopt:null;
+  const contradiction=modelAdopt!==null&&modelAdopt!==yes; /* 模型意见与固定规则相左 */
+  const risks=(Array.isArray(v.risks)?v.risks:[]).filter(r=>typeof r==='string'&&r.trim()).slice(0,2);
+  const reason=(typeof v.reason==='string'&&v.reason.trim())?v.reason.trim():'';
   const cc=yes?'#4f8f75':'#b06a68';
   const face=yes
     ?'<svg class="vd-face yes" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2"/><circle class="e" cx="9" cy="10" r="1.15"/><circle class="e" cx="15" cy="10" r="1.15"/><path class="m" d="M8.4 13.6c1.1 1.5 2.3 2.2 3.6 2.2s2.5-.7 3.6-2.2"/></svg>'
     :'<svg class="vd-face no" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2"/><circle class="e" cx="9" cy="10.4" r="1.15"/><circle class="e" cx="15" cy="10.4" r="1.15"/><path class="m" d="M8.6 14.6h6.8"/></svg>';
   const label=contradiction
-    ?(en?'Below '+THR+'% — do not adopt':'低于 '+THR+'% — 不建议采纳')
-    :yes?(en?'Recommend adopting':'建议采纳'):(en?'Do not adopt as-is ('+THR+'% rule)':'不建议直接采纳（'+THR+'% 规则）');
+    ?(en?(yes?'Adopt · model disagreed':'Do not adopt · model disagreed')
+        :(yes?'按规则采纳 · 与模型意见相左':'按规则不采纳 · 与模型意见相左'))
+    :yes?(en?'Recommend adopting':'建议采纳'):(en?'Do not adopt as-is':'不建议直接采纳');
   const riskHtml=risks.length
     ?'<div class="vd-risks"><span class="vd-rk">'+(en?'Specific risks · named by the model':'具体风险 · 模型列出')+'</span>'
       +risks.map(r=>'<span class="vd-chip" style="--c:#bd8f61"><i></i>'+esc(r.trim())+'</span>').join('')+'</div>'
     :'';
-  /* 来源摊开写：这个数到底是「模型自报」还是「预录示例」，观众一眼能核对 */
-  const source=fromModel
-    ?(en?'model-reported · deepseek-reasoner · this run':'模型自报 · deepseek-reasoner · 本次生成')
-    :(en?'RECORDED EXAMPLE · a replay has no model confidence':'预录示例 · 回放没有模型置信度');
-  /* 自相矛盾时把「模型原话」摊开：它说 adopt，但置信度没到阈值 */
-  const contraNote=contradiction
-    ?(en?'the model proposed adopting, but its confidence is only '+conf+'% (< '+THR+'%) — the fixed rule says do not adopt'
-      :'模型原本建议采纳，但置信度只有 '+conf+'%（低于 '+THR+'%）——按固定规则不采纳')
+  /* 模型针对本题写下的一句理由——这是「为什么采纳/不采纳」的核心，单独成行放大 */
+  const reasonHtml=reason
+    ?'<div class="vd-reason"><span class="vd-rk">'+(en?'Why · the model explains':'理由 · 模型给出的解释')+'</span>'
+      +'<p>'+esc(reason)+'</p></div>'
     :'';
+  /* 来源摊开写：这批计数到底是「模型自报」还是「预录示例」，观众一眼能核对 */
+  const source=fromModel
+    ?(en?'model-rated · deepseek-reasoner · this run':'模型自评 · deepseek-reasoner · 本次生成')
+    :(en?'RECORDED EXAMPLE · a replay has no live model rating':'预录示例 · 回放没有模型实时评级');
+  const contraNote=contradiction
+    ?(en?'the fixed rule overrides the model here: '+(yes?'no severe or moderate claim, so adopt':'a severe or moderate claim exists, so do not adopt')+'; the model itself voted '+(modelAdopt?'adopt':'do not adopt')
+      :'固定规则在此覆盖模型意见：'+(yes?'没有严重/中度项，故采纳':'存在严重或中度项，故不采纳')+'；模型本人投的是'+(modelAdopt?'采纳':'不采纳'))
+    :'';
+  const countsTxt=en
+    ?'severe '+lv.severe+' · moderate '+lv.moderate+' · mild '+lv.mild+' · ok '+lv.ok
+    :'严重 '+lv.severe+' · 中度 '+lv.moderate+' · 轻度 '+lv.mild+' · 正常 '+lv.ok;
   box.style.setProperty('--vc',cc);
   box.innerHTML='<div class="vd-main">'+face
     +'<div class="vd-txt"><div class="vd-k">'+(en?'Verdict · advice to you':'裁决 · 给你的建议')+'</div>'
     +'<div class="vd-l" style="color:'+cc+'">'+label+'</div></div></div>'
     +'<div class="vd-calc"><span>'+source+'</span>'
-    +'<b>'+(conf==null?(en?'no number':'无数值'):'confidence '+conf+'%')+'</b>'
-    +'<span class="vd-rule">'+(en?'decided by confidence ≥ '+THR+'%':'按置信度 ≥ '+THR+'% 判定')+'</span></div>'
-    +(contraNote?'<div class="vd-contra">'+contraNote+'</div>':'')+riskHtml;
+    +'<b>'+countsTxt+'</b>'
+    +'<span class="vd-rule">'+(en?'one-strike · severe or moderate > 0 ⇒ no':'一票否决 · 严重或中度 > 0 则不采纳')+'</span></div>'
+    +(reasonHtml)+(contraNote?'<div class="vd-contra">'+contraNote+'</div>':'')+riskHtml;
   box.classList.add('on');
-  /* 置信度数字的滚动已由 ltFly 的柱状图承担；这里不再重复一套进度条/数字 */
+  /* 四档柱子的生长与数字滚动由 ltFly 承担；这里不再重复一套进度条 */
 }
 function liveDone(){
   const ans=document.querySelector('.scene.active .live-pane.answer');
@@ -4782,8 +4828,8 @@ async function liveReplay(q,id){
   if(hd&&!hd.querySelector('.live-note')){
     const n=document.createElement('div');n.className='live-note';
     n.textContent=lang==='en'
-      ?'RECORDED · model unreachable: the trace, verdict and risks are pre-recorded examples; no confidence number is shown'
-      :'预录内容 · 未连上真实模型：轨迹、裁决与风险均为预录示例，不显示置信度数值';
+      ?'RECORDED · model unreachable: the trace, ratings and risks are pre-recorded examples, not a live model call'
+      :'预录内容 · 未连上真实模型：轨迹、四档评级与风险均为预录示例，非模型实时输出';
     hd.appendChild(n);
   }
   await new Promise(res=>liveType(liveEl('liveReason'),rec.reason,res,true));
@@ -4793,6 +4839,22 @@ async function liveReplay(q,id){
   liveLedger({mode:'REPLAY',ms:null,tk:tk,exact:false,id:id});
   liveAudit(q,{mode:'REPLAY',ms:ms,tk:tk});
   liveDone();
+}
+/* 从 VERDICT_JSON: 之后取出第一个完整对象。
+   不能用 /\{[\s\S]*?\}/ —— levels 是嵌套对象，非贪婪匹配会在它自己的 }
+   处提前截断，JSON.parse 直接失败。这里按大括号配平，兼容嵌套。 */
+function jsonAfter(text,mark){
+  const i=text.indexOf(mark);if(i<0)return null;
+  const s=text.indexOf('{',i+mark.length);if(s<0)return null;
+  let d=0,inStr=false,esc=false;
+  for(let j=s;j<text.length;j++){
+    const c=text[j];
+    if(inStr){if(esc)esc=false;else if(c==='\\')esc=true;else if(c==='"')inStr=false;continue}
+    if(c==='"'){inStr=true;continue}
+    if(c==='{')d++;
+    else if(c==='}'){d--;if(d===0){try{return JSON.parse(text.slice(s,j+1))}catch(e){return null}}}
+  }
+  return null;
 }
 async function liveStream(q,id){
   const t0=performance.now();
@@ -4851,13 +4913,8 @@ async function liveStream(q,id){
     }
   }
   const ms=Math.round(performance.now()-t0);
-  /* 建议、置信度、风险全部取自模型自己输出的 VERDICT_JSON，前端不再计算 */
-  let verdict=null;
-  const vi=answerText.indexOf(MARK);
-  if(vi>=0){
-    const m=answerText.slice(vi+MARK.length).match(/\{[\s\S]*?\}/);
-    if(m){try{verdict=JSON.parse(m[0])}catch(e){verdict=null}}
-  }
+  /* 四档计数、理由、风险全部取自模型自己输出的 VERDICT_JSON，前端不再计算 */
+  const verdict=jsonAfter(answerText,MARK);
   LIVE.verdict=verdict;LIVE.verdictSource='model';
   LIVE.lastReason=reasonText;LIVE.lastAnswer=aEl.textContent;
   const tk=usage?(usage.total_tokens||0):Math.round(chars/3.2);
