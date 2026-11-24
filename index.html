@@ -778,45 +778,41 @@ body.dark .live-meta{color:rgba(226,236,250,.48)}
 /* 玻璃球已移除，树图不再有可视内容——隐藏它，消除中间的大留白。
    DOM 仍保留，ltFly 的点亮编排照常跑，只是不再占用版面。 */
 .live-tree,.live-tree.on{display:none!important}
-/* 高光划过玻璃（白金）：高亮靠对比度——先整体压暗卡面，再让一道白金亮带扫过，
-   亮带前后还各带一圈暗晕。白底上叠白光等于看不见，压暗才是这次的关键。 */
-.vd-dim{position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:3;
-  background:rgba(12,18,34,.32);opacity:0;
-  animation:vdDim 1.55s cubic-bezier(.36,0,.2,1) .1s 1 forwards}
-@keyframes vdDim{0%{opacity:0}14%{opacity:1}76%{opacity:1}100%{opacity:0}}
-body.dark .vd-dim{background:rgba(2,6,16,.42)}
-.vd-sheen{position:absolute;top:-34%;left:-72%;width:56%;height:168%;pointer-events:none;z-index:4;
-  transform:skewX(-19deg);
+/* —— 整页白金高光：进入这一页时，一道柔光从左掠过整张幻灯片，一次即止 ——
+   不压暗背景、不做黑边、不闪进闪出：高光是一道始终存在的光带平移而过，
+   头部微微淡入、尾部淡出，观感是「光照过来又离开」，而不是元素出现又消失。
+   白为主、金为辅：芯接近纯白，两侧是很淡的香槟金，靠 screen 叠在内容之上。 */
+.page-sheen{position:absolute;inset:0;z-index:6;pointer-events:none;overflow:hidden;
+  opacity:0;mix-blend-mode:screen}
+.scene-live.active .page-sheen{animation:pageSheen 2.4s cubic-bezier(.42,0,.24,1) .28s 1}
+.scene-live.active .page-sheen::before{animation:pageSheenBand 2.4s cubic-bezier(.42,0,.24,1) .28s 1}
+.scene-live.active .page-sheen::after{animation:pageSheenBand 2.4s cubic-bezier(.42,0,.24,1) .28s 1}
+.page-sheen::before{content:'';position:absolute;top:-20%;left:-58%;width:42%;height:140%;
+  transform:skewX(-16deg);
   background:linear-gradient(90deg,
-    transparent 0%,
-    rgba(22,26,44,.30) 16%,
-    rgba(255,250,232,.30) 30%,
-    rgba(255,252,242,.94) 44%,
-    #fffdf6 50%,
-    rgba(244,218,160,.78) 56%,
-    rgba(255,250,232,.26) 68%,
-    rgba(22,26,44,.26) 82%,
-    transparent 100%);
-  box-shadow:0 0 38px 8px rgba(255,238,196,.55),0 0 14px 2px rgba(255,250,230,.45);
-  filter:blur(3px);opacity:0;
-  animation:vdSheen 1.55s cubic-bezier(.36,0,.2,1) .1s 1 forwards}
-@keyframes vdSheen{
-  0%{left:-72%;opacity:0}
-  12%{opacity:1}
-  80%{opacity:.92}
-  100%{left:124%;opacity:0}}
-body.dark .vd-sheen{
-  background:linear-gradient(90deg,
-    transparent 0%,
-    rgba(4,8,20,.46) 16%,
-    rgba(255,244,214,.24) 30%,
-    rgba(255,250,236,.88) 44%,
-    #fffdf2 50%,
-    rgba(238,205,138,.70) 56%,
-    rgba(255,244,214,.20) 68%,
-    rgba(4,8,20,.40) 82%,
-    transparent 100%);
-  box-shadow:0 0 42px 10px rgba(255,226,160,.42),0 0 16px 3px rgba(255,245,220,.4)}
+    transparent 0%,rgba(255,252,244,.05) 22%,
+    rgba(255,250,236,.34) 38%,rgba(255,253,247,.72) 48%,
+    #ffffff 52%,rgba(255,247,224,.48) 58%,
+    rgba(246,226,182,.20) 72%,transparent 100%);
+  filter:blur(16px)}
+.page-sheen::after{content:'';position:absolute;top:-10%;left:-58%;width:42%;height:120%;
+  transform:skewX(-16deg);
+  background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.10) 42%,
+    rgba(255,255,255,.62) 51%,rgba(255,248,228,.30) 60%,transparent 100%);
+  filter:blur(3px)}
+@keyframes pageSheen{
+  0%{opacity:0}
+  6%{opacity:1}
+  84%{opacity:1}
+  100%{opacity:0}}
+/* 光带本体：-58% 起步，走到 240% 覆盖整页宽度后离场 */
+@keyframes pageSheenBand{
+  0%{transform:skewX(-16deg) translateX(0)}
+  100%{transform:skewX(-16deg) translateX(240%)}}
+body.dark .page-sheen{opacity:0;mix-blend-mode:screen}
+body.dark .page-sheen::before{filter:blur(18px)}
+body.dark .page-sheen::after{background:linear-gradient(90deg,transparent 0%,
+  rgba(255,255,255,.06) 42%,rgba(255,252,240,.42) 51%,rgba(255,240,205,.20) 60%,transparent 100%)}
 /* 三段式：上方思考 → 中间结果 → 底部建议。分段标签让视线有落点 */
 .vd-sec-k{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;color:var(--faint);
   text-transform:uppercase;padding:14px 18px 0}
@@ -1035,34 +1031,52 @@ body.dark .fly-spin::after{background:rgba(22,34,58,.18)}
 /* —— 四档分类柱状图：模型逐条评级的可量化分布，作为裁决卡内独立一行 ——
    四根玻璃柱（严重/中度/轻度/正常），柱高按各自条数、数字标注真实计数；
    四档共用一条比例轴，一眼看出分布。走正常文档流，不悬浮、不遮挡。 */
-.cf-chart{pointer-events:none;padding:12px 18px 10px;border-bottom:1px solid rgba(8,13,24,.07);
+/* —— 四档「光柱」图：不是实心色块，而是四根会发光的细柱——
+   每根是一条极淡的玻璃导轨 + 从底部升起的光束 + 顶端一颗灯头光点，
+   数字悬在光点上方。像仪表台上的指示灯，精致、有光感、和极简玻璃卡同调。 */
+.cf-chart{pointer-events:none;padding:13px 18px 9px;border-bottom:1px solid rgba(8,13,24,.07);
   opacity:0;transform:translateY(6px)}
 .cf-chart.on{animation:cfIn .5s cubic-bezier(.22,1,.36,1) forwards}
 @keyframes cfIn{to{opacity:1;transform:none}}
-.cf-hd{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px}
+.cf-hd{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:12px}
 .cf-t{font-family:var(--mono);font-size:9px;letter-spacing:.18em;color:var(--faint);text-transform:uppercase}
-.cf-tot{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--dim);font-weight:600}
-.cf-bars{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;height:92px}
-.cf-col{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%}
-.cf-num{font-family:var(--mono);font-size:19px;font-weight:800;color:var(--bc);
+.cf-tot{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:var(--dim);font-weight:600}
+.cf-bars{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;height:104px;
+  padding-top:4px;border-bottom:1px solid rgba(8,13,24,.06)}
+.cf-col{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%}
+/* 悬空数字：颜色取光柱本色，带一圈柔和辉光 */
+.cf-num{font-family:var(--mono);font-size:18px;font-weight:800;color:var(--bc);
   font-variant-numeric:tabular-nums;letter-spacing:-.03em;line-height:1;
-  text-shadow:0 0 14px color-mix(in srgb,var(--bc) 45%,transparent)}
-.cf-track{position:relative;width:100%;max-width:46px;flex:1;min-height:0;border-radius:8px;
-  background:linear-gradient(180deg,rgba(235,243,252,.30),rgba(200,218,238,.28));
-  border:1px solid rgba(160,188,222,.40);
-  box-shadow:inset 0 2px 6px rgba(40,70,120,.09),inset 0 -1px 0 rgba(255,255,255,.7);
-  display:flex;align-items:flex-end;overflow:hidden}
-.cf-fill{position:relative;display:block;width:100%;height:0;border-radius:7px 7px 6px 6px;
-  background:linear-gradient(180deg,rgba(255,255,255,.30) 0%,var(--bc) 16%,var(--bc) 100%);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 1px 0 0 rgba(255,255,255,.45),
-    inset -1px 0 0 rgba(0,0,0,.10),0 -2px 12px -3px var(--bc);
-  -webkit-backdrop-filter:blur(2px) saturate(1.25);backdrop-filter:blur(2px) saturate(1.25)}
-.cf-fill::before{content:'';position:absolute;left:12%;right:12%;top:0;height:2px;border-radius:2px;background:rgba(255,255,255,.95)}
+  text-shadow:0 0 6px rgba(255,255,255,.9),0 0 16px color-mix(in srgb,var(--bc) 55%,transparent);
+  transition:color .3s}
+/* 玻璃导轨：一根极细的竖向轨道，托住光束，不是色块容器 */
+.cf-track{position:relative;width:12px;flex:1;min-height:0;border-radius:999px;
+  background:linear-gradient(180deg,rgba(238,244,252,.35),rgba(206,220,238,.42));
+  box-shadow:inset 0 1px 3px rgba(40,70,120,.10),0 0 0 1px rgba(160,188,222,.16);
+  display:flex;align-items:flex-end;overflow:visible}
+/* 光束：从底部升起，本体半透明、顶端最亮，外圈一层本色辉光 */
+.cf-fill{position:relative;display:block;width:100%;height:0;border-radius:999px;
+  background:linear-gradient(180deg,#fff 0%,var(--bc) 26%,var(--bc) 100%);
+  box-shadow:0 0 10px 1px color-mix(in srgb,var(--bc) 60%,transparent),
+    0 0 22px -2px color-mix(in srgb,var(--bc) 45%,transparent),
+    inset 0 1px 0 rgba(255,255,255,.95)}
+/* 灯头：光束顶端一颗发亮的圆点，静止时也像指示灯亮着 */
+.cf-fill::before{content:'';position:absolute;left:50%;top:-2px;transform:translateX(-50%);
+  width:9px;height:9px;border-radius:50%;
+  background:radial-gradient(circle at 38% 32%,#fff 0%,#fff 34%,var(--bc) 70%,var(--bc) 100%);
+  box-shadow:0 0 8px 2px color-mix(in srgb,var(--bc) 75%,transparent),
+    0 0 18px 4px color-mix(in srgb,var(--bc) 35%,transparent)}
+/* 灯柱根部的一点地面反光 */
+.cf-fill::after{content:'';position:absolute;left:50%;bottom:-3px;transform:translateX(-50%);
+  width:20px;height:5px;border-radius:50%;
+  background:radial-gradient(ellipse,color-mix(in srgb,var(--bc) 40%,transparent) 0%,transparent 70%);
+  filter:blur(2px)}
 .cf-cap{font-family:var(--mono);font-size:9px;letter-spacing:.06em;color:var(--faint);
-  text-transform:uppercase;white-space:nowrap}
-body.dark .cf-chart{border-bottom-color:rgba(232,238,250,.1)}
-body.dark .cf-track{background:linear-gradient(180deg,rgba(120,160,225,.10),rgba(80,120,190,.14));
-  border-color:rgba(150,190,250,.24)}
+  text-transform:uppercase;white-space:nowrap;margin-top:1px}
+body.dark .cf-bars{border-bottom-color:rgba(232,238,250,.08)}
+body.dark .cf-track{background:linear-gradient(180deg,rgba(120,160,225,.10),rgba(80,120,190,.16));
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.3),0 0 0 1px rgba(150,190,250,.14)}
+body.dark .cf-num{text-shadow:0 0 8px rgba(255,255,255,.14),0 0 18px color-mix(in srgb,var(--bc) 65%,transparent)}
 
 /* —— 苹果式呼吸灯：3.6s 一个明暗周期，幅度极克制，像静置设备的电源灯 ——
    只加在「需要引导注意」的两处：裁决条左侧色条、Run 按钮。
@@ -1083,7 +1097,9 @@ body.dark .cf-track{background:linear-gradient(180deg,rgba(120,160,225,.10),rgba
 @media (prefers-reduced-motion:reduce){
   .reason-wrap::before,.reason-wrap::after,
   .reason-wrap.beam::before,.reason-wrap.beam::after,
-  .live-verdict.on.breathe::before,#liveRun.breathe,.vd-dim,.vd-sheen{animation:none;opacity:0}
+  .live-verdict.on.breathe::before,#liveRun.breathe,
+  .page-sheen,.scene-live.active .page-sheen,
+  .scene-live.active .page-sheen::before,.scene-live.active .page-sheen::after{animation:none;opacity:0}
 }
 /* 五色色卡：红敏感 · 橙警告 · 黄预警 · 绿健康 · 蓝正常 */
 .live-ledger{margin-top:14px;padding-top:12px;border-top:1px solid var(--hair2);font-family:var(--mono);
@@ -2805,6 +2821,7 @@ body.dark .choice-btn.picked,body.dark .predict-btn.picked{
 
 <!-- 26 · CONCLUSION -->
 <section class="scene scene-live" data-ch="5" data-speaker="Zihan Wang">
+  <div class="page-sheen" aria-hidden="true"></div>
   <div class="wrap">
     <div class="kicker reveal-item d1" data-en="The same mechanism · for real" data-zh="同一套机制 · 真的跑一次">The same mechanism · for real</div>
     <h2 class="title reveal-item d2" data-en="Ask it anything. Watch it think." data-zh="随便问它。看着它想。">Ask it anything. Watch it think.</h2>
@@ -4642,10 +4659,10 @@ function ltFly(onDone){
   const hasLv=!!lv;
   const yes=hasLv?vdRule(lv):!!(LIVE.verdict&&LIVE.verdict.adopt);
   const cols=[
-    {k:'severe',  c:'#e5484d', en:'severe',   zh:'严重'},
-    {k:'moderate',c:'#ff8a3d', en:'moderate', zh:'中度'},
-    {k:'mild',    c:'#f5bf17', en:'mild',     zh:'轻度'},
-    {k:'ok',      c:'#1fc48a', en:'ok',       zh:'正常'}
+    {k:'severe',  c:'#f0555a', en:'severe',   zh:'严重'},
+    {k:'moderate',c:'#ff9d4d', en:'moderate', zh:'中度'},
+    {k:'mild',    c:'#f2c230', en:'mild',     zh:'轻度'},
+    {k:'ok',      c:'#22c99d', en:'ok',       zh:'正常'}
   ];
   const counts=cols.map(o=>hasLv?lv[o.k]:0);
   const total=counts.reduce((a,b)=>a+b,0);
@@ -4894,12 +4911,6 @@ function liveDone(){
     if(!vb)return;
     vb.classList.remove('vd-hold');
     vb.classList.add('breathe');       /* 结果就绪后，左侧色条开始苹果式缓慢呼吸 */
-    /* 高光划过玻璃（白金）：先压暗卡面，再让一道白金亮带从左掠到右。
-       每次运行都重新插入节点，保证动画从头播（class 复用不会重启动画）。 */
-    vb.querySelectorAll('.vd-dim,.vd-sheen').forEach(n=>n.remove());
-    const dim=document.createElement('span');dim.className='vd-dim';dim.setAttribute('aria-hidden','true');
-    const sheen=document.createElement('span');sheen.className='vd-sheen';sheen.setAttribute('aria-hidden','true');
-    vb.appendChild(dim);vb.appendChild(sheen);
     focusStage('verdict');
     try{fitLiveStage()}catch(e){}
   };
