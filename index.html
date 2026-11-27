@@ -823,16 +823,16 @@ body.dark .live-meta{color:rgba(226,236,250,.48)}
 .page-sheen::before{content:'';position:absolute;top:-20%;left:-100%;width:100%;height:140%;
   transform:skewX(-12deg);
   background:linear-gradient(90deg,
-    transparent 0%,rgba(235,243,255,.08) 12%,
-    rgba(255,251,238,.24) 30%,rgba(255,253,247,.74) 45%,
-    rgba(255,255,255,.94) 52%,rgba(255,252,242,.50) 60%,
-    rgba(238,245,255,.10) 82%,transparent 100%);
+    transparent 0%,rgba(240,246,255,.10) 12%,
+    rgba(255,255,255,.36) 30%,rgba(255,255,255,.82) 45%,
+    rgba(255,255,255,.98) 52%,rgba(255,255,255,.60) 60%,
+    rgba(240,247,255,.12) 82%,transparent 100%);
   filter:blur(26px)}
 /* 亮芯：72% 宽，跟着宽光幕扫过，白芯 + 淡金边，给一个可读但不刺眼的高光焦点 */
 .page-sheen::after{content:'';position:absolute;top:-10%;left:-72%;width:72%;height:120%;
   transform:skewX(-12deg);
-  background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.24) 42%,
-    rgba(255,255,255,.84) 50%,rgba(255,252,244,.20) 58%,transparent 100%);
+  background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.30) 42%,
+    rgba(255,255,255,.94) 50%,rgba(255,255,255,.26) 58%,transparent 100%);
   filter:blur(5px)}
 @keyframes pageSheen{
   0%{opacity:0}
@@ -850,7 +850,7 @@ body.dark .live-meta{color:rgba(226,236,250,.48)}
 body.dark .page-sheen{mix-blend-mode:screen}
 body.dark .page-sheen::before{filter:blur(28px)}
 body.dark .page-sheen::after{background:linear-gradient(90deg,transparent 0%,
-  rgba(255,255,255,.18) 42%,rgba(255,255,255,.72) 50%,rgba(255,248,230,.18) 58%,transparent 100%)}
+  rgba(255,255,255,.22) 42%,rgba(255,255,255,.82) 50%,rgba(255,255,255,.22) 58%,transparent 100%)}
 /* 三段式：上方思考 → 中间结果 → 底部建议。分段标签让视线有落点 */
 .vd-sec-k{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;color:var(--faint);
   text-transform:uppercase;padding:14px 18px 0}
